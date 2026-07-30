@@ -23,11 +23,14 @@ Guide paths below are relative to the develop skill folder, which is the parent 
 Read, in this order, and no more than this:
 
 1. **This task's entry in `build-plan.md`**, with its UI and Logic bullets, and the **Core Principle** at the top of the file, which sets the bar for what "working" means here.
-2. **`architecture.md`**, the parts this task touches: the Stack table, the folder structure, the System Boundaries, the data flow, the schema, and the Invariants.
+2. **`architecture.md`**, the parts this task touches: the Stack table, the folder structure, the System Boundaries, the data flow, the schema, the Invariants, and **the Value Sourcing table**. That table names where every value comes from, and it is what the input coverage test checks against.
 3. **`code-standards.md`**, the whole file. It is the convention set, and it is short by design.
 4. **`project-overview.md`**, the Core User Flow steps for any page this task serves. That is the contract `/check verify` will hold the result against.
 5. **`library-docs.md`**, only for a library this task actually uses. Skip the rest.
-6. **`design.md`** and **`ui-registry.md`**, only on the UI track. `design.md` is the art direction, and it is not optional reading before building a surface.
+6. **`tooling.md`**, the Local Data Lifecycle section, whenever this task touches the database. It says whether local data resets between tasks or persists, and the exact reset command.
+7. **`design.md`** and **`ui-registry.md`**, only on the UI track. `design.md` is the art direction, and it is not optional reading before building a surface.
+
+**Never reset the local database unless Local Data Lifecycle says to.** Someone else's work in progress may be sitting in it, and there is no undo. Where that section says data persists, work with what is there.
 
 **Precedence on a conflict.** `architecture.md` decides structure and invariants. `code-standards.md` decides how code is written. Where they genuinely conflict, say so and stop rather than picking silently, because one of the two documents is wrong and `/architect` needs to fix it.
 

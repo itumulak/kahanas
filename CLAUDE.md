@@ -7,9 +7,13 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | Skill | Owns | Answers |
 | --- | --- | --- |
 | `/scope` | `project-overview.md` | What the product is |
-| `/architect` | `architecture.md`, `tooling.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, plus the starting state of `progress-tracker.md` and `ui-registry.md` | How it gets built |
+| `/architect` | `architecture.md`, `tooling.md`, `design.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, plus the starting state of `progress-tracker.md` and `ui-registry.md` | How it gets built |
 | `/develop` | the code, and every update to `progress-tracker.md` and `ui-registry.md` | Builds it |
-| `/check` | `.konteksto/reviews/` | Confirms it actually works |
+| `/check` | `.konteksto/reviews/`, plus one Notes line in `progress-tracker.md` on a verify pass | Confirms it actually works |
+
+Nine documents in all, and `design.md` is the only optional one: it is skipped entirely for a backend with no `app/`.
+
+**Where a document has two writers, both say so.** `progress-tracker.md` is created by `/architect`, updated by `/develop` on every task, and carries one Notes line written only by `/check verify`. Each of those three files states the rule from its own side. An unstated second writer is how this system rots.
 
 One rule holds the split together: **`/scope` owns the what and never names a tool. `/architect` owns the how and makes every tool call.**
 

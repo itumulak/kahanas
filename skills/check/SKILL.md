@@ -25,7 +25,7 @@ The gate between a task being built and a task being trusted. It confirms soundn
 | Skill | Owns | Answers |
 | --- | --- | --- |
 | `/scope` | `project-overview.md` | What the product is |
-| `/architect` | the design documents | How it gets built |
+| `/architect` | the six design documents, plus the starting state of `progress-tracker.md` and `ui-registry.md` | How it gets built |
 | `/develop` | the code, `progress-tracker.md`, `ui-registry.md` | Builds it |
 | `/check` | `.konteksto/reviews/` | Confirms it actually works |
 

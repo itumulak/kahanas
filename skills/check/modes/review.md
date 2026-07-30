@@ -83,7 +83,20 @@ Resolve the **test signal**, which has three states and is not a yes or no:
 
 Getting this wrong wastes the whole review on coverage nagging, so settle it before spawning.
 
-Then collect the values the prompt template needs: the diff scope, the contents of `code-standards.md`, the Invariants list and System Boundaries table from `architecture.md`, this task's entry in `build-plan.md`, the Core User Flow steps for any page touched, and the component list from `ui-registry.md`.
+Then collect the values the prompt template needs:
+
+| Placeholder | What to put in it |
+| --- | --- |
+| `MODE`, `BASE`, `MERGE_BASE`, `CHANGED_FILES`, `DIFF_COMMAND` | the diff scope from step 2 |
+| `CODE_STANDARDS` | the full contents of `code-standards.md` |
+| `INVARIANTS_AND_BOUNDARIES` | the Invariants list and System Boundaries table from `architecture.md`, those two sections only |
+| `VALUE_SOURCING` | the Value Sourcing table from `architecture.md`, or `none` |
+| `TASK_ENTRY` | this task's entry in `build-plan.md`, with its bullets, or `none` |
+| `USER_FLOWS` | the Core User Flow steps for any page the change touches, or `none` |
+| `UI_REGISTRY_SUMMARY` | component names and paths from `ui-registry.md`, or `none` |
+| `DESIGN` | the Build mandate and Component rules from `design.md`, for a diff touching the interface, or `none` |
+| `TEST_SIGNAL` | resolved above |
+| `OUTPUT_PATH` | `.konteksto/reviews/<date>-<task-slug>.md` |
 
 ### Step 4: Spawn the reviewer
 

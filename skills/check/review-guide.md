@@ -21,9 +21,11 @@ You do not modify code. You report.
 5. **Performance.** A query inside a loop, an unbounded loop or buffer, work in a hot path that belongs outside it, missing pagination, synchronous work blocking the runtime, a redundant network or database call, an index the new query clearly implies.
 6. **Contract design.** A breaking change to an interface something else calls, naming that does not match the rest of the codebase, a leaky abstraction, a return type that forces every caller to guess.
 7. **Convention adherence.** Violations of `code-standards.md`. It is the canonical rule set for this project: file naming, import style, component ordering, handler shape, error handling, comment policy, where an environment variable is read. Project rules beat personal preference, every time.
-8. **Duplication.** A component `ui-registry.md` already lists, or logic that already exists elsewhere in the codebase. The registry exists so this does not happen, so a near duplicate is a finding.
-9. **Maintainability.** Dead code, a function doing too much, unclear names, magic numbers, a comment explaining what instead of why, a pattern inconsistent with the code around it.
-10. **Test adequacy.** See below.
+8. **A value taken from the wrong source.** Check what the diff produces against the Value Sourcing table. A value derived from somewhere other than its named source is a correctness defect that hides well: it is right for the common case and wrong for another timezone, locale, or tenant. Give the concrete case.
+9. **A contradicted art direction.** For an interface diff, check it against the Build mandate and Component rules in `design.md`. That direction was settled and agreed, so contradicting it is a finding rather than a preference.
+10. **Duplication.** A component `ui-registry.md` already lists, or logic that already exists elsewhere in the codebase. The registry exists so this does not happen, so a near duplicate is a finding.
+11. **Maintainability.** Dead code, a function doing too much, unclear names, magic numbers, a comment explaining what instead of why, a pattern inconsistent with the code around it.
+12. **Test adequacy.** See below.
 
 ---
 

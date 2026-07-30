@@ -48,6 +48,8 @@ INVARIANTS_AND_BOUNDARIES
 - **Task**: TASK_ENTRY (the task's entry in `build-plan.md`, with its UI and Logic bullets, or "none" for an unplanned change)
 - **Flows it must satisfy**: USER_FLOWS (the Core User Flow steps from `project-overview.md` for any page this change touches, or "none")
 - **Existing components**: UI_REGISTRY_SUMMARY (component names and paths from `ui-registry.md`, so you can spot a near duplicate, or "none")
+- **Value sourcing**: VALUE_SOURCING (the Value Sourcing table from `architecture.md`, naming where each value comes from, or "none")
+- **Art direction**: DESIGN (the Build mandate and Component rules from `design.md`, for a diff touching the interface, or "none")
 - **Test signal**: TEST_SIGNAL (`configured` means weigh missing coverage as a finding · `none-by-design` means the project gates on the type checker plus `/check verify`, so raise no missing test findings at all · `none-yet` means note the gap once)
 
 ## Where to write findings
@@ -63,7 +65,9 @@ OUTPUT_PATH (for example `.konteksto/reviews/2026-07-30-01-user-login.md`. Creat
 3. Check the change against `CODE_STANDARDS`, then against `INVARIANTS_AND_BOUNDARIES`. A violation of either is a real finding, not a preference.
 4. Check the change against `TASK_ENTRY`. A bullet the task promised with no matching code is a missing surface, and it is a finding even when nothing is broken.
 5. Check `UI_REGISTRY_SUMMARY` before judging any new component. A component that duplicates a registered one is a finding.
-6. Apply the test signal rule exactly. When it is `none-by-design`, skip test coverage findings entirely rather than mentioning them in passing.
-7. Evaluate against every category in the guide. Give each finding a severity. Reach one overall verdict.
-8. Write the findings file at OUTPUT_PATH in the guide's format.
-9. Return the compact summary block from the guide, word for word, with no extra prose. Do not paste the diff or the whole findings file back. Summarize.
+6. Check every value the diff produces against `VALUE_SOURCING`. Code that derives a value from somewhere other than its named source is a correctness finding, and usually a quiet one: it looks right for the common case and breaks for another timezone, locale, or tenant.
+7. Check an interface diff against `DESIGN`. A surface contradicting the recorded Build mandate or Component rules is a real finding, not a matter of taste, because the direction was already settled and agreed.
+8. Apply the test signal rule exactly. When it is `none-by-design`, skip test coverage findings entirely rather than mentioning them in passing.
+9. Evaluate against every category in the guide. Give each finding a severity. Reach one overall verdict.
+10. Write the findings file at OUTPUT_PATH in the guide's format.
+11. Return the compact summary block from the guide, word for word, with no extra prose. Do not paste the diff or the whole findings file back. Summarize.

@@ -116,7 +116,7 @@ Which layers apply is your judgment from the platform and the product. A web app
 
 Per layer: present the real current options, mark your suggested pick with a one line why, and let the user choose. **Prefer reuse of what the project already runs.** Skip any layer the existing code already settles, and do not ask again about something decided.
 
-Where the stack walk settles a **new tool**, read `internal/tool-discovery.md` and follow it. Skip that file entirely when no new tool was chosen.
+**Note every new tool the walk settles, but do not go looking for skills or MCP servers yet.** Discovery runs later, at `SKILL.md` step 6, after the brownfield audit. That ordering is deliberate: the audit can replace a package, and searching now would hunt for tooling around a library you are about to drop. Carry the list forward.
 
 **Cap any research.** Where you check the current landscape, run it once, in a read only subagent on a cheap model. Official documentation and registries first. At most five searches and eight pages, returning the options, freshness notes, and links, and nothing else. No web access means proceeding from knowledge and flagging the staleness plainly.
 
@@ -150,7 +150,7 @@ One case at a time: concurrency, retries, timeouts, partial failure, and the emp
 
 ### The page design stage, when there is a frontend
 
-Insert this between Stage A and Stage D. It is `SKILL.md` step 3, and it walks the design source, the page composition, the component inventory, and the asset strategy, one question at a time.
+Insert this between Stage A and Stage D. `SKILL.md` step 3 spells it out in full, and it walks the design source, the page composition, the component inventory, and the asset strategy, one question at a time. It is a stage of this conversation, not a separate phase that happens afterwards.
 
 **When the visual side is not specified, you extract the page contents from the user. Never invent them.** What goes on a page is something only they know.
 

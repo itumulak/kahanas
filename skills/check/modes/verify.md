@@ -50,12 +50,17 @@ Relay which surfaces were diffed, which matched, and the exact diff for any that
 
 ### Step 0b: Load the contract
 
-The contract is spread across two documents. Load both before scoping.
+The contract is spread across three documents. Load all of them before scoping.
 
 - **`project-overview.md`**, the Core User Flow section for every page this task touches. Those steps are the real acceptance criteria, because they describe what a person actually does. Give each one a number as you list it, so the verdict can refer to it.
 - **`build-plan.md`**, this task's entry with its UI and Logic bullets. Every bullet names a surface that is supposed to exist now.
+- **`architecture.md`**, the Value Sourcing table, for every value this task produces.
 
-You now hold two lists: the flow steps to confirm, and the surfaces to confirm exist. Carry both into every later step.
+**Add one behavior per Value Sourcing row**, and exercise the edge that breaks when the source is wrong. Vary the input the source depends on and check the output changes correctly: a different timezone, a different locale or currency, a different tenant.
+
+This is the layer that catches a mis sourced value, and nothing else does. A value derived from the wrong source produces a perfectly plausible result for the common case, passes every type check, and is only wrong for the user in another timezone or another tenant. `/develop` checks at design time that a source is named. This checks that the named source is the right one.
+
+You now hold three lists: the flow steps to confirm, the surfaces to confirm exist, and the values to confirm are sourced correctly. Carry all three into every later step.
 
 No task and no matching flow, for example a small fix outside the plan? Verify against observed behavior alone, and say in the report that there was no contract to check against.
 

@@ -1,7 +1,7 @@
 ---
 name: architect
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion, WebSearch, WebFetch
-description: "Run /architect after /scope to design how the product gets built. Weighs options, settles the stack, finds the MCP servers and skills that fit it, then writes architecture, tooling, code standards, library docs, build plan, progress tracker, and ui registry into .konteksto/."
+description: "Run /architect after /scope to design how the product gets built. Weighs options, settles the stack and the design direction, audits an existing codebase for outdated or vulnerable packages, finds the MCP servers and skills that fit, then writes architecture, tooling, design, code standards, library docs, build plan, progress tracker, and ui registry into .konteksto/."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -86,6 +86,23 @@ The full mechanics, including the free text slot, generating options fresh rathe
 It holds the already built check, the framing, the dimension enumeration, the question mechanics, the six stages, and the completeness gate that decides when the questioning is finished. Do not open the interview, generate questions, or write any document until you have read it.
 
 Steps 2 through 6 here are the outline. That file is the protocol.
+
+**How the two line up.** Everything from here to step 6 is one continuous conversation, not five separate phases with pauses between them:
+
+| Conversation stage | Where it is spelled out |
+| --- | --- |
+| Framing, and the already built check | `internal/design-conversation.md` |
+| Stage A, requirements | `internal/design-conversation.md` |
+| Stage B, the data model | `internal/design-conversation.md` |
+| Stage C, the stack walk | step 2 below |
+| The page design stage | step 3 below |
+| Stage D, interfaces and value sourcing | `internal/design-conversation.md` |
+| Stages E and F, security and edge cases | `internal/design-conversation.md` |
+| The brownfield audit | step 4 below |
+| Containers and data lifecycle | step 5 below |
+| Tooling discovery | step 6 below |
+
+Nothing gets written until the completeness gate in that file passes.
 
 #### Settle the stack
 
@@ -198,6 +215,8 @@ Sort every dependency into one of four groups, and handle each differently:
 Never swap a library silently as part of another change. Every replacement is its own task in `build-plan.md`, with the reason recorded in `library-docs.md`.
 
 **Record everything.** Updates and replacements become tasks in `build-plan.md`, and `library-docs.md` carries the version notes and the reasons. A finding that is only mentioned in conversation is a finding that gets lost.
+
+Both of those files are written later, in steps 7 and 8. Hold the findings until then rather than writing early, and carry them forward as a list.
 
 ### Step 5: Local development containers
 

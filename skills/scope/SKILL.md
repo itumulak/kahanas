@@ -23,8 +23,9 @@ It does not answer how. Stack, structure, conventions, tooling, and the build or
 | Skill | Owns | Answers |
 | --- | --- | --- |
 | `/scope` | `project-overview.md` | What the product is |
-| `/architect` | `architecture.md`, `tooling.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, `progress-tracker.md`, `ui-registry.md` | How it gets built |
-| `/develop` | the code | Builds it |
+| `/architect` | `architecture.md`, `tooling.md`, `design.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, `progress-tracker.md`, `ui-registry.md` | How it gets built |
+| `/develop` | the code, `progress-tracker.md`, `ui-registry.md` | Builds it |
+| `/check` | `.konteksto/reviews/` | Confirms it works |
 
 The split follows one rule. **`/scope` owns the what and stays tool agnostic. `/architect` owns the how and makes every tool call.**
 

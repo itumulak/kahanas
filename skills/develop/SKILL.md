@@ -24,7 +24,7 @@ It decides nothing load bearing. That is what the gate in step 1 is for.
 | --- | --- | --- |
 | `/scope` | `project-overview.md` | What the product is |
 | `/architect` | the six design documents, plus the starting state of `progress-tracker.md` and `ui-registry.md` | How it gets built |
-| `/develop` | the code, and every update to `progress-tracker.md` and `ui-registry.md` | Builds it |
+| `/develop` | the code, and every update to `progress-tracker.md` and `ui-registry.md` except the one below | Builds it |
 | `/check` | `.konteksto/reviews/` | Confirms it actually works |
 
 ## Artifact ownership
@@ -34,6 +34,8 @@ It decides nothing load bearing. That is what the gate in step 1 is for.
 - Application code, in the folders `project-overview.md`'s Project Shape section fixed. Server code in `backend/`, client code in `app/`, unless that section records a custom layout, in which case follow the real one.
 - `Dockerfile.dev` per half, when the compose file refers to one that does not exist yet.
 - `.konteksto/progress-tracker.md`, on every task. This is what tells the next session where things stand, so it is updated as part of finishing a task, never batched up for later.
+
+  **One line in it is not yours.** `/check verify` writes a Notes line when it proves a task works. Leave that line alone, and never write it yourself, because it is the record that something was actually exercised rather than merely built.
 - `.konteksto/ui-registry.md`, one section per reusable component, at the moment the component is built. `/architect` creates the file empty, and every entry in it comes from here.
 
 **Never writes:**
@@ -50,6 +52,8 @@ It decides nothing load bearing. That is what the gate in step 1 is for.
 **Never mark a task done that you did not see work.** Ticking a box is a claim. Back it with a command you ran and its output.
 
 **Never install a package the design did not name.** A dependency absent from `code-standards.md`'s approved list is a change to the design. Stop and ask.
+
+**Never reset the local database on your own initiative.** `tooling.md`'s Local Data Lifecycle section decides that, and someone else's work in progress may be sitting in it.
 
 **Never verify your own work.** Running the app and confirming it matches the flow belongs to `/check verify`, deliberately, because the thing that wrote the code is the worst judge of whether it does what the product needed.
 
@@ -95,7 +99,9 @@ Warnings, not blocks, but say them out loud.
 
 **Do not judge this by feel.** Asking yourself "am I inventing something?" fails, because a build in progress rationalizes a real decision as ordinary wiring and waves it through. Use a mechanical test instead:
 
-> **List every value this task must produce, store, or display. For each one, does an existing document name where it comes from? An input, a database column, a derivation from a named value, or a decision already recorded? Any required value with no named source is an owed decision.**
+> **List every value this task must produce, store, or display. For each one, check the Value Sourcing table in `architecture.md` first, then the rest of the documents. Does anything name where it comes from? An input, a database column, a derivation from a named value, or a decision already recorded? Any required value with no named source is an owed decision.**
+
+The Value Sourcing table exists for exactly this test. `/architect` filled it by tracing every value the flows need, so a row missing there is the gap this test is meant to catch.
 
 A decision is also owed when you would otherwise invent:
 
@@ -111,11 +117,12 @@ When unsure, treat it as owed. Building an unnoticed decision is the expensive f
 **Where to look, in this order.** Read narrowly.
 
 1. This task's entry in `build-plan.md`.
-2. `architecture.md`, for the stack, boundaries, schema, and invariants.
+2. `architecture.md`, for the stack, boundaries, schema, invariants, and the Value Sourcing table.
 3. `code-standards.md`.
 4. `library-docs.md`, only for a library this task uses.
-5. `design.md` and `ui-registry.md`, only when the task has UI bullets.
-6. `progress-tracker.md`'s Decisions Made During Build, for anything an earlier task already settled.
+5. `tooling.md`, the Local Data Lifecycle section, when the task touches the database.
+6. `design.md` and `ui-registry.md`, only when the task has UI bullets.
+7. `progress-tracker.md`'s Decisions Made During Build, for anything an earlier task already settled.
 
 **Nothing owed.** Read `flow/build.md` and follow it.
 
