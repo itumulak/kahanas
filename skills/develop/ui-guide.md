@@ -29,16 +29,21 @@ This is committed here, at the top, before the token and accessibility rules, pr
 
 ## Where the design comes from
 
-This workflow keeps its visual decisions in two places, and neither is a separate design document:
+Three documents, in this order:
 
-1. **`code-standards.md`**, the Component Structure section, which fixes the internal ordering of a component, and the token discipline the project expects.
-2. **`ui-registry.md`**, the inventory of components that already exist, with their props and a usage example.
+1. **`design.md`**, the art direction. Character, the build mandate, composition patterns, component rules, the states, and a pointer to where the real tokens live. **This is the source of truth for how the product looks**, and `/architect` settled it before any of this was built.
+2. **`code-standards.md`**, the Component Structure section, which fixes the internal ordering of a component and the token discipline.
+3. **`ui-registry.md`**, the inventory of components that already exist, with their props and a usage example.
+
+**Read `design.md` first, and build within it.** It is not a suggestion, and a page that ignores it is how a product ends up looking like four different products. Where it names a composition pattern, use that pattern. Where it names a component rule, follow it. Where its Source section names a starter template, stay consistent with what that template established.
+
+**The token values are not in `design.md`.** It points at the CSS or styling config that holds them. Read them there, and never copy a value into a component.
 
 **Read `ui-registry.md` before building any component.** Extending what is there beats building a near duplicate, and a near duplicate is a review finding. Register anything new the moment you build it.
 
-When the task gives you a screenshot or an image to work from, match it faithfully and do not embellish beyond it. Derive the responsive and accessible behavior a single image cannot show.
+**No `design.md` at all?** That means either a backend only project, in which case you should not be on this track, or that `/architect` has not run yet. Stop and say so, rather than inventing a direction that the next session will contradict.
 
-When nothing visual is given at all, design to the bar above, consistently with whatever is already shipped in `app/`.
+When the task hands you a screenshot to work from, match it faithfully and do not embellish beyond it. Derive the responsive and accessible behavior a single image cannot show, from `design.md`'s Responsive section.
 
 ## How the UI fits the task
 

@@ -23,7 +23,7 @@ It decides nothing load bearing. That is what the gate in step 1 is for.
 | Skill | Owns | Answers |
 | --- | --- | --- |
 | `/scope` | `project-overview.md` | What the product is |
-| `/architect` | the five design documents, plus the starting state of `progress-tracker.md` and `ui-registry.md` | How it gets built |
+| `/architect` | the six design documents, plus the starting state of `progress-tracker.md` and `ui-registry.md` | How it gets built |
 | `/develop` | the code, and every update to `progress-tracker.md` and `ui-registry.md` | Builds it |
 | `/check` | `.konteksto/reviews/` | Confirms it actually works |
 
@@ -38,7 +38,7 @@ It decides nothing load bearing. That is what the gate in step 1 is for.
 
 **Never writes:**
 
-- `project-overview.md`, `architecture.md`, `code-standards.md`, `library-docs.md`, `tooling.md`, `build-plan.md`. If the build proves one of them wrong, stop and say so. Changing the design mid build is `/architect`'s call, not something to fix quietly in passing.
+- `project-overview.md`, `architecture.md`, `code-standards.md`, `library-docs.md`, `tooling.md`, `design.md`, `build-plan.md`. If the build proves one of them wrong, stop and say so. Changing the design mid build is `/architect`'s call, not something to fix quietly in passing.
 - `docker-compose.yml`. `/architect` owns it. A missing service is a reason to stop and report, not to add one.
 
 ## Guardrails
@@ -101,7 +101,7 @@ A decision is also owed when you would otherwise invent:
 
 - A library, provider, or integration `code-standards.md` does not list.
 - A data model or a column `architecture.md`'s schema does not have.
-- A whole page's composition, when `project-overview.md` gives the flow but nothing says what the page is made of.
+- A whole page's composition, when `project-overview.md` gives the flow and `design.md` does not settle the pattern.
 - A behavior a flow step constrains but no document defines.
 
 **What counts as a local detail instead.** Only a choice among options the documents already permit: a variable name, a loop shape, which existing helper to call. **The moment a choice fixes where a value comes from, or changes a behavior the flows constrain, it is load bearing however small it looks.**
@@ -114,7 +114,7 @@ When unsure, treat it as owed. Building an unnoticed decision is the expensive f
 2. `architecture.md`, for the stack, boundaries, schema, and invariants.
 3. `code-standards.md`.
 4. `library-docs.md`, only for a library this task uses.
-5. `ui-registry.md`, only when the task has UI bullets.
+5. `design.md` and `ui-registry.md`, only when the task has UI bullets.
 6. `progress-tracker.md`'s Decisions Made During Build, for anything an earlier task already settled.
 
 **Nothing owed.** Read `flow/build.md` and follow it.

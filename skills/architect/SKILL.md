@@ -12,13 +12,13 @@ Write everything this skill produces, files and messages alike, in plain simple 
 
 ## What this skill does
 
-Answers **how the product gets built**, given a `project-overview.md` that already says what it is. Settles every load bearing technical decision, then records the result across seven documents in `.konteksto/`.
+Answers **how the product gets built**, given a `project-overview.md` that already says what it is. Settles every load bearing technical decision, then records the result across eight documents in `.konteksto/`.
 
 `/scope` owns the what and never names a tool. This skill makes every tool call there is.
 
 ## Artifact ownership
 
-Seven documents, all created and updated by this skill only, filled from the matching template in `templates/`.
+Eight documents, all created and updated by this skill only, filled from the matching template in `templates/`.
 
 **Stage 1, the foundation.** What the system is made of.
 
@@ -26,16 +26,17 @@ Seven documents, all created and updated by this skill only, filled from the mat
 | --- | --- | --- |
 | 1 | `architecture.md` | the pages and flows in `project-overview.md` |
 | 2 | `tooling.md` | the Stack table in `architecture.md` |
-| 3 | `code-standards.md` | the Stack table in `architecture.md` |
-| 4 | `library-docs.md` | the approved dependency list in `code-standards.md` |
+| 3 | `design.md` | the client framework, and the flows in `project-overview.md`. **Frontend only**, skip it entirely when there is no `app/` |
+| 4 | `code-standards.md` | the Stack table, and where `design.md` says the tokens live |
+| 5 | `library-docs.md` | the approved dependency list in `code-standards.md` |
 
-**Stage 2, the plan.** Turns the foundation into an ordered build. Starts only once all four Stage 1 documents are approved.
+**Stage 2, the plan.** Turns the foundation into an ordered build. Starts only once every Stage 1 document is approved.
 
 | Order | Document | Depends on |
 | --- | --- | --- |
-| 5 | `build-plan.md` | Features in Scope, plus the architecture |
-| 6 | `progress-tracker.md` | the exact phases and tasks in `build-plan.md` |
-| 7 | `ui-registry.md` | the component rules in `code-standards.md` |
+| 6 | `build-plan.md` | Features in Scope, plus the architecture |
+| 7 | `progress-tracker.md` | the exact phases and tasks in `build-plan.md` |
+| 8 | `ui-registry.md` | the component rules in `code-standards.md` and `design.md` |
 
 Never touch `project-overview.md`. It is `/scope`'s file. If the design work proves it wrong, say so and ask the user to run `/scope` again rather than editing it yourself.
 
@@ -47,7 +48,7 @@ Read a template from `templates/`, write the filled copy to `.konteksto/<same-fi
 
 Do NOT write application code, scaffold a project, or install a package the product itself ships. This skill produces documents and settles decisions. Building starts as a separate, later request.
 
-Two narrow exceptions. Agent tooling found in step 4, meaning skills and MCP servers, may be set up during this skill, but only per the consent rules in that step, and only for a tool the user approved by name. And `docker-compose.yml` plus `.env.example` are written in step 3, because they are the structure the build sits in rather than the product itself.
+Two narrow exceptions. Agent tooling found in step 6, meaning skills and MCP servers, may be set up during this skill, but only per the consent rules in that step, and only for a tool the user approved by name. And `docker-compose.yml` plus `.env.example` are written in step 5, because they are the structure the build sits in rather than the product itself.
 
 Do NOT fill a document with a guess. Every value is read from the existing codebase, stated by the user, found at a source you actually fetched, or picked by the user from options you presented.
 
@@ -61,9 +62,13 @@ Do NOT let a document look simple enough to skip. A one page tool still needs it
 
 Recommendations build on what the project already uses. If the codebase is already on a platform, prefer that platform's own auth and storage over adding an external tool. Reuse beats sprawl.
 
+**That is the intent, not the procedure.** How to actually run the questioning, stage by stage, what to grill on, and what to infer rather than ask, lives in `internal/design-conversation.md`. The Execution section below makes you read it in full before you ask a single design question.
+
 ## Decision panels
 
 Every user facing choice is an options panel: 2 to 4 concrete options real to this project, exactly one marked as recommended with a one line why. Use `AskUserQuestion` where available, otherwise the same options as plain text. Ask in rounds of up to 4 related questions.
+
+The full mechanics, including the free text slot, generating options fresh rather than from a canned list, and never bundling a whole decision into one panel, are in `internal/design-conversation.md`.
 
 ## Execution
 
@@ -72,9 +77,17 @@ Every user facing choice is an options panel: 2 to 4 concrete options real to th
 - **Read `.konteksto/project-overview.md` in full.** If it does not exist, stop and tell the user to run `/scope` first. Everything here depends on it.
 - **Read what `/scope` handed you**, if anything: whether a codebase exists, the stack it showed, and any tool or constraint the user named during scoping. Do not survey the same ground again.
 - **If a codebase exists and you were not handed a survey**, read it now: the directory tree, every package manifest, the lint and build config, the entry points. The stack that is already there is a decision already made. Record it, do not re litigate it.
-- **Check `.konteksto/` for existing documents.** Report which of the seven are present. Never overwrite one silently; ask whether to update in place or start over.
+- **Check `.konteksto/` for existing documents.** Report which of the eight are present. Never overwrite one silently; ask whether to update in place or start over.
 
-### Step 2: Settle the stack
+### Step 2: Run the design conversation
+
+**This is a hard gate. Read `internal/design-conversation.md` in full before you ask the user a single design question, and follow it.**
+
+It holds the already built check, the framing, the dimension enumeration, the question mechanics, the six stages, and the completeness gate that decides when the questioning is finished. Do not open the interview, generate questions, or write any document until you have read it.
+
+Steps 2 through 6 here are the outline. That file is the protocol.
+
+#### Settle the stack
 
 Read the Project Shape section of `project-overview.md` first. It says whether the product is frontend only, backend only, or both, and it fixes the folder layout. Ask stack questions only for the halves that exist. Never ask which database a frontend only project uses.
 
@@ -90,7 +103,103 @@ Record each pick and its reason in the "Why these choices" list in `architecture
 
 The stack is settled when every layer of every existing half has a named tool. Do not start step 3 before that.
 
-### Step 3: Local development containers
+Stages A, B, D, E, and F of the design conversation happen here too, not only the stack walk. The data model is elicited and confirmed, and the value sourcing loop is closed. Both are in `internal/design-conversation.md`, and skipping either produces a document set `/develop` cannot build from.
+
+### Step 3: The design direction
+
+**Skip this whole step when there is no `app/`**, meaning Project Shape said backend only. A backend has no art direction, and `design.md` is not written at all.
+
+The client framework is now known, which matters, because a starter template is framework specific.
+
+#### Ask whether a design already exists
+
+> "Do you have a design ready for this, or should I recommend a starting point?"
+
+1. **I have a design**: a mockup, a Figma file, a screenshot, or a live site to match. Ask which, and where it is. Record what it is in `design.md`'s Source section, then go to the follow up questions below to fill the parts a static picture cannot answer.
+2. **Recommend a starting point** (recommended when nothing exists): go to the next part.
+3. **No visual direction, build to the defaults**: `design.md` still gets written, derived from the follow up questions alone. Say plainly that the result will be competent rather than distinctive, since nothing anchors it.
+
+#### Recommend free starter templates
+
+Only for the framework already chosen in step 2. A template for a different framework is not a recommendation, it is a stack change.
+
+Find two or three real, free, actively maintained templates for that exact framework. **Fetch each one's page before proposing it.** Never recommend a template from memory, because template galleries change constantly and a dead link wastes the user's time.
+
+For each, say: its name, its link, its license, what kind of product it suits, and what it would cost to bend it toward this product. Recommend one, with a one line why.
+
+Check each against the product before proposing it:
+
+- It fits the pages in `project-overview.md`. A marketing template for an application with a dense data table is a fight, not a head start.
+- Its license permits the intended use. Say the license out loud rather than assuming it is permissive.
+- It is maintained. An abandoned template carries abandoned dependencies, which lands you in the audit in step 4 on day one.
+
+The user may decline all of them. That is option 3 above, not a failure.
+
+#### Follow up on behavior, not looks
+
+A template settles how it looks. It settles almost nothing about how it behaves. Ask about the parts a picture cannot show, in one round of up to four questions, and **anchor every one to a real flow in `project-overview.md`** rather than asking in the abstract.
+
+Cover, choosing what actually applies:
+
+- **The empty state** for each list or feed the flows describe. What does a person see before there is any data, and what does it offer them next? This is the state most often skipped and most often noticed.
+- **Loading.** A skeleton, a spinner, or an optimistic update? This changes how a component is built, not only how it looks.
+- **Errors.** What a person sees when something fails, and what they can do about it.
+- **Density.** Roomy or compact. A flow that involves scanning many rows wants a different answer from one that involves reading.
+- **Navigation at the small end.** What happens to the navigation `project-overview.md` describes on a phone.
+- **Dark mode.** Whether it exists at all. Deciding this later means revisiting every colour.
+
+Record the answers in `design.md`'s States, Composition patterns, and Responsive sections. **Every answer must be consistent with a flow in `project-overview.md`.** Where an answer contradicts a flow, say so and settle it now, because one of the two is wrong.
+
+### Step 4: Audit an existing codebase
+
+**Skip this step entirely on a fresh project.** It applies only when step 1 found real code.
+
+Existing code is a set of decisions already made, most of them by someone with context you do not have. The job is to surface them and get a ruling, not to quietly modernize.
+
+#### Confirm the project structure
+
+`project-overview.md`'s Project Shape already records whether the user wanted the recommended layout or kept their own. **Read it and confirm that decision still holds**, now that the stack is settled and the real cost of moving folders is visible.
+
+If they change their mind, that section belongs to `/scope`. Say so and route them back rather than editing it here. Do not move any file yourself: `/develop` does that, as a task in the plan.
+
+#### Decide what happens to existing components
+
+Ask directly, because both answers are defensible and the wrong assumption is expensive:
+
+> "There are existing components that no task touches yet. Leave them exactly as they are, or bring them in line with the new standards now?"
+
+1. **Leave them, change one only when a task touches it** (recommended): the plan stays small, nothing unrelated breaks, and the codebase converges gradually. Record this as a rule in `code-standards.md`, so no later session treats an old component as a defect.
+2. **Bring them all in line now**: honest, and sometimes right before a large build, but it becomes its own phase in `build-plan.md` with its own tasks, never invisible work folded into a feature.
+
+Whichever is chosen, write it down. An unrecorded answer here produces a build where half the sessions refactor on sight and half do not.
+
+#### Audit the dependencies
+
+Read the lock file and the manifest, then check each dependency's real current state. **Fetch the registry or repository page rather than relying on memory**, because a version you remember as current may be two years stale.
+
+Sort every dependency into one of four groups, and handle each differently:
+
+| Finding | What to do |
+| --- | --- |
+| **Has a known vulnerability** | Update it. This is not a preference, and it is not deferred to a later phase. |
+| **Outdated, still maintained** | Update to the current version. Where the jump crosses a major version, say what breaks and make it its own task. |
+| **Archived or unmaintained, with a security fix available** | Update to the fixed version now, and plan the replacement separately. |
+| **Archived or unmaintained, with no fix coming** | Propose a replacement. |
+
+**On vulnerabilities.** Run the ecosystem's own audit command and read what it reports. Present each finding with its severity, what the package is used for in this project, and the fixed version. **A vulnerable dependency is not a matter of taste**, so recommend the update plainly rather than offering it as one option among equals. The user can still decline, and if they do, record the decision and the reason in `library-docs.md` so it is a known accepted risk rather than an oversight.
+
+**On proposing a replacement**, it must clear the same bar as any other tool in step 2, and you say which checks it passed:
+
+- It genuinely covers what the current package is used for here. Check the actual usage in the code, not the package description.
+- It is actively maintained, with real recent activity.
+- Its license works for this project.
+- The migration cost is stated honestly, including how many files change.
+
+Never swap a library silently as part of another change. Every replacement is its own task in `build-plan.md`, with the reason recorded in `library-docs.md`.
+
+**Record everything.** Updates and replacements become tasks in `build-plan.md`, and `library-docs.md` carries the version notes and the reasons. A finding that is only mentioned in conversation is a finding that gets lost.
+
+### Step 5: Local development containers
 
 Run this once the stack is settled. Every service the stack named needs somewhere to run locally, and a compose file is how this project structures that.
 
@@ -119,73 +228,39 @@ On confirmation, write `docker-compose.yml` at the project root, in the layout `
 
 Then write the matching `.env.example` listing every variable the compose file reads, with its default. Never write `.env` itself.
 
+#### Settle what happens to local data between tasks
+
+Only when the stack has a data store. Ask, because both answers are reasonable and a build must never decide this on its own:
+
+> "Between tasks, should the local database reset to a clean state, or keep its data?"
+
+1. **Reset every task** (recommended when the schema is still moving): every task starts from a known state, migrations get exercised constantly, and nothing accumulates. The cost is retyping anything you were testing with.
+2. **Keep it, with seed data**: a fixture set loads once and survives. Better once the schema settles, and much better when a realistic data set is needed to judge a UI.
+3. **Keep it untouched**: whatever is in there stays. Simplest, and the most likely to drift into a state nobody can reproduce.
+
+Record the answer, the exact reset command, and where any seed data lives in `tooling.md`'s Local Data Lifecycle section.
+
+**A build never drops a local database on its own initiative.** Someone else's work in progress may be sitting in it, and there is no undo. That rule is in the template so it reaches whoever builds.
+
 Record every service, its purpose, and its ports in `tooling.md`.
 
 Writing this file is the one exception to the no code rule, because it is the structure the build sits in rather than the product itself. Do not write a `Dockerfile.dev`, and do not run `docker compose up`. `/develop` does both.
 
-### Step 4: Agent tooling discovery
+### Step 6: Agent tooling discovery
 
-Run this only once the stack is settled, and only for tools that are not already installed or already recorded as declined.
+Run this only once the stack is settled, and only for tools not already installed or already recorded as declined.
 
-#### Ask first, this is a consent gate
+**Read `internal/tool-discovery.md` and follow it.** It holds the consent gate, the two registries, the candidate checks, and the recording rules.
 
-**Asking is mandatory. Searching is not.** Nothing is searched, fetched, installed, or spawned until the user has picked. Never run a search before they agree to one, and never skip the offer.
+The headline, so it is visible from here: **asking is mandatory, searching is not.** Nothing is searched, fetched, or installed until the user picks. And you can install a skill, but you **cannot** connect an MCP server for them, because that changes their own configuration.
 
-Explain the value in a sentence or two, in your own words, then ask. Something close to:
+Skip the file entirely when the stack walk chose no new tool.
 
-> A skill teaches the agent a tool's real conventions, so the build follows them instead of guessing. An MCP server gives the agent live access to the real system, your database or your dashboard, rather than assumptions about it. Both are optional, both usually make the build better.
+### Step 7: Write the Stage 1 documents
 
-Present a panel: "Want me to find skills and MCP servers for this stack?"
+One file at a time, in order: `architecture.md`, `tooling.md`, `design.md`, `code-standards.md`, `library-docs.md`.
 
-1. **Yes, find them for me** (recommended): "I search for the tools we just chose, then show you what I find. Nothing is set up without your pick."
-2. **I will name the ones I want**: "Tell me which, and I add exactly those. No searching."
-3. **No, skip it**: "Build without them. I record the decline so nothing offers them again."
-4. **Not now, later**: "I note them in `tooling.md` so you can add them when you want."
-
-Only the first option may run a search.
-
-#### Search two registries, they are not the same
-
-*Skills*, which are reusable procedural knowledge for the agent:
-
-- `skills.sh`, a public skills directory. Entries install with `npx skills add <owner>/<repo>`.
-- The GitHub repository behind any entry you shortlist. Open it and confirm it exists and is maintained.
-
-*MCP servers*, which give the agent live access to a running system:
-
-- The official Model Context Protocol servers repository and registry.
-- The first party documentation of the vendor whose system the server talks to. A database or hosting platform publishing its own server is the strongest signal.
-- A marketplace the user already trusts, if they name one.
-
-Build the search set from every layer in the Stack table, not just the first one. One good hit for the framework does not mean you stop before searching the database.
-
-#### Judge each candidate before proposing it
-
-Say which checks it passed.
-
-1. It serves a layer that is actually in the Stack table, or a flow named in `project-overview.md`. Nothing is added because it is popular.
-2. It is first party, or its repository is public, readable, and recently maintained.
-3. You fetched its real source page. Never propose a tool from memory, and never invent an install command. If you cannot fetch it, say so and drop it.
-4. Its access scope is proportionate. Prefer a read only server over a write capable one unless the project needs writes.
-
-#### Offer, then act
-
-Present two panels, skills and MCP servers separately, each listing everything you found grouped by the layer it serves. Do not pick a single winner. Say plainly which ones you would skip.
-
-Get an explicit yes for each tool by name. A general "sounds good" is not approval for the whole list.
-
-Then act, and note that the two kinds are not set up the same way:
-
-- **Skills**: you can install them. Run `npx skills add <owner>/<repo>` for each approved one, one at a time, and report the result before starting the next.
-- **MCP servers**: you cannot connect these for the user. Connecting one is a change to their own agent configuration, for example `claude mcp add ...`. Give them the exact command from the server's own documentation and let them run it. Once connected, its tools simply become available.
-
-Anything declined goes in the Considered and Rejected table in `tooling.md` with the reason, so a later session does not raise it again.
-
-Found nothing that passes the checks? Say so plainly and move on. Never invent a candidate to fill a panel.
-
-### Step 5: Write the Stage 1 documents
-
-One file at a time, in order: `architecture.md`, `tooling.md`, `code-standards.md`, `library-docs.md`.
+Skip `design.md` when there is no `app/`. Write the token values into the project's own styling config and **point at them** from `design.md`, never copy them into it. Two copies of a colour drift, and the copy in the document is always the one that goes stale.
 
 For each:
 
@@ -195,7 +270,7 @@ For each:
 4. Keep a section marked Optional only when it genuinely applies. Remove it otherwise and say which you removed and why. Never present an empty section as a placeholder.
 5. Present the file, get approval, then start the next. If a change contradicts an earlier file, go back and fix that file too.
 
-### Step 6: Write the Stage 2 documents
+### Step 8: Write the Stage 2 documents
 
 Only after all four Stage 1 documents are approved. Same per file process, in order: `build-plan.md`, `progress-tracker.md`, `ui-registry.md`.
 
@@ -205,15 +280,26 @@ Extra rules:
 - `progress-tracker.md` mirrors `build-plan.md` exactly, one checkbox per task, same phase and task order. On a fresh project every box starts unchecked, Last completed reads "nothing yet", and Next names the first task.
 - `ui-registry.md` is skipped when the project has no component based UI layer, the same condition under which `code-standards.md` has no Component Structure section. Say you skipped it rather than writing an empty file. On a fresh project with a UI layer it starts empty apart from its heading, since no component exists yet.
 
-### Step 7: Report
+### Step 9: Report
 
 Say six things:
 
-- The files written, including `docker-compose.yml` and `.env.example` if step 3 wrote them.
-- The optional sections and files skipped, and why.
-- Every container in the compose file, its purpose, and the port it is on. Name any stand in service and the real service it stands in for.
+- The files written, including `docker-compose.yml` and `.env.example` if step 5 wrote them.
+- The optional sections and files skipped, and why, including `design.md` when there is no frontend.
+- The design source: the template chosen and its license, the design provided, or that there was none.
+- Every container in the compose file, its purpose, and the port it is on. Name any stand in service and the real service it stands in for. State what happens to local data between tasks.
+- **Every security finding from the dependency audit**, with its severity and whether the fix became a task. If the user declined an update, say so plainly here as well as recording it, so an accepted risk stays visible.
 - Every skill installed, by name.
 - Every MCP server the user still needs to connect themselves, with the exact command.
 - That no application code was written.
 
 Then name the next step: a separate request to build the first task in `build-plan.md`.
+
+---
+
+## Reference files
+
+Both live in this skill's folder, read only when you reach them.
+
+- `internal/design-conversation.md`: the interview protocol. The already built check, framing, the dimension checklist, question mechanics, the six stages, and the completeness gate. **Read in full before step 2**, and it is a hard gate, not a suggestion.
+- `internal/tool-discovery.md`: the skill and MCP consent gate, the two registries, the candidate checks, and how each kind is set up. Read at step 6, and only when the stack walk chose a new tool.

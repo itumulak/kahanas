@@ -27,7 +27,7 @@ Read, in this order, and no more than this:
 3. **`code-standards.md`**, the whole file. It is the convention set, and it is short by design.
 4. **`project-overview.md`**, the Core User Flow steps for any page this task serves. That is the contract `/check verify` will hold the result against.
 5. **`library-docs.md`**, only for a library this task actually uses. Skip the rest.
-6. **`ui-registry.md`**, only on the UI track.
+6. **`design.md`** and **`ui-registry.md`**, only on the UI track. `design.md` is the art direction, and it is not optional reading before building a surface.
 
 **Precedence on a conflict.** `architecture.md` decides structure and invariants. `code-standards.md` decides how code is written. Where they genuinely conflict, say so and stop rather than picking silently, because one of the two documents is wrong and `/architect` needs to fix it.
 

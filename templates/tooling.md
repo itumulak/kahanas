@@ -53,6 +53,20 @@ npx skills add <OWNER_REPO>
 
 ---
 
+## Local Data Lifecycle
+
+*Purpose: what happens to the local database between tasks, so a build never guesses whether it may reset the data it is working against. Optional: only present once the project has a local data store.*
+
+**Between tasks:** <RESET_EVERY_TASK | PERSIST_WITH_SEED_DATA | PERSIST_UNTOUCHED>
+
+**Reset command:** `<THE_EXACT_COMMAND_THAT_RESETS_LOCAL_DATA>`
+
+**Seed data:** <WHERE_THE_SEED_LIVES_AND_WHAT_IT_CONTAINS | NONE>
+
+Whoever builds a task follows this and nothing else. A build never drops a local database on its own initiative, because someone else's work in progress may be sitting in it.
+
+---
+
 ## Considered and Rejected
 
 *Purpose: tools that came up during discovery and were deliberately not installed, with the reason. Stops a later session from re proposing the same thing.*

@@ -89,6 +89,18 @@ Repeat one `### <CLIENT_NAME>` subsection per external client (a database connec
 
 ---
 
+## Value Sourcing
+
+*Purpose: every value the product must produce, compute, or display, and where it comes from. This table exists so a build never has to invent a source. `/develop` runs an input coverage test against it before writing code, and a value missing from here is exactly what that test catches.*
+
+| Value | Used in | Source |
+| --- | --- | --- |
+| <VALUE_NAME> | <FLOW_STEP_OR_SURFACE_THAT_NEEDS_IT> | <INPUT_PARAM \| DB_COLUMN \| DERIVED_FROM_NAMED_VALUE \| RECORDED_DECISION> |
+
+One row per value a Core User Flow step in `project-overview.md` needs. A source is a real origin, never a description of the value: "the timezone column on the user record" is a source, and "the user's timezone" is the value restated.
+
+---
+
 ## Invariants
 
 *Purpose: rules that must never be violated by any future change, stated as flat, checkable facts. This is the list a code review checks a diff against.*
