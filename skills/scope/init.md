@@ -1,7 +1,7 @@
 ---
-name: init
+name: scope
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion, WebSearch, WebFetch
-description: "Run /init when initializing a project. Checks the root folder for an existing codebase, runs structured discovery that weighs options, finds the MCP servers and skills that match the chosen stack, fills the five foundation docs (project overview, architecture, tooling, code standards, library docs), then fills the three planning docs (build plan, progress tracker, ui registry)."
+description: "Run /scope when initializing a project. Checks the root folder for an existing codebase, runs structured discovery that weighs options, finds the MCP servers and skills that match the chosen stack, fills the five foundation docs (project overview, architecture, tooling, code standards, library docs), then fills the three planning docs (build plan, progress tracker, ui registry)."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
