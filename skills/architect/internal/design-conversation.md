@@ -1,5 +1,7 @@
 # Architect: the design conversation
 
+Read `judgment.md` first, then this. That file holds the posture and the failure patterns, including the instruction to challenge the premise before you design anything. This file is the procedure that follows.
+
 Read this in full **before asking a single design question**. The *Asks vs acts* section in `SKILL.md` is a summary of the intent. It is not the protocol, and it is not enough to run the conversation from.
 
 ---
@@ -27,7 +29,13 @@ Then write those into the "Why these choices" list in `architecture.md` as a rec
 
 **A decision already in the code is not up for re litigation.** Record it and move on, unless the user asks otherwise.
 
-### Check 2: state the framing back
+### Check 2: challenge the premise
+
+Per `judgment.md`. Before forming any option, ask whether this is the right problem, whether the direction matches a known failure pattern, and whether the scale being designed for appears anywhere in what you were told.
+
+Raise it if you see it, even where the user overrides you afterwards.
+
+### Check 3: state the framing back
 
 Infer the framing rather than interrogating for it, then say it in one or two lines so a wrong reading is cheap to correct:
 

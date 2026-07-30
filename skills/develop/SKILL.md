@@ -167,7 +167,7 @@ Say six things:
 - Anything installed, and why the design called for it.
 - The command you ran to confirm it works, and its result. Quote the failing line if something failed, rather than describing it.
 - Anything you noticed that belongs to another skill: a design document the build proved wrong, a missing compose service, a component worth extracting later.
-- The next step: `/check verify` to prove this task works against its flow, then the next task from `build-plan.md`.
+- The next step: `/check verify` to prove this task works against its flow, then `/test` to lock the behavior in, then the next task from `build-plan.md`. A failure at verify goes to `/debug`, not back here.
 
 Then stop. Do not start the next task.
 

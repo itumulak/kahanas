@@ -76,12 +76,15 @@ The full mechanics, including the free text slot, generating options fresh rathe
 
 - **Read `.konteksto/project-overview.md` in full.** If it does not exist, stop and tell the user to run `/scope` first. Everything here depends on it.
 - **Read what `/scope` handed you**, if anything: whether a codebase exists, the stack it showed, and any tool or constraint the user named during scoping. Do not survey the same ground again.
-- **If a codebase exists and you were not handed a survey**, read it now: the directory tree, every package manifest, the lint and build config, the entry points. The stack that is already there is a decision already made. Record it, do not re litigate it.
+- **Work out whether the code is actually somebody else's.** A manifest and a source tree are not proof of an existing codebase, because `/develop` scaffolds this project itself as the first task in the plan. Code whose stack matches what `.konteksto/architecture.md` already specifies is **our own scaffold**, and it is not brownfield. Only code with no matching documents, or code that diverges from them, is a real existing codebase.
+- **If a real codebase exists and you were not handed a survey**, read it now: the directory tree, every package manifest, the lint and build config, the entry points. The stack that is already there is a decision already made. Record it, do not re litigate it.
 - **Check `.konteksto/` for existing documents.** Report which of the eight are present. Never overwrite one silently; ask whether to update in place or start over.
 
 ### Step 2: Run the design conversation
 
-**This is a hard gate. Read `internal/design-conversation.md` in full before you ask the user a single design question, and follow it.**
+**This is a hard gate. Read `internal/judgment.md` and `internal/design-conversation.md` in full before you ask the user a single design question, and follow both.**
+
+`judgment.md` is the judgment you bring: the posture, the failure patterns to name on sight, and the instruction to **challenge the premise before designing anything**. `design-conversation.md` is the procedure. A perfectly run interview that arrives at the wrong stack has helped nobody, which is why the judgment file is read first.
 
 It holds the already built check, the framing, the dimension enumeration, the question mechanics, the six stages, and the completeness gate that decides when the questioning is finished. Do not open the interview, generate questions, or write any document until you have read it.
 
@@ -114,7 +117,11 @@ Walk every layer that half needs:
 - **Server**, when `backend/` exists: language, framework, data storage, migrations, auth and sessions.
 - **Anything the flows imply**, either half: payments, transactional email, file storage, search, caching, queues, background work, realtime.
 
-For each layer not already fixed by the existing codebase or named by the user, present a panel with 2 or 3 real options, their trade offs, and your recommendation. Name real tools here. This is the one place in the workflow where that happens. Only the picked option goes into a document.
+**Read `internal/stack-defaults.md` before the first stack question.** It holds the pattern to settle before any technology, the default category per layer, and the opinions to apply. Its central rule: **reason in the durable category, then pick the current product fresh**, because the category stays true and the product name rots.
+
+Settle the **pattern** first, meaning one application or several, from the scale and team size. Choosing a framework before that is answering before understanding the question.
+
+For each layer not already fixed by the existing codebase or named by the user, present a panel with 2 or 3 real options, their trade offs, and your recommendation. **Always include the simplest option**, described honestly rather than as a straw man. Name real tools here. This is the one place in the workflow where that happens. Only the picked option goes into a document.
 
 Record each pick and its reason in the "Why these choices" list in `architecture.md`.
 
@@ -169,7 +176,7 @@ Record the answers in `design.md`'s States, Composition patterns, and Responsive
 
 ### Step 4: Audit an existing codebase
 
-**Skip this step entirely on a fresh project.** It applies only when step 1 found real code.
+**Skip this step entirely on a fresh project, and on our own scaffold.** It applies only when step 1 found code that this workflow did not generate. Auditing dependencies `/develop` installed from your own stack decision minutes earlier is pure noise, and it teaches the user to skim these reports.
 
 Existing code is a set of decisions already made, most of them by someone with context you do not have. The job is to surface them and get a ruling, not to quietly modernize.
 
@@ -277,7 +284,19 @@ Skip the file entirely when the stack walk chose no new tool.
 
 ### Step 7: Write the Stage 1 documents
 
+**Read `internal/standards.md` before writing `code-standards.md`.** It holds the convention questions, the four architecture style presets in `patterns/`, and the rule that an existing codebase gets its conventions derived from the code rather than recited from memory.
+
 One file at a time, in order: `architecture.md`, `tooling.md`, `design.md`, `code-standards.md`, `library-docs.md`.
+
+**Stamp every document you create.** End each one with a single line:
+
+```
+_Drafted by /architect on <date>. Edited by hand since then, in part or whole, unless this line says otherwise._
+```
+
+This exists so a later run, here or in `/sync`, can tell what a tool wrote from what a person wrote, **instead of guessing**. Without it, every skill that maintains these files is left inferring intent from prose style, which it will get wrong.
+
+**The stamp records provenance, not permission.** It never licenses overwriting a line someone edited. A stamped file still gets the same care as an unstamped one.
 
 Skip `design.md` when there is no `app/`. Write the token values into the project's own styling config and **point at them** from `design.md`, never copy them into it. Two copies of a colour drift, and the copy in the document is always the one that goes stale.
 
@@ -299,7 +318,13 @@ Extra rules:
 - `progress-tracker.md` mirrors `build-plan.md` exactly, one checkbox per task, same phase and task order. On a fresh project every box starts unchecked, Last completed reads "nothing yet", and Next names the first task.
 - `ui-registry.md` is skipped when the project has no component based UI layer, the same condition under which `code-standards.md` has no Component Structure section. Say you skipped it rather than writing an empty file. On a fresh project with a UI layer it starts empty apart from its heading, since no component exists yet.
 
-### Step 9: Report
+### Step 9: Check, cross check, and confirm
+
+**Read `internal/after-writing.md` and follow it**, once the documents exist.
+
+It covers confirming the write landed, checking your own work for blank fields, offering a cross check on a different model, and the acceptance loop. Its two rules that matter most: **always ask about the cross check rather than running or skipping it yourself**, and **never silently resolve a gap it finds**, because each one is a load bearing decision that belongs to the user.
+
+### Step 10: Report
 
 Say six things:
 
@@ -320,5 +345,10 @@ Then name the next step: a separate request to build the first task in `build-pl
 
 Both live in this skill's folder, read only when you reach them.
 
+- `internal/standards.md`: the convention and tooling questions that fill `code-standards.md`, and how to derive conventions from an existing codebase. Read at step 7.
+- `patterns/*.md`: the four architecture style presets. Read only the one the user picks, at write time.
+- `internal/stack-defaults.md`: the architecture pattern table, the durable category per layer, and the opinions to apply. Read during the stack walk in step 2.
+- `internal/after-writing.md`: the self check, the cross check offer, the acceptance loop, and the closing summary. Read at step 9, never earlier.
+- `internal/judgment.md`: the posture, the known failure patterns, the challenge the premise step, and the rules that hold across every decision. **Read in full before step 2**, alongside the conversation protocol.
 - `internal/design-conversation.md`: the interview protocol. The already built check, framing, the dimension checklist, question mechanics, the six stages, and the completeness gate. **Read in full before step 2**, and it is a hard gate, not a suggestion.
 - `internal/tool-discovery.md`: the skill and MCP consent gate, the two registries, the candidate checks, and how each kind is set up. Read at step 6, and only when the stack walk chose a new tool.

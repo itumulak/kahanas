@@ -77,9 +77,13 @@ Cheap signals only. The subagent reads on demand.
 
 Resolve the **test signal**, which has three states and is not a yes or no:
 
-- `configured`: a test runner is set up in the project manifest.
-- `none-by-design`: no runner, and `code-standards.md` states the project gates on the type checker plus `/check verify` instead. Deliberate, so the gate is the safety net.
-- `none-yet`: no runner and no stated position. A genuine gap.
+Read `test-preferences.json` at the project root, which `/test` owns and maintains:
+
+- `configured`: `"tool"` names a framework. Judge missing coverage normally.
+- `none-by-design`: `"tool"` is null and `"gate"` is set, for example `"typecheck+verify"`. The project deliberately chose this, so the gate is the safety net and you raise no missing test findings at all.
+- `none-yet`: no file, and nothing in `code-standards.md` states a position. A genuine gap.
+
+**A file carrying neither key is malformed.** Treat it as `none-yet` and say so, rather than guessing which the author meant.
 
 Getting this wrong wastes the whole review on coverage nagging, so settle it before spawning.
 

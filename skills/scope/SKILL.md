@@ -69,8 +69,13 @@ Ask in small rounds, up to 4 related questions per round. Do not fire one questi
 
 List the project root. Look for source folders, a package manifest (`package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, or similar), config files, and a git history.
 
-- **No codebase found.** Fresh project. Nothing about the product can be inferred yet, so the idea has to come from the user.
-- **Codebase found.** Read its routes, entry points, and user facing strings. Draft the pages, the navigation, and the flows from what is actually there, then ask the user to correct you. Never ask someone to describe an app they already built.
+**Check `.konteksto/` before you judge what you are looking at.** Source files and a manifest do not by themselves mean an existing codebase, because this workflow scaffolds a project itself, as the first task in the plan.
+
+- **No code, and no `.konteksto/`.** A genuinely fresh project.
+- **Code exists, and `.konteksto/` documents describe it.** This is **our own scaffold**, not somebody else's codebase. Treat it as the fresh project it is. Never re survey it as though it arrived from outside, and never ask the user to describe an app this workflow just generated.
+- **Code exists with no `.konteksto/`, or code that does not match what those documents describe.** A real existing codebase. Read its routes, entry points, and user facing strings. Draft the pages, the navigation, and the flows from what is actually there, then ask the user to correct you. Never ask someone to describe an app they already built.
+
+Getting this backwards is expensive in both directions: treating a real codebase as greenfield throws away everything it already decided, and treating our own scaffold as brownfield sends the next skill auditing dependencies it installed ten minutes ago.
 
 Also check `.konteksto/`. If `project-overview.md` already exists, do not overwrite it silently: show what it says and ask whether to update it in place or start over. If the other documents exist too, say so, and note that changing the overview may make them stale.
 

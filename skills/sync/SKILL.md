@@ -1,0 +1,181 @@
+---
+name: sync
+allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent
+description: "Run /sync as the last step after a change is complete, around merge, to keep the .konteksto documents true. Reconciles the progress tracker and the ui registry against what the repo actually shows, and flags the design documents the change made stale. Surgical edits only: it corrects lines it owns, and never rewrites a section."
+---
+
+## Output style (plain words, no dashes, no hyphens)
+
+<!-- OUTPUT-STYLE:START -->
+Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. Use short sentences, commas, or parentheses. Clear beats clever.
+<!-- OUTPUT-STYLE:END -->
+
+## What this skill does
+
+Closes the loop on a finished change. The `.konteksto` documents are only worth reading if they are true, and they drift the moment a build goes slightly differently from the plan.
+
+This reconciles what it is allowed to, from **repo evidence rather than from what anyone said**, and flags the rest. The Boundaries table below is the exact contract, and it is the whole skill.
+
+**Reconciles what can be verified. Flags what needs a decision.** It never guesses, and it never quietly edits a document owned by another skill.
+
+**Default to doing nothing.** A change that alters no command, convention, constraint, dependency, or structural fact does not belong in durable knowledge. A line that narrates what this change did is churn, not maintenance. **Finding nothing to sync is a normal, good outcome**, and reporting it plainly is a complete result.
+
+**Idempotent, and that is testable.** Running this twice on the same change must make **zero** new edits the second time. Before adding anything, read the target again and check whether the fact is already there, even worded differently. Before writing any line, read the file again, because a teammate or another session may have edited it since you looked.
+
+## Boundaries
+
+These keep the skill from sprawling, which is the failure mode for anything that edits shared documents.
+
+| Action | `/sync` | Owner |
+|---|---|---|
+| Tick a `progress-tracker.md` task the repo proves is done | ✅ corrects | `/sync` |
+| Update Last completed, Next, and Phase to match the ticks | ✅ corrects | `/sync` |
+| Register a component in `ui-registry.md` that exists in code but is missing | ✅ adds | `/sync` |
+| Correct a registry entry whose props no longer match the code | ✅ corrects | `/sync` |
+| Add a dependency to `library-docs.md` that the manifest gained | ✅ adds a stub, flags it for detail | `/sync` |
+| Add a task or reorder `build-plan.md` | ❌ leaves alone | `/architect` |
+| Edit `architecture.md`, `code-standards.md`, `design.md`, or `tooling.md` | ❌ flags as stale | `/architect` |
+| Edit `project-overview.md` | ❌ flags as stale | `/scope` |
+| Clear a task built on an unratified assumption | ❌ flags as decision debt | `/architect` |
+| Rewrite the Notes line `/check verify` owns | ❌ leaves alone | `/check` |
+| Rewrite a line a person wrote by hand | ❌ flags the conflict | the person |
+| Correct a fact in a still stamped document | ✅ corrects surgically | `/sync` |
+
+**How to tell what a person wrote.** Every document `/architect` creates ends with a drafted by line. Use it:
+
+- **The stamp is still there**: the untouched parts are a tool's work. Correct a wrong fact surgically, and leave the stamp in place.
+- **The stamp is gone**: a person has taken the file over. **Add a missing fact only. Never rewrite an existing line**, and route anything that would change existing prose to a flag instead.
+
+The stamp records provenance, not permission. It never licenses overwriting a line someone edited, and a stamped file gets the same care as any other.
+
+**The dividing line is evidence, not policy.** Correct what the repo can prove. Flag what needs a judgment. **When unsure, flag rather than edit**, because a wrong correction to a shared document is worse than a missing one: it looks authoritative.
+
+## Asks vs acts
+
+**Acts.** Pauses only when there is nothing to sync. Every edit is listed in the report so it can be reviewed or reverted.
+
+## Artifact ownership
+
+Exactly what the Boundaries table grants, and nothing else.
+
+It is the **sweeper**: the one skill that ticks a task another skill finished but never recorded, and registers a component someone built without registering it. Those gaps accumulate silently, and they are what make a tracker stop being trusted.
+
+---
+
+## Execution
+
+### Step 1: Scope the change set
+
+**Freshness first.** `git fetch --quiet`, then count commits behind the base branch. Behind means warning the user to pull first, since a teammate may have already synced these documents and you would be reconciling against a stale picture.
+
+Base is `main` if it exists, else `master`.
+
+- On the base branch: `git diff --name-status HEAD`.
+- On a feature branch: `git merge-base <base> HEAD`, then `git diff --name-status <merge-base>`.
+
+Either way add untracked files as added. Use `--name-status`, not `--name-only`, because added, modified, and deleted drive different work below.
+
+Then filter to what you sync **from**:
+
+- **Drop documentation and config.** `.konteksto/**`, markdown, lock files, generated output. These are targets and context, never a source.
+- **Keep deletions in a separate list.** They drive the cleanup in step 3.
+- **Keep dependency manifest changes in their own list**, since a new package is what `library-docs.md` needs to hear about.
+
+**Nothing left in any list?** Stop. There is nothing to sync, and saying so is a complete result.
+
+### Step 2: Gather the evidence
+
+Read the tracker and the registry, plus the parts of the plan you need. Read narrowly.
+
+For each unticked task in `progress-tracker.md`, ask whether the repo **proves** it is done:
+
+- The files its bullets describe exist and contain what they promised.
+- For a data task, the migration exists **and** the schema is live. Query the real database. Generated is not applied, which is the failure this workflow keeps catching.
+- For a UI task, the component exists and is reachable.
+
+**Proof means what is in the repo, not what a commit message claims.** A commit saying "add password reset" is a claim, and the route either exists or it does not.
+
+**Only act on an unambiguous match.** Tick a task only when the file plainly belongs to it. Where code could belong to either of two tasks, do not pick: record it as ambiguous and move on.
+
+**Be conservative.** Tick on clearly present evidence, and when unsure, leave it. An unticked finished task is a small annoyance. A ticked unfinished one sends the next session past work that was never done.
+
+**A document you cannot parse does not get edited.** A tracker with broken headings or a hand edit that broke its shape is reported as needing a person, never repaired by guessing. Never act on a misread.
+
+### Step 3: Reconcile
+
+**The tracker.** Tick every task the evidence proves. Update Last completed, Next, and Phase to match. Leave alone the Notes line `/check verify` writes, and never write one yourself, since that line means something was actually exercised and you have not exercised anything.
+
+**A task built on an unratified assumption stays unticked**, however finished the code looks. Only `/architect` clears that, and ticking it here would erase the one signal that a decision is still owed.
+
+**The registry.** For every reusable component in the code with no entry, add one: what it is for, its props, and a short real usage example read from an actual call site. For an entry whose props no longer match the code, correct the entry, because the code is the truth and a stale registry causes duplicates.
+
+**Deletions.** A component deleted in this change gets its registry entry removed. An orphaned entry is worse than a missing one: it sends the next session looking for something that is gone.
+
+Fix any pointer in a document that now targets a deleted or moved path. **If you are not certain a deletion is permanent, flag it rather than deleting.** Removing a real entry costs more than leaving a stale one for a day.
+
+**Dependencies.** A new package in the manifest gets a stub entry in `library-docs.md` naming what it is and where it is used, then flag it so `/architect` can add the version specific notes. **Do not invent gotchas you have not verified.**
+
+### Step 4: Separate a gap from a contradiction
+
+These are different problems and they get handled differently. Conflating them is how a maintenance pass quietly overwrites something deliberate.
+
+- **A gap** is a fact missing from a document that the repo can prove. Nothing disagrees, something is simply absent. **Apply it**, within the boundaries above.
+- **A contradiction** is a document saying one thing while the code shows another. **Never resolve one yourself.** Say what the document claims, what the repo actually shows, and let the user decide which is wrong. Either the code drifted, or the document was deliberate and the code broke it, and **you cannot tell which from the outside**.
+
+Report a contradiction in that shape: this file says X, the code shows Y.
+
+### Step 5: Flag what you must not touch
+
+This is half the value of the skill, so be specific. A flag naming the file, the line, and the contradiction is actionable. "Docs may be stale" is not.
+
+**Be strict. Noise erodes trust.** Flag only when you can name the specific thing the change contradicts. **Never flag a vague "this might be affected"**, because a report full of maybes trains the reader to skim past the one that mattered. When in doubt, do not flag.
+
+Flag when:
+
+- The folder structure no longer matches `architecture.md`.
+- A boundary in the System Boundaries table is being violated by code that now exists.
+- A new value is produced with no row in the Value Sourcing table.
+- The stack gained something `architecture.md` does not list.
+- A convention in `code-standards.md` is contradicted by the code that shipped.
+- `build-plan.md` has no task for work that clearly happened.
+
+Each flag names the document, what the repo shows instead, and which skill fixes it.
+
+### Step 6: Report
+
+Output this block. **Omit any section that is empty** rather than writing a heading with nothing under it.
+
+```
+## /sync complete
+
+SCOPE: <N> changed files, <branch against base | uncommitted>
+
+RECONCILED:
+- <file>, <what you ticked, added, or corrected, one line>
+
+CONTRADICTIONS:
+- <file> says <what it claims>, the code shows <what is actually there> → your call which is wrong
+
+FLAGGED:
+- <file>, <what the repo shows instead> → run <skill>
+
+AMBIGUOUS:
+- <area> → <task A> or <task B>, left alone
+
+ORPHANS_CLEANED:
+- <entry removed, or pointer fixed, after a deletion>
+
+CONFLICTS:
+- <file>, <hand written content that would need rewriting, left for a person>
+
+MALFORMED:
+- <file>, <what is broken about its shape> → needs a person
+```
+
+When you made no edits and found nothing stale, output the scope line followed by `NOTHING_TO_SYNC: everything is already current.`
+
+List every edit. These are shared documents, and someone has to be able to see at a glance what changed and undo it.
+
+**A flag is not a failure.** It is this skill working: the documents and the code have diverged, and now somebody knows.
+
+List every edit. These are shared documents, and someone has to be able to see at a glance what changed and undo it.
