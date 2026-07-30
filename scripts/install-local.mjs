@@ -23,7 +23,7 @@ const AGENTS = {
 };
 
 function parseArgs(argv) {
-  const opts = { agent: "agents", link: false, force: false, dryRun: false, remove: false, only: null, target: null };
+  const opts = { agent: "claude-code", link: false, force: false, dryRun: false, remove: false, only: null, target: null };
   const rest = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -53,7 +53,7 @@ const HELP = `
     node scripts/install-local.mjs [target] [options]
 
   Options
-    -a, --agent <name>   claude-code (.claude/skills) or agents (.agents/skills). Default: agents
+    -a, --agent <name>   claude-code (.claude/skills) or agents (.agents/skills). Default: claude-code
     --only <a,b,c>       install a subset by name
     --link               symlink instead of copy, so edits here are live in the target
     --force              replace a skill that is already there
@@ -62,8 +62,9 @@ const HELP = `
     -h, --help
 
   Examples
-    node scripts/install-local.mjs ~/Projects/scratch/app -a claude-code --link
-    node scripts/install-local.mjs ~/Projects/scratch/app -a claude-code --remove
+    node scripts/install-local.mjs ~/Projects/scratch/app
+    node scripts/install-local.mjs ~/Projects/scratch/app --link
+    node scripts/install-local.mjs ~/Projects/scratch/app --remove
 `;
 
 // A skill folder is valid when it holds a SKILL.md whose frontmatter name
