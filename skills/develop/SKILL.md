@@ -14,9 +14,9 @@ Write everything this skill produces, files and messages alike, in plain simple 
 
 The builder. Turns one task from `build-plan.md` into working code that follows `code-standards.md` and fits `architecture.md`.
 
-Builds **one task at a time**, in the order the plan sets, and ticks it off before starting the next. A task with **UI** bullets builds components and pages. A task with **Logic** bullets builds APIs, services, and data layers. A task with both builds both, UI last, so it wires to something real.
+Builds **one task at a time**, in the order the plan sets, and ticks it off before starting the next. A task with **UI** bullets builds components and pages. A task with **Logic** bullets builds APIs, services, and data layers. A task with both builds both.
 
-It decides nothing load bearing. That is the whole point of the gate in step 1.
+It decides nothing load bearing. That is what the gate in step 1 is for.
 
 ## Where this sits
 
@@ -25,38 +25,43 @@ It decides nothing load bearing. That is the whole point of the gate in step 1.
 | `/scope` | `project-overview.md` | What the product is |
 | `/architect` | the five design documents, plus the starting state of `progress-tracker.md` and `ui-registry.md` | How it gets built |
 | `/develop` | the code, and every update to `progress-tracker.md` and `ui-registry.md` | Builds it |
+| `/check` | `.konteksto/reviews/` | Confirms it actually works |
 
 ## Artifact ownership
 
 **Writes:**
 
 - Application code, in the folders `project-overview.md`'s Project Shape section fixed. Server code in `backend/`, client code in `app/`, unless that section records a custom layout, in which case follow the real one.
-- `Dockerfile.dev` per half, when the compose file `/architect` wrote refers to one that does not exist yet.
-- `.konteksto/progress-tracker.md`, on every task. This is the file that tells the next session where things stand, so it is updated as part of finishing a task, never in a batch later.
-- `.konteksto/ui-registry.md`, one section per reusable component, at the moment the component is built. `/architect` creates this file empty; every entry in it comes from here.
+- `Dockerfile.dev` per half, when the compose file refers to one that does not exist yet.
+- `.konteksto/progress-tracker.md`, on every task. This is what tells the next session where things stand, so it is updated as part of finishing a task, never batched up for later.
+- `.konteksto/ui-registry.md`, one section per reusable component, at the moment the component is built. `/architect` creates the file empty, and every entry in it comes from here.
 
 **Never writes:**
 
-- `project-overview.md`, `architecture.md`, `code-standards.md`, `library-docs.md`, `tooling.md`, `build-plan.md`. If the build proves one of them wrong, stop and say so. Changing the design mid build is `/architect`'s call, not a thing to fix quietly in passing.
+- `project-overview.md`, `architecture.md`, `code-standards.md`, `library-docs.md`, `tooling.md`, `build-plan.md`. If the build proves one of them wrong, stop and say so. Changing the design mid build is `/architect`'s call, not something to fix quietly in passing.
 - `docker-compose.yml`. `/architect` owns it. A missing service is a reason to stop and report, not to add one.
 
 ## Guardrails
 
 **Never invent a decision.** Step 1 is a hard gate, not a formality.
 
-**Never build ahead.** One task, then the tracker, then stop. A plan that says a task is visible and testable before the next starts means exactly that.
+**Never build ahead.** One task, then the tracker, then stop.
 
 **Never mark a task done that you did not see work.** Ticking a box is a claim. Back it with a command you ran and its output.
 
-**Never install a package the design did not name.** A dependency that is not in `code-standards.md`'s approved list is a change to the design. Stop and ask.
+**Never install a package the design did not name.** A dependency absent from `code-standards.md`'s approved list is a change to the design. Stop and ask.
+
+**Never verify your own work.** Running the app and confirming it matches the flow belongs to `/check verify`, deliberately, because the thing that wrote the code is the worst judge of whether it does what the product needed.
 
 ## Asks vs acts
 
 Gates first, then acts. No opening round of questions, unlike `/scope` and `/architect`. The design work is already done, and its answers are in `.konteksto/`.
 
-- **INFER** from `build-plan.md`, the six design documents, and the existing code. This covers nearly everything.
+- **INFER** from `build-plan.md`, the design documents, and the existing code. This covers nearly everything.
 - **ASK** only what the design genuinely left open, and only when it blocks you.
-- **RECOMMEND** on a local implementation choice, then proceed without waiting. A helper name or a loop shape does not need a meeting.
+- **RECOMMEND** on a local implementation choice, then proceed without waiting.
+
+---
 
 ## Execution
 
@@ -64,7 +69,7 @@ Gates first, then acts. No opening round of questions, unlike `/scope` and `/arc
 
 Check for a source tree and a package manifest in the folders Project Shape names.
 
-**Nothing there, and this is the first task in the plan.** Then creating the project is the job. Run the framework's own initializer for the stack `architecture.md` names, into the right folder. Install the framework and the runtime, plus only what this first task needs. Do not install every library the design mentions, since each later task installs its own. Confirm a dev server or a build actually runs before you call it done.
+**Nothing there, and this is the first task in the plan.** Then creating the project is the job. Run the framework's own initializer for the stack `architecture.md` names, into the right folder. Install the framework and the runtime, plus only what this first task needs. **Do not install every library the design mentions**, since each later task installs its own. Confirm a dev server or a build actually runs before calling it done.
 
 Write any `Dockerfile.dev` the compose file expects, then bring the stack up with `docker compose up -d` and confirm the services report healthy. A compose file that has never been run is a guess.
 
@@ -80,11 +85,11 @@ Skip silently when this is not a git repository, or there is no remote.
 
 Run `git fetch` quietly, pick the base branch (`main` if it exists, else `master`), and count how far behind you are with `git rev-list --count HEAD..origin/<base>`.
 
-- **Behind by any commits.** Warn: a teammate may have already built this. Recommend pulling first.
+- **Behind by any commits.** Warn that a teammate may have already built this, and recommend pulling first.
 - **Uncommitted changes in the folders this task touches.** Warn that the build will tangle with them. Let the user proceed if they say so.
-- **The task is already ticked in `progress-tracker.md`.** Stop and ask before rebuilding. A ticked box means someone believed it was finished.
+- **The task is already ticked in `progress-tracker.md`.** Stop and ask before rebuilding.
 
-These are warnings, not blocks, but say them out loud.
+Warnings, not blocks, but say them out loud.
 
 ### Step 1: The decision gate
 
@@ -94,31 +99,31 @@ These are warnings, not blocks, but say them out loud.
 
 A decision is also owed when you would otherwise invent:
 
-- A library, provider, or integration that `code-standards.md` does not list.
-- A data model or a column that `architecture.md`'s schema does not have.
+- A library, provider, or integration `code-standards.md` does not list.
+- A data model or a column `architecture.md`'s schema does not have.
 - A whole page's composition, when `project-overview.md` gives the flow but nothing says what the page is made of.
-- A behavior an acceptance step constrains but no document defines.
+- A behavior a flow step constrains but no document defines.
 
-**What counts as a local detail instead.** Only a choice among options the documents already permit. A variable name, a loop shape, which existing helper to call. The moment a choice fixes where a value comes from, or changes a behavior the flows constrain, it is load bearing however small it looks.
+**What counts as a local detail instead.** Only a choice among options the documents already permit: a variable name, a loop shape, which existing helper to call. **The moment a choice fixes where a value comes from, or changes a behavior the flows constrain, it is load bearing however small it looks.**
 
-When unsure, treat it as owed. Building an unnoticed decision is the expensive failure. Asking one extra question is not.
+When unsure, treat it as owed. Building an unnoticed decision is the expensive failure. One extra question is not.
 
-**Where to look, in this order.** Read narrowly. Do not read the whole `.konteksto/` tree for every task.
+**Where to look, in this order.** Read narrowly.
 
-1. This task's entry in `build-plan.md`, with its UI and Logic bullets.
-2. `architecture.md` for the stack, the boundaries, the schema, and the invariants.
-3. `code-standards.md` for the conventions this file kind must follow.
-4. `library-docs.md`, only for a library this task actually uses.
-5. `ui-registry.md`, only when the task has UI bullets, to reuse a component instead of building a near duplicate.
+1. This task's entry in `build-plan.md`.
+2. `architecture.md`, for the stack, boundaries, schema, and invariants.
+3. `code-standards.md`.
+4. `library-docs.md`, only for a library this task uses.
+5. `ui-registry.md`, only when the task has UI bullets.
 6. `progress-tracker.md`'s Decisions Made During Build, for anything an earlier task already settled.
 
-**Nothing owed.** Proceed to step 2.
+**Nothing owed.** Read `flow/build.md` and follow it.
 
 **Something owed.** Do not guess and do not silently stop. Ask, naming the specific choice:
 
-1. **Design it first** (recommended): stop here and run `/architect` to settle it. Nothing is built.
-2. **No decision needed**: the user has judged it is genuine wiring. Proceed.
-3. **Build on a stated assumption**: proceed, but write the assumption into `progress-tracker.md` under Decisions Made During Build first, as `assumed, not yet ratified`. The task is built but **cannot be ticked** until `/architect` confirms the assumption. Say this plainly when you report.
+1. **Design it first** (recommended): stop here and run `/architect`. Nothing is built.
+2. **No decision needed**: the user judges it genuine wiring. Proceed to `flow/build.md`.
+3. **Build on a stated assumption**: proceed, but first write the assumption into `progress-tracker.md` under Decisions Made During Build, as `assumed, not yet ratified`. The task gets built but **cannot be ticked** until `/architect` confirms it. Say this plainly in your report.
 
 On **Design it first**, end with:
 
@@ -128,21 +133,11 @@ On **Design it first**, end with:
 > ```
 > Settle this first: <the specific choice>. Then run `/develop` again and I will build to it.
 
-The third option exists so an assumption becomes durable. Written in the tracker it survives a cleared session, a teammate reads it, and the next task builds against it instead of inventing a second, different assumption.
+The third option exists so an assumption becomes durable. Written in the tracker it survives a cleared session, a teammate reads it, and the next task builds against it rather than inventing a second, different assumption.
 
 ### Step 2: Build
 
-Follow `code-standards.md` exactly. It exists to stop the drift that shows up across sessions, so its rules outrank your habits: file naming, import style, component ordering, handler shape, error handling, comment policy.
-
-**Logic bullets first, UI second**, when a task has both, so the interface wires to something real rather than to a placeholder you then have to unpick.
-
-**Before building any component, read `ui-registry.md`.** Extend what is there rather than building a near duplicate. A new component gets its section written when it is built, not later.
-
-**Respect the boundaries** in `architecture.md`'s System Boundaries table. A folder that must not hold business logic does not get business logic because it was convenient this once.
-
-**Every environment variable you read is declared** in `code-standards.md`'s table and present in `.env.example`. A variable that is in neither is an undocumented dependency, and the next person to clone this will hit it.
-
-**Confirm it works.** Run the project's own checks: the type checker, the linter, the build, the dev server. For a task with UI, look at the page actually rendering. Quote the command and its result when you report.
+Read `flow/build.md` and follow it. Do not read it when the gate ends the run.
 
 ### Step 3: Update the tracker
 
@@ -151,22 +146,31 @@ Only after something is verified working. Edit `progress-tracker.md` surgically.
 - Tick this task's checkbox under its phase.
 - Set **Last completed** to this task, and **Next** to the following one in `build-plan.md`.
 - Set **Phase** when this task closed out a phase.
-- Add a line under **Decisions Made During Build** for anything real that came up: a bug found, a fix made, a local choice a later session would otherwise wonder about. Not a diary of every edit.
+- Add a line under **Decisions Made During Build** for anything real: a bug found, a fix made, a local choice a later session would otherwise wonder about. Not a diary of every edit.
 - Add the command you used to confirm the build is clean under **Notes**, with its result.
 
 Never rewrite the file, and never tick a box for a task you did not build.
-
-**The done gate.** A task built on a stated assumption from step 1 stays unticked, with its assumption noted, until `/architect` ratifies it. Say so in the report rather than quietly leaving the box empty.
 
 ### Step 4: Report
 
 Say six things:
 
-- The task built, by its number and name.
+- The task built, by number and name.
 - The files written, grouped by folder.
 - Anything installed, and why the design called for it.
-- The command you ran to confirm it works, and its result. Quote the failing line if something failed rather than describing it.
+- The command you ran to confirm it works, and its result. Quote the failing line if something failed, rather than describing it.
 - Anything you noticed that belongs to another skill: a design document the build proved wrong, a missing compose service, a component worth extracting later.
-- The next step: `/check verify` to prove this task actually works against its flow, then the next task from `build-plan.md`.
+- The next step: `/check verify` to prove this task works against its flow, then the next task from `build-plan.md`.
 
-Then stop. Do not start the next task, and do not verify your own work here. Running the app and confirming it matches the flow is `/check verify`'s job, on purpose, because the thing that wrote the code is the worst judge of whether it does what the product needed.
+Then stop. Do not start the next task.
+
+---
+
+## Reference files
+
+All live in this skill's folder. Read each only when you reach it, so none of them sits in context through the whole run.
+
+- `flow/build.md`: the build flow after the gate. Track classification, what to load, the exploration subagent, resuming, rollout sequencing, and the tracker update.
+- `ui-guide.md`: the UI track. The quality bar and its disqualifiers, the phases, and registering what you built.
+- `logical-guide.md`: the logical track. Data layer, services, interface, integration, removing superseded code, and the safety pass.
+- `checklist.md`: the accessibility and token checklist, read during the UI track's accessibility phase.
