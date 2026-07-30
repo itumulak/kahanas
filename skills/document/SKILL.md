@@ -32,7 +32,13 @@ Every sentence traces to something that actually happened: a commit, a diff, a l
 
 **After this:** `/sync`, which makes the documents true again.
 
-The full workflow, and who owns which document, is in the root `CLAUDE.md`.
+The whole chain, once per project then once per task:
+
+```
+/scope  →  /architect  →  /develop  →  /check verify  →  /test
+```
+
+`/debug` when verify fails. `/check review`, `/document pr`, and `/sync` before a merge.
 
 ## Artifact ownership
 

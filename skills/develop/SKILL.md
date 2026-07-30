@@ -24,7 +24,13 @@ It decides nothing load bearing. That is what the gate in step 1 is for.
 
 **After this:** `/check verify`, which proves the task actually works. A failure there goes to `/debug`.
 
-The full workflow, and who owns which document, is in the root `CLAUDE.md`.
+The whole chain, once per project then once per task:
+
+```
+/scope  →  /architect  →  /develop  →  /check verify  →  /test
+```
+
+`/debug` when verify fails. `/check review`, `/document pr`, and `/sync` before a merge.
 
 
 ## Artifact ownership

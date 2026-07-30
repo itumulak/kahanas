@@ -26,7 +26,13 @@ The gate between a task being built and a task being trusted. It confirms soundn
 
 **After this:** `/test` once verify passes, `/debug` when it fails, and `/document pr` plus `/sync` before a merge.
 
-The full workflow, and who owns which document, is in the root `CLAUDE.md`.
+The whole chain, once per project then once per task:
+
+```
+/scope  →  /architect  →  /develop  →  /check verify  →  /test
+```
+
+`/debug` when verify fails. `/check review`, `/document pr`, and `/sync` before a merge.
 
 
 ## Artifact ownership

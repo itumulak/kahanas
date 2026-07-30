@@ -22,11 +22,17 @@ Answers **how the product gets built**, given a `project-overview.md` that alrea
 
 **After this:** `/develop`, which builds the first task in the plan.
 
-The full workflow, and who owns which document, is in the root `CLAUDE.md`.
+The whole chain, once per project then once per task:
+
+```
+/scope  →  /architect  →  /develop  →  /check verify  →  /test
+```
+
+`/debug` when verify fails. `/check review`, `/document pr`, and `/sync` before a merge.
 
 ## Artifact ownership
 
-Eight documents, all created and updated by this skill only, filled from the matching template in `templates/`.
+Eight documents, all created and updated by this skill only, filled from the matching template in `templates/`, which lives in this skill's own folder.
 
 **Stage 1, the foundation.** What the system is made of.
 
@@ -50,7 +56,7 @@ Never touch `project-overview.md`. It is `/scope`'s file. If the design work pro
 
 **Two of these are living files, created here and updated elsewhere.** `progress-tracker.md` and `ui-registry.md` are written once by this skill, in their starting state, and every update after that belongs to `/develop`: a ticked task, a new component section. Do not tick a box or register a component that does not exist yet.
 
-Read a template from `templates/`, write the filled copy to `.konteksto/<same-file-name>`. Never edit a template in place.
+Read a template from `templates/`, in this skill's folder, and write the filled copy to `.konteksto/<same-file-name>`. Never edit a template in place.
 
 ## Guardrails
 

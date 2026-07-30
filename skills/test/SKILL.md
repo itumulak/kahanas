@@ -24,7 +24,13 @@ Targets the code changed in this branch and not yet committed. Each changed file
 
 **After this:** `/check review` before a merge.
 
-The full workflow, and who owns which document, is in the root `CLAUDE.md`.
+The whole chain, once per project then once per task:
+
+```
+/scope  →  /architect  →  /develop  →  /check verify  →  /test
+```
+
+`/debug` when verify fails. `/check review`, `/document pr`, and `/sync` before a merge.
 
 
 ## Artifact ownership

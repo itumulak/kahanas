@@ -60,7 +60,13 @@ The stamp records provenance, not permission. It never licenses overwriting a li
 
 **After this:** nothing. The loop starts again at `/develop` with the next task.
 
-The full workflow, and who owns which document, is in the root `CLAUDE.md`.
+The whole chain, once per project then once per task:
+
+```
+/scope  →  /architect  →  /develop  →  /check verify  →  /test
+```
+
+`/debug` when verify fails. `/check review`, `/document pr`, and `/sync` before a merge.
 
 ## Artifact ownership
 

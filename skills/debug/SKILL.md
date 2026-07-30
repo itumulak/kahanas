@@ -24,7 +24,13 @@ A structured root cause investigation, not guess and check. Bugs are found by a 
 
 **After this:** `/test`, to lock the fix in with a regression test.
 
-The full workflow, and who owns which document, is in the root `CLAUDE.md`.
+The whole chain, once per project then once per task:
+
+```
+/scope  →  /architect  →  /develop  →  /check verify  →  /test
+```
+
+`/debug` when verify fails. `/check review`, `/document pr`, and `/sync` before a merge.
 
 
 ## Asks vs acts

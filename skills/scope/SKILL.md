@@ -14,7 +14,7 @@ Write everything this skill produces, files and messages alike, in plain simple 
 
 The front door of the workflow, and the answer to one question: **what is being built, and for whom.**
 
-Surveys the project root, then fills `.konteksto/project-overview.md` from `templates/project-overview.md`, then stops.
+Surveys the project root, then fills `.konteksto/project-overview.md` from `templates/project-overview.md` in this skill's own folder, then stops.
 
 It does not answer how. Stack, structure, conventions, tooling, and the build order all belong to `/architect`, and every one of those documents reads this file as its input.
 
@@ -24,7 +24,13 @@ It does not answer how. Stack, structure, conventions, tooling, and the build or
 
 **After this:** `/architect`, which designs how it gets built.
 
-The full workflow, and who owns which document, is in the root `CLAUDE.md`. One rule matters here: **`/scope` owns the what and stays tool agnostic. `/architect` owns the how and makes every tool call.**
+The whole chain, once per project then once per task:
+
+```
+/scope  →  /architect  →  /develop  →  /check verify  →  /test
+```
+
+`/debug` when verify fails. `/check review`, `/document pr`, and `/sync` before a merge. One rule matters here: **`/scope` owns the what and stays tool agnostic. `/architect` owns the how and makes every tool call.**
 
 
 ## Artifact ownership
@@ -89,7 +95,7 @@ Wait for the answer.
 
 ### Step 3: Work through the template, section by section
 
-Read `templates/project-overview.md` in full before writing anything. Then fill it in this order, because each section narrows the next:
+Read `templates/project-overview.md`, in this skill's folder, in full before writing anything. Then fill it in this order, because each section narrows the next:
 
 1. **About the Project** and **The Problem it Solves.** What it is, and what existing options fail at. Get this in plain language a stranger could act on. If the answer is vague, push once: a scope built on a fuzzy problem produces a fuzzy build plan.
 2. **Target Audience.** Who this is for. Shapes which edge cases matter later.
