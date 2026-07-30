@@ -1,0 +1,25 @@
+{
+  "name": "kahanas",
+  "version": "0.1.0",
+  "description": "A document driven engineering workflow as Agent Skills. Takes a project from an idea to shipped, verified code, keeping every decision in version controlled documents instead of a chat log.",
+  "keywords": [
+    "claude-code",
+    "codex",
+    "cursor",
+    "ai-coding",
+    "skills",
+    "agent-skills",
+    "developer-tools"
+  ],
+  "homepage": "https://github.com/itumulak/kahanas",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/itumulak/kahanas.git"
+  },
+  "license": "MIT",
+  "author": "itumulak",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  }
+}
