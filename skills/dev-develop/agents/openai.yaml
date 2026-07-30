@@ -1,0 +1,7 @@
+# OpenAI Codex adapter. This file supplies the interface metadata Codex shows in
+# its agent picker. The skill's actual instructions live in ../SKILL.md, which the
+# Agent Skills client installs alongside this file and loads when the skill runs.
+interface:
+  display_name: "Dev Develop"
+  short_description: "Build the next task from the plan, one at a time"
+  default_prompt: "Run the dev-develop skill: read its SKILL.md, then build the next task from .konteksto/build-plan.md following the recorded code standards, and tick the progress tracker. Stop and route to the dev-architect skill if a load bearing decision is owed."

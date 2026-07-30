@@ -23,7 +23,7 @@ const AGENTS = {
 };
 
 function parseArgs(argv) {
-  const opts = { agent: "claude-code", link: false, force: false, dryRun: false, remove: false, only: null, target: null };
+  const opts = { agent: "claude-code", link: false, force: false, dryRun: false, remove: false, allowCollision: false, only: null, target: null };
   const rest = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -33,6 +33,7 @@ function parseArgs(argv) {
     else if (a === "--force") opts.force = true;
     else if (a === "--dry-run") opts.dryRun = true;
     else if (a === "--remove" || a === "--uninstall") opts.remove = true;
+    else if (a === "--allow-collision") opts.allowCollision = true;
     else if (a === "-h" || a === "--help") opts.help = true;
     else if (a.startsWith("-")) fail(`Unknown option: ${a}`);
     else rest.push(a);
@@ -59,6 +60,7 @@ const HELP = `
     --force              replace a skill that is already there
     --remove             uninstall the skills this repo provides
     --dry-run            print what would happen, change nothing
+    --allow-collision    install even when a personal skill shadows one of these
     -h, --help
 
   Examples
@@ -97,18 +99,27 @@ async function readSkills() {
 }
 
 // The personal skills directory is read for every project, so a skill of the
-// same name there is the one thing most likely to make a test ambiguous.
-async function warnOnCollisions(names, agent) {
+// same name there shadows the copy we are about to install, and nothing in the
+// session says which one ran. This is checked before anything is written,
+// because a warning printed after the copy is a warning nobody acts on.
+//
+// The `dev-` prefix on every skill in this repo is what makes a clash unlikely
+// in the first place. This stays as the backstop for the case where it happens
+// anyway, which is somebody else shipping a `dev-` skill of their own.
+async function checkCollisions(names, agent) {
   if (agent !== "claude-code") return;
   const personal = join(homedir(), ".claude", "skills");
   if (!existsSync(personal)) return;
   const installed = new Set(await readdir(personal));
   const clashes = names.filter((n) => installed.has(n));
   if (!clashes.length) return;
-  console.warn(`\n  Note: these names also exist in ${personal}`);
-  console.warn(`  ${clashes.join(", ")}`);
-  console.warn(`  A project level skill should win, but during a test you do not want to be`);
-  console.warn(`  guessing which one ran. Move the personal copies aside first if it matters.`);
+  fail(
+    `These names already exist in ${personal}:\n` +
+      `    ${clashes.join(", ")}\n\n` +
+      `  The personal copy shadows the one this would install, and nothing tells\n` +
+      `  you which ran. Move the personal copies aside and run this again, or pass\n` +
+      `  --allow-collision if you already know which one you want.`
+  );
 }
 
 async function main() {
@@ -130,6 +141,10 @@ async function main() {
     skills = skills.filter((s) => opts.only.includes(s.name));
   }
   if (!skills.length) fail("No valid skills found.");
+
+  if (!opts.remove && !opts.allowCollision) {
+    await checkCollisions(skills.map((s) => s.name), opts.agent);
+  }
 
   const dest = join(target, subdir);
   const label = opts.dryRun ? "would " : "";
@@ -172,8 +187,6 @@ async function main() {
     else await cp(skill.dir, out, { recursive: true });
     changed++;
   }
-
-  if (!opts.remove) await warnOnCollisions(skills.map((s) => s.name), opts.agent);
 
   console.log(`\n  ${changed} skill${changed === 1 ? "" : "s"} ${opts.dryRun ? "would change" : "changed"}.`);
   if (changed && !opts.dryRun && !opts.remove) {
