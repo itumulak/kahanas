@@ -45,7 +45,7 @@ Read a template from `templates/`, write the filled copy to `.konteksto/<same-fi
 
 Do NOT write application code, scaffold a project, or install a package the product itself ships. This skill produces documents and settles decisions. Building starts as a separate, later request.
 
-One narrow exception: agent tooling found in step 3, meaning skills and MCP servers, may be set up during this skill, but only per the consent rules in that step, and only for a tool the user approved by name.
+Two narrow exceptions. Agent tooling found in step 4, meaning skills and MCP servers, may be set up during this skill, but only per the consent rules in that step, and only for a tool the user approved by name. And `docker-compose.yml` plus `.env.example` are written in step 3, because they are the structure the build sits in rather than the product itself.
 
 Do NOT fill a document with a guess. Every value is read from the existing codebase, stated by the user, found at a source you actually fetched, or picked by the user from options you presented.
 
@@ -74,15 +74,54 @@ Every user facing choice is an options panel: 2 to 4 concrete options real to th
 
 ### Step 2: Settle the stack
 
-Walk every layer the product needs: runtime, language, framework, routing, styling or UI kit, data storage, auth, and anything the flows in `project-overview.md` imply, such as payments, email, file storage, search, or background work.
+Read the Project Shape section of `project-overview.md` first. It says whether the product is frontend only, backend only, or both, and it fixes the folder layout. Ask stack questions only for the halves that exist. Never ask which database a frontend only project uses.
 
-For each layer that is not already fixed by the existing codebase or named by the user, present a panel with 2 or 3 real options, their trade offs, and your recommendation. Only the picked option goes into a document.
+Walk every layer that half needs:
+
+- **Client**, when `app/` exists: language, framework, routing, styling or UI kit, state handling.
+- **Server**, when `backend/` exists: language, framework, data storage, migrations, auth and sessions.
+- **Anything the flows imply**, either half: payments, transactional email, file storage, search, caching, queues, background work, realtime.
+
+For each layer not already fixed by the existing codebase or named by the user, present a panel with 2 or 3 real options, their trade offs, and your recommendation. Name real tools here. This is the one place in the workflow where that happens. Only the picked option goes into a document.
 
 Record each pick and its reason in the "Why these choices" list in `architecture.md`.
 
-The stack is settled when every layer has a named tool. Do not start step 3 before that, because tooling is chosen for a known stack.
+The stack is settled when every layer of every existing half has a named tool. Do not start step 3 before that.
 
-### Step 3: Agent tooling discovery
+### Step 3: Local development containers
+
+Run this once the stack is settled. Every service the stack named needs somewhere to run locally, and a compose file is how this project structures that.
+
+#### Propose the services
+
+Derive the service list from the stack, never from a fixed menu:
+
+- **One service per stored data store** picked in step 2, for example Postgres, MySQL, or Redis.
+- **One service per half that exists**, building from `backend/Dockerfile.dev` and `app/Dockerfile.dev`.
+- **A local stand in for every external service the flows need**, so the build never depends on a real account. Mail becomes MailHog or Mailpit. S3 style file storage becomes MinIO. Name the real service it stands in for, so nobody ships the stand in.
+- **An admin interface only when asked for.** A database console is convenience, not structure.
+
+Present the list as one panel with your recommendation, and say plainly which ones you would leave out. The user can decline any service, and can decline Docker entirely. A no is a complete answer. Record a decline in `tooling.md` so a later session does not raise it again.
+
+#### Write the compose file
+
+On confirmation, write `docker-compose.yml` at the project root, in the layout `project-overview.md` recorded. Follow these rules, which exist because each one has bitten a real project:
+
+1. **Every value that differs between machines is an environment variable with a default**, in the form `${DB_PORT:-5432}`. A fresh clone must come up with no `.env` file present.
+2. **Every service another service waits on has a healthcheck**, and the waiting service uses `depends_on` with `condition: service_healthy`. A plain `depends_on` waits for the container to start, not for the service inside it to be ready, which is the usual cause of a backend that dies on first boot.
+3. **A one shot setup container uses `condition: service_completed_successfully`**, for example the container that creates the storage bucket.
+4. **Persistent data goes in a named volume**, declared at the bottom. Every declared volume is actually used by a service. An unused volume is a leftover.
+5. **The network key and the network name match.** Declaring the key `my-network` while every service references `${NETWORK_NAME:-project-network}` only works because `name:` overrides the key, and it breaks the moment someone reads it. Use the same string for both.
+6. **Source folders are bind mounted for live reload**, and the dependency folder is mounted separately so the host's copy does not shadow the container's.
+7. **Secrets have obvious throwaway defaults** such as `minioadmin`, and the file says in a comment that they are for local development only. Never write a real credential into this file.
+
+Then write the matching `.env.example` listing every variable the compose file reads, with its default. Never write `.env` itself.
+
+Record every service, its purpose, and its ports in `tooling.md`.
+
+Writing this file is the one exception to the no code rule, because it is the structure the build sits in rather than the product itself. Do not write a `Dockerfile.dev`, and do not run `docker compose up`. `/develop` does both.
+
+### Step 4: Agent tooling discovery
 
 Run this only once the stack is settled, and only for tools that are not already installed or already recorded as declined.
 
@@ -142,7 +181,7 @@ Anything declined goes in the Considered and Rejected table in `tooling.md` with
 
 Found nothing that passes the checks? Say so plainly and move on. Never invent a candidate to fill a panel.
 
-### Step 4: Write the Stage 1 documents
+### Step 5: Write the Stage 1 documents
 
 One file at a time, in order: `architecture.md`, `tooling.md`, `code-standards.md`, `library-docs.md`.
 
@@ -154,7 +193,7 @@ For each:
 4. Keep a section marked Optional only when it genuinely applies. Remove it otherwise and say which you removed and why. Never present an empty section as a placeholder.
 5. Present the file, get approval, then start the next. If a change contradicts an earlier file, go back and fix that file too.
 
-### Step 5: Write the Stage 2 documents
+### Step 6: Write the Stage 2 documents
 
 Only after all four Stage 1 documents are approved. Same per file process, in order: `build-plan.md`, `progress-tracker.md`, `ui-registry.md`.
 
@@ -164,12 +203,13 @@ Extra rules:
 - `progress-tracker.md` mirrors `build-plan.md` exactly, one checkbox per task, same phase and task order. On a fresh project every box starts unchecked, Last completed reads "nothing yet", and Next names the first task.
 - `ui-registry.md` is skipped when the project has no component based UI layer, the same condition under which `code-standards.md` has no Component Structure section. Say you skipped it rather than writing an empty file. On a fresh project with a UI layer it starts empty apart from its heading, since no component exists yet.
 
-### Step 6: Report
+### Step 7: Report
 
-Say five things:
+Say six things:
 
-- The files written.
+- The files written, including `docker-compose.yml` and `.env.example` if step 3 wrote them.
 - The optional sections and files skipped, and why.
+- Every container in the compose file, its purpose, and the port it is on. Name any stand in service and the real service it stands in for.
 - Every skill installed, by name.
 - Every MCP server the user still needs to connect themselves, with the exact command.
 - That no application code was written.

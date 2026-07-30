@@ -93,12 +93,56 @@ Read `templates/project-overview.md` in full before writing anything. Then fill 
 4. **Navigation.** The top level shape, so no page invents its own later.
 5. **Core User Flow.** One subsection per page, ordered steps in plain language. This is the contract `/architect`'s build plan checks itself against, so it must describe real user actions, not screens.
 6. **Features in Scope** and **Features out of Scope.** The fixed list this pass commits to, and the explicit non goals. Be generous with the out of scope list. Every item written there is a feature a later session will not quietly build.
+7. **Project Shape.** Which halves exist, and the folder layout. See the next step, which is long enough to stand on its own.
 
 Replace every bracketed placeholder with real content. A finished file contains no literal `<TOKEN>` text. Check this before you present it.
 
 Follow the template's repeat instructions. One line per route, one flow subsection per page, one bullet per feature. Produce as many as the product needs, not one example.
 
-### Step 4: Present and get approval
+### Step 4: Settle the project shape
+
+Two questions, in this order. Both describe what is being built, so both belong here. Neither one names a tool.
+
+#### Which halves exist
+
+Ask whether the project is frontend only, backend only, or both. Recommend the answer the flows in step 3 imply, and say why. A product whose flows are all screens with no stored state is frontend only. A product that is an API other systems call is backend only. Most products with saved data are both.
+
+This answer decides which folders exist, so settle it before showing a layout.
+
+#### The folder layout
+
+The recommended layout is:
+
+```
+.
+└── /
+    ├── backend/
+    ├── app/
+    ├── other-folders/
+    └── docker-compose.yml
+```
+
+Server code lives in `backend/`, client code lives in `app/`, and the local development stack lives in `docker-compose.yml` at the root. Drop the half that is out of scope. Replace `other-folders/` with the real top level folders this product needs, each with a one line note on what it holds.
+
+Note that `app/` is the client folder, not `frontend/`. Say the name out loud when you present it, because it is the one part of this layout that surprises people.
+
+**Empty folder.** Present the layout as a recommendation and get a yes or no.
+
+**Existing codebase that already matches.** Say so and move on. Change nothing.
+
+**Existing codebase that does not match.** Show the two trees side by side, the real one and the recommended one, and name exactly which folders would move. Then offer three options:
+
+1. **Reshape to the recommended layout** (recommended when the difference is small and the project is early): the moves happen later, during the build, not now.
+2. **Keep the current layout**: record the real tree in Project Shape instead, with the reason.
+3. **Reshape part of it**: name which folders move and which stay.
+
+**The user can always decline.** A no is a complete answer and needs no justification. Record the layout they chose, mark it as custom, and never raise the recommendation again in a later session. A project that keeps its own structure is not a project with a problem to fix.
+
+Whatever is chosen, write it into the Project Shape section as the real tree, not the recommended one.
+
+Do not create any folder, move any file, or write `docker-compose.yml`. This step records a decision. `/architect` writes the compose file once the stack is known, and `/develop` moves the files.
+
+### Step 5: Present and get approval
 
 Show the finished file. Call out plainly:
 
@@ -107,12 +151,13 @@ Show the finished file. Call out plainly:
 
 Get approval before you finish. If the user changes something, edit the file in place.
 
-### Step 5: Hand off
+### Step 6: Hand off
 
 Report:
 
 - That `.konteksto/project-overview.md` is written and approved.
 - What the root survey found: whether a codebase exists, and what it showed.
+- The project shape: which halves exist, and whether the layout is the recommended one or a custom one. `/architect` needs both to write the compose file and the folder tree.
 - Any tool, provider, or constraint the user named during the conversation. This is the only place those belong.
 - Any question that came up which is a how question, not a what question, so `/architect` starts with it.
 - That you wrote nothing else.

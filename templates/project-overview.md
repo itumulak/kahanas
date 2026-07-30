@@ -75,3 +75,26 @@ List every feature genuinely committed to; one bullet each.
 *Purpose: who this is for, in one or two bullets. Shapes tone, complexity, and which edge cases matter.*
 
 - <TARGET_AUDIENCE_DESCRIPTION>
+
+---
+
+## Project Shape
+
+*Purpose: which halves of the product exist, and the folder layout everything is built into. Recorded here because it is a fact about what is being built, not a tool choice. `architecture.md` expands the tree with annotations and real file names; this section only fixes the top level shape.*
+
+**Parts:** <FRONTEND_ONLY_OR_BACKEND_ONLY_OR_BOTH>
+
+**Layout:** <RECOMMENDED_OR_CUSTOM>
+
+```
+.
+└── /
+    ├── backend/
+    ├── app/
+    ├── other-folders/
+    └── docker-compose.yml
+```
+
+The recommended layout puts server code in `backend/`, client code in `app/`, and the local development stack in `docker-compose.yml` at the root. Any further top level folder replaces the `other-folders/` line with its real name and a short note on what it holds. Drop `backend/` or `app/` when that half is out of scope.
+
+When the project keeps a different layout, replace the tree above with the real one and record the reason on the Layout line, so no later session tries to reshape it again.
