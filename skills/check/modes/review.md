@@ -146,3 +146,5 @@ For a high stakes change, meaning the verdict was Blocked or Changes requested, 
 > "For an independent second opinion from a different provider, switch your model or paste the diff into another assistant and run this again. No keys needed."
 
 This mode is complete after relaying. It does not fix the findings, and it does not invoke another skill. Fixing them is `/develop`'s job, and a normal follow up.
+
+Once the findings are dealt with, the remaining steps before a merge are `/document pr` to write the description, and `/sync` to make the documents true again. Name both, since neither is obvious from here.

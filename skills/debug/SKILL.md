@@ -7,7 +7,7 @@ description: "Run /debug to find and fix the root cause of a bug: something fail
 ## Output style (plain words, no dashes, no hyphens)
 
 <!-- OUTPUT-STYLE:START -->
-Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. Use short sentences, commas, or parentheses. Clear beats clever.
+Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. A structural separator inside a template format other skills parse, such as the em dash in `## Phase 1 — <NAME>`, is part of that format: reproduce it exactly, since changing it breaks the mirroring. Use short sentences, commas, or parentheses. Clear beats clever.
 <!-- OUTPUT-STYLE:END -->
 
 ## What this skill does
@@ -20,14 +20,12 @@ A structured root cause investigation, not guess and check. Bugs are found by a 
 
 ## Where this sits
 
-| Skill | Owns | Answers |
-| --- | --- | --- |
-| `/develop` | the code, `progress-tracker.md`, `ui-registry.md` | Builds it |
-| `/check` | `.konteksto/reviews/` | Confirms it works |
-| `/debug` | the minimal fix | Finds out why it does not |
-| `/test` | the test suite | Stops it coming back |
+**Before this:** usually `/check verify`, which found something broken.
 
-`/check verify` finds that something is broken. This finds out why.
+**After this:** `/test`, to lock the fix in with a regression test.
+
+The full workflow, and who owns which document, is in the root `CLAUDE.md`.
+
 
 ## Asks vs acts
 

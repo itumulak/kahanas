@@ -7,7 +7,7 @@ description: "Run /develop to build the next task from .konteksto/build-plan.md,
 ## Output style (plain words, no dashes, no hyphens)
 
 <!-- OUTPUT-STYLE:START -->
-Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. Use short sentences, commas, or parentheses. Clear beats clever.
+Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. A structural separator inside a template format other skills parse, such as the em dash in `## Phase 1 — <NAME>`, is part of that format: reproduce it exactly, since changing it breaks the mirroring. Use short sentences, commas, or parentheses. Clear beats clever.
 <!-- OUTPUT-STYLE:END -->
 
 ## What this skill does
@@ -20,12 +20,12 @@ It decides nothing load bearing. That is what the gate in step 1 is for.
 
 ## Where this sits
 
-| Skill | Owns | Answers |
-| --- | --- | --- |
-| `/scope` | `project-overview.md` | What the product is |
-| `/architect` | the six design documents, plus the starting state of `progress-tracker.md` and `ui-registry.md` | How it gets built |
-| `/develop` | the code, and every update to `progress-tracker.md` and `ui-registry.md` except the one below | Builds it |
-| `/check` | `.konteksto/reviews/` | Confirms it actually works |
+**Before this:** `/architect`, which settled the design and wrote the plan.
+
+**After this:** `/check verify`, which proves the task actually works. A failure there goes to `/debug`.
+
+The full workflow, and who owns which document, is in the root `CLAUDE.md`.
+
 
 ## Artifact ownership
 

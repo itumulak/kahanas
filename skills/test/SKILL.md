@@ -7,7 +7,7 @@ description: "Run /test to write the test suite for code just built or changed. 
 ## Output style (plain words, no dashes, no hyphens)
 
 <!-- OUTPUT-STYLE:START -->
-Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. Use short sentences, commas, or parentheses. Clear beats clever.
+Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. A structural separator inside a template format other skills parse, such as the em dash in `## Phase 1 — <NAME>`, is part of that format: reproduce it exactly, since changing it breaks the mirroring. Use short sentences, commas, or parentheses. Clear beats clever.
 <!-- OUTPUT-STYLE:END -->
 
 ## What this skill does
@@ -20,13 +20,12 @@ Targets the code changed in this branch and not yet committed. Each changed file
 
 ## Where this sits
 
-| Skill | Owns | Answers |
-| --- | --- | --- |
-| `/develop` | the code | Builds it |
-| `/check verify` | runtime proof | Confirms it works once |
-| `/test` | the test suite, and `test-preferences.json` | Confirms it keeps working |
+**Before this:** `/develop` built it and `/check verify` proved it works once.
 
-`/check verify` opens the app once and proves the task is real. This writes the assertions that run forever. They are different jobs, and neither replaces the other.
+**After this:** `/check review` before a merge.
+
+The full workflow, and who owns which document, is in the root `CLAUDE.md`.
+
 
 ## Artifact ownership
 

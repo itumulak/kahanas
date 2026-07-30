@@ -98,7 +98,7 @@ The design proves wrong or incomplete partway through: the schema cannot hold th
 
 ### Two rules that outlive the build
 
-**A data layer task is not done until the migration is applied and the schema is confirmed live.** Query the real database. Generated is not applied, and a type check will never tell you the difference.
+**A data layer task is not done until the migration is applied and the schema is confirmed live.** The full rule, including how to confirm it, is in `logical-guide.md` phase 2. Do not restate it from memory.
 
 **Remove superseded code in the same task that replaced it.** Old and new side by side is not done. The details are in `logical-guide.md`, phase 6.
 

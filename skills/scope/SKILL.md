@@ -7,7 +7,7 @@ description: "Run /scope to start a project. Checks the root folder for an exist
 ## Output style (plain words, no dashes, no hyphens)
 
 <!-- OUTPUT-STYLE:START -->
-Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. Use short sentences, commas, or parentheses. Clear beats clever.
+Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. A structural separator inside a template format other skills parse, such as the em dash in `## Phase 1 — <NAME>`, is part of that format: reproduce it exactly, since changing it breaks the mirroring. Use short sentences, commas, or parentheses. Clear beats clever.
 <!-- OUTPUT-STYLE:END -->
 
 ## What this skill does
@@ -20,14 +20,12 @@ It does not answer how. Stack, structure, conventions, tooling, and the build or
 
 ## Where this sits
 
-| Skill | Owns | Answers |
-| --- | --- | --- |
-| `/scope` | `project-overview.md` | What the product is |
-| `/architect` | `architecture.md`, `tooling.md`, `design.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, `progress-tracker.md`, `ui-registry.md` | How it gets built |
-| `/develop` | the code, `progress-tracker.md`, `ui-registry.md` | Builds it |
-| `/check` | `.konteksto/reviews/` | Confirms it works |
+**Before this:** nothing. This is the front door.
 
-The split follows one rule. **`/scope` owns the what and stays tool agnostic. `/architect` owns the how and makes every tool call.**
+**After this:** `/architect`, which designs how it gets built.
+
+The full workflow, and who owns which document, is in the root `CLAUDE.md`. One rule matters here: **`/scope` owns the what and stays tool agnostic. `/architect` owns the how and makes every tool call.**
+
 
 ## Artifact ownership
 

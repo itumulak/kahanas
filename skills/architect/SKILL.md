@@ -7,7 +7,7 @@ description: "Run /architect after /scope to design how the product gets built. 
 ## Output style (plain words, no dashes, no hyphens)
 
 <!-- OUTPUT-STYLE:START -->
-Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. Use short sentences, commas, or parentheses. Clear beats clever.
+Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. A structural separator inside a template format other skills parse, such as the em dash in `## Phase 1 — <NAME>`, is part of that format: reproduce it exactly, since changing it breaks the mirroring. Use short sentences, commas, or parentheses. Clear beats clever.
 <!-- OUTPUT-STYLE:END -->
 
 ## What this skill does
@@ -15,6 +15,14 @@ Write everything this skill produces, files and messages alike, in plain simple 
 Answers **how the product gets built**, given a `project-overview.md` that already says what it is. Settles every load bearing technical decision, then records the result across eight documents in `.konteksto/`.
 
 `/scope` owns the what and never names a tool. This skill makes every tool call there is.
+
+## Where this sits
+
+**Before this:** `/scope`, which settled what the product is.
+
+**After this:** `/develop`, which builds the first task in the plan.
+
+The full workflow, and who owns which document, is in the root `CLAUDE.md`.
 
 ## Artifact ownership
 
@@ -131,99 +139,19 @@ Stages A, B, D, E, and F of the design conversation happen here too, not only th
 
 ### Step 3: The design direction
 
-**Skip this whole step when there is no `app/`**, meaning Project Shape said backend only. A backend has no art direction, and `design.md` is not written at all.
+**Skip this whole step when there is no `app/`.** A backend has no art direction, and `design.md` is not written at all.
 
-The client framework is now known, which matters, because a starter template is framework specific.
+Otherwise **read `internal/design-direction.md` and follow it.** It asks whether a design exists, recommends free starter templates for the framework already chosen, and follows up on the behavior a template cannot settle: the empty state, loading, errors, density, small screens, and dark mode.
 
-#### Ask whether a design already exists
-
-> "Do you have a design ready for this, or should I recommend a starting point?"
-
-1. **I have a design**: a mockup, a Figma file, a screenshot, or a live site to match. Ask which, and where it is. Record what it is in `design.md`'s Source section, then go to the follow up questions below to fill the parts a static picture cannot answer.
-2. **Recommend a starting point** (recommended when nothing exists): go to the next part.
-3. **No visual direction, build to the defaults**: `design.md` still gets written, derived from the follow up questions alone. Say plainly that the result will be competent rather than distinctive, since nothing anchors it.
-
-#### Recommend free starter templates
-
-Only for the framework already chosen in step 2. A template for a different framework is not a recommendation, it is a stack change.
-
-Find two or three real, free, actively maintained templates for that exact framework. **Fetch each one's page before proposing it.** Never recommend a template from memory, because template galleries change constantly and a dead link wastes the user's time.
-
-For each, say: its name, its link, its license, what kind of product it suits, and what it would cost to bend it toward this product. Recommend one, with a one line why.
-
-Check each against the product before proposing it:
-
-- It fits the pages in `project-overview.md`. A marketing template for an application with a dense data table is a fight, not a head start.
-- Its license permits the intended use. Say the license out loud rather than assuming it is permissive.
-- It is maintained. An abandoned template carries abandoned dependencies, which lands you in the audit in step 4 on day one.
-
-The user may decline all of them. That is option 3 above, not a failure.
-
-#### Follow up on behavior, not looks
-
-A template settles how it looks. It settles almost nothing about how it behaves. Ask about the parts a picture cannot show, in one round of up to four questions, and **anchor every one to a real flow in `project-overview.md`** rather than asking in the abstract.
-
-Cover, choosing what actually applies:
-
-- **The empty state** for each list or feed the flows describe. What does a person see before there is any data, and what does it offer them next? This is the state most often skipped and most often noticed.
-- **Loading.** A skeleton, a spinner, or an optimistic update? This changes how a component is built, not only how it looks.
-- **Errors.** What a person sees when something fails, and what they can do about it.
-- **Density.** Roomy or compact. A flow that involves scanning many rows wants a different answer from one that involves reading.
-- **Navigation at the small end.** What happens to the navigation `project-overview.md` describes on a phone.
-- **Dark mode.** Whether it exists at all. Deciding this later means revisiting every colour.
-
-Record the answers in `design.md`'s States, Composition patterns, and Responsive sections. **Every answer must be consistent with a flow in `project-overview.md`.** Where an answer contradicts a flow, say so and settle it now, because one of the two is wrong.
+The rule worth carrying from here: **a template settles how it looks and almost nothing about how it behaves**, and every follow up answer is anchored to a real flow in `project-overview.md`.
 
 ### Step 4: Audit an existing codebase
 
-**Skip this step entirely on a fresh project, and on our own scaffold.** It applies only when step 1 found code that this workflow did not generate. Auditing dependencies `/develop` installed from your own stack decision minutes earlier is pure noise, and it teaches the user to skim these reports.
+**Skip this step entirely on a fresh project, and on our own scaffold.** It applies only when step 1 found code this workflow did not generate.
 
-Existing code is a set of decisions already made, most of them by someone with context you do not have. The job is to surface them and get a ruling, not to quietly modernize.
+Otherwise **read `internal/brownfield-audit.md` and follow it.** It confirms the project structure, settles what happens to existing components, and audits every dependency for age, abandonment, and known vulnerabilities.
 
-#### Confirm the project structure
-
-`project-overview.md`'s Project Shape already records whether the user wanted the recommended layout or kept their own. **Read it and confirm that decision still holds**, now that the stack is settled and the real cost of moving folders is visible.
-
-If they change their mind, that section belongs to `/scope`. Say so and route them back rather than editing it here. Do not move any file yourself: `/develop` does that, as a task in the plan.
-
-#### Decide what happens to existing components
-
-Ask directly, because both answers are defensible and the wrong assumption is expensive:
-
-> "There are existing components that no task touches yet. Leave them exactly as they are, or bring them in line with the new standards now?"
-
-1. **Leave them, change one only when a task touches it** (recommended): the plan stays small, nothing unrelated breaks, and the codebase converges gradually. Record this as a rule in `code-standards.md`, so no later session treats an old component as a defect.
-2. **Bring them all in line now**: honest, and sometimes right before a large build, but it becomes its own phase in `build-plan.md` with its own tasks, never invisible work folded into a feature.
-
-Whichever is chosen, write it down. An unrecorded answer here produces a build where half the sessions refactor on sight and half do not.
-
-#### Audit the dependencies
-
-Read the lock file and the manifest, then check each dependency's real current state. **Fetch the registry or repository page rather than relying on memory**, because a version you remember as current may be two years stale.
-
-Sort every dependency into one of four groups, and handle each differently:
-
-| Finding | What to do |
-| --- | --- |
-| **Has a known vulnerability** | Update it. This is not a preference, and it is not deferred to a later phase. |
-| **Outdated, still maintained** | Update to the current version. Where the jump crosses a major version, say what breaks and make it its own task. |
-| **Archived or unmaintained, with a security fix available** | Update to the fixed version now, and plan the replacement separately. |
-| **Archived or unmaintained, with no fix coming** | Propose a replacement. |
-
-**On vulnerabilities.** Run the ecosystem's own audit command and read what it reports. Present each finding with its severity, what the package is used for in this project, and the fixed version. **A vulnerable dependency is not a matter of taste**, so recommend the update plainly rather than offering it as one option among equals. The user can still decline, and if they do, record the decision and the reason in `library-docs.md` so it is a known accepted risk rather than an oversight.
-
-**On proposing a replacement**, it must clear the same bar as any other tool in step 2, and you say which checks it passed:
-
-- It genuinely covers what the current package is used for here. Check the actual usage in the code, not the package description.
-- It is actively maintained, with real recent activity.
-- Its license works for this project.
-- The migration cost is stated honestly, including how many files change.
-
-Never swap a library silently as part of another change. Every replacement is its own task in `build-plan.md`, with the reason recorded in `library-docs.md`.
-
-**Record everything.** Updates and replacements become tasks in `build-plan.md`, and `library-docs.md` carries the version notes and the reasons. A finding that is only mentioned in conversation is a finding that gets lost.
-
-Both of those files are written later, in steps 7 and 8. Hold the findings until then rather than writing early, and carry them forward as a list.
+The rule worth carrying from here: **a vulnerable dependency is recommended plainly, not offered as one option among equals**, and a declined update is recorded as an accepted risk rather than forgotten.
 
 ### Step 5: Local development containers
 
@@ -345,6 +273,8 @@ Then name the next step: a separate request to build the first task in `build-pl
 
 Both live in this skill's folder, read only when you reach them.
 
+- `internal/design-direction.md`: the design source question, the starter template recommendations, and the behavior follow ups. Read at step 3, frontend only.
+- `internal/brownfield-audit.md`: the structure confirmation, the existing component decision, and the dependency audit. Read at step 4, existing codebases only.
 - `internal/standards.md`: the convention and tooling questions that fill `code-standards.md`, and how to derive conventions from an existing codebase. Read at step 7.
 - `patterns/*.md`: the four architecture style presets. Read only the one the user picks, at write time.
 - `internal/stack-defaults.md`: the architecture pattern table, the durable category per layer, and the opinions to apply. Read during the stack walk in step 2.

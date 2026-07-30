@@ -7,7 +7,7 @@ description: "Run /sync as the last step after a change is complete, around merg
 ## Output style (plain words, no dashes, no hyphens)
 
 <!-- OUTPUT-STYLE:START -->
-Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. Use short sentences, commas, or parentheses. Clear beats clever.
+Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. A structural separator inside a template format other skills parse, such as the em dash in `## Phase 1 — <NAME>`, is part of that format: reproduce it exactly, since changing it breaks the mirroring. Use short sentences, commas, or parentheses. Clear beats clever.
 <!-- OUTPUT-STYLE:END -->
 
 ## What this skill does
@@ -54,6 +54,14 @@ The stamp records provenance, not permission. It never licenses overwriting a li
 
 **Acts.** Pauses only when there is nothing to sync. Every edit is listed in the report so it can be reviewed or reverted.
 
+## Where this sits
+
+**Before this:** everything else. This runs last, around a merge.
+
+**After this:** nothing. The loop starts again at `/develop` with the next task.
+
+The full workflow, and who owns which document, is in the root `CLAUDE.md`.
+
 ## Artifact ownership
 
 Exactly what the Boundaries table grants, and nothing else.
@@ -90,7 +98,7 @@ Read the tracker and the registry, plus the parts of the plan you need. Read nar
 For each unticked task in `progress-tracker.md`, ask whether the repo **proves** it is done:
 
 - The files its bullets describe exist and contain what they promised.
-- For a data task, the migration exists **and** the schema is live. Query the real database. Generated is not applied, which is the failure this workflow keeps catching.
+- For a data task, the migration exists **and** the schema is live, per the rule in `/develop`'s `logical-guide.md` phase 2. Query the real database rather than trusting the migration file.
 - For a UI task, the component exists and is reachable.
 
 **Proof means what is in the repo, not what a commit message claims.** A commit saying "add password reset" is a claim, and the route either exists or it does not.

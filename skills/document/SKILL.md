@@ -8,7 +8,7 @@ description: "Run /document pr, changelog, release-note, or postmortem (or let i
 ## Output style (plain words, no dashes, no hyphens)
 
 <!-- OUTPUT-STYLE:START -->
-Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. Use short sentences, commas, or parentheses. Clear beats clever.
+Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. A structural separator inside a template format other skills parse, such as the em dash in `## Phase 1 — <NAME>`, is part of that format: reproduce it exactly, since changing it breaks the mirroring. Use short sentences, commas, or parentheses. Clear beats clever.
 <!-- OUTPUT-STYLE:END -->
 
 ## What this skill does
@@ -25,6 +25,14 @@ Every sentence traces to something that actually happened: a commit, a diff, a l
 | `changelog` | the merged change | developers | an entry appended to `CHANGELOG.md` |
 | `release-note` | a version range | users | `.konteksto/releases/<version>.md` |
 | `postmortem` | an incident, plus any `/debug` record | the team | `.konteksto/postmortems/<date>-<slug>.md` |
+
+## Where this sits
+
+**Before this:** a finished change, usually after `/check review`.
+
+**After this:** `/sync`, which makes the documents true again.
+
+The full workflow, and who owns which document, is in the root `CLAUDE.md`.
 
 ## Artifact ownership
 
