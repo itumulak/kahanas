@@ -1,7 +1,7 @@
 ---
 name: scope
-allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion, WebSearch, WebFetch
-description: "Run /scope when initializing a project. Checks the root folder for an existing codebase, runs structured discovery that weighs options, finds the MCP servers and skills that match the chosen stack, fills the five foundation docs (project overview, architecture, tooling, code standards, library docs), then fills the three planning docs (build plan, progress tracker, ui registry)."
+allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion
+description: "Run /scope to start a project. Checks the root folder for an existing codebase, then turns the idea into .konteksto/project-overview.md: what the product is, who it is for, its pages, its flows, and what is deliberately out of scope. Owns that one file and nothing else. Stays tool agnostic; /architect picks the stack."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -10,134 +10,111 @@ description: "Run /scope when initializing a project. Checks the root folder for
 Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. Use short sentences, commas, or parentheses. Clear beats clever.
 <!-- OUTPUT-STYLE:END -->
 
-## Guardrails
-
-Do NOT invoke any implementation skill, write any application code, scaffold any project, install any package the product itself will ship, or take any other implementation action while this skill is running. This skill produces documents. It ends when the eight documents are written and approved, and building the product starts in a separate, later request.
-
-There is one narrow exception. Agent tooling found in step 4, meaning MCP servers and skills, may be installed during this skill, but only after the user has approved that exact tool by name. Installing agent tooling changes the user's environment, so it is never done in bulk and never without an explicit yes for each one. See step 4 for the full rules.
-
-Do NOT fill a document with a guess. Every value written into a document is either read from the existing codebase, stated by the user, found at a source you actually fetched, or chosen from options you presented and the user approved.
-
-These rules apply to EVERY project regardless of how simple it looks.
-
 ## What this skill does
 
-Creates a project's living documentation in `.konteksto/` at the project root, using the templates bundled with this skill.
+The front door of the workflow, and the answer to one question: **what is being built, and for whom.**
 
-**Templates live in this skill's own `templates/` folder**, next to this file. Read a template from there, then write the filled copy to `.konteksto/<same-file-name>`. Never edit a template in place, and never treat a template as the project's document.
+Surveys the project root, then fills `.konteksto/project-overview.md` from `templates/project-overview.md`, then stops.
 
-The work runs in two stages, in this order, because each later document depends on the earlier ones.
+It does not answer how. Stack, structure, conventions, tooling, and the build order all belong to `/architect`, and every one of those documents reads this file as its input.
 
-**Stage 1, the foundation docs.** These five describe what the project is, how it is built, and what tooling the agent works with.
+## Where this sits
 
-| Order | Template | Written to | Depends on |
-| --- | --- | --- | --- |
-| 1 | `project-overview.md` | `.konteksto/project-overview.md` | nothing |
-| 2 | `architecture.md` | `.konteksto/architecture.md` | the pages and flows named in project overview |
-| 3 | `tooling.md` | `.konteksto/tooling.md` | the Stack table in architecture |
-| 4 | `code-standards.md` | `.konteksto/code-standards.md` | the Stack table in architecture |
-| 5 | `library-docs.md` | `.konteksto/library-docs.md` | the approved dependency list in code standards |
+| Skill | Owns | Answers |
+| --- | --- | --- |
+| `/scope` | `project-overview.md` | What the product is |
+| `/architect` | `architecture.md`, `tooling.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, `progress-tracker.md`, `ui-registry.md` | How it gets built |
+| `/develop` | the code | Builds it |
 
-**Stage 2, the planning docs.** These three turn the foundation into an ordered build, and may only start once all five Stage 1 documents are approved.
+The split follows one rule. **`/scope` owns the what and stays tool agnostic. `/architect` owns the how and makes every tool call.**
 
-| Order | Template | Written to | Depends on |
-| --- | --- | --- | --- |
-| 6 | `build-plan.md` | `.konteksto/build-plan.md` | features in scope, plus the architecture |
-| 7 | `progress-tracker.md` | `.konteksto/progress-tracker.md` | the exact phases and tasks in build plan |
-| 8 | `ui-registry.md` | `.konteksto/ui-registry.md` | the component rules in code standards |
+## Artifact ownership
 
-## The "this is too simple to need a design" trap
+`.konteksto/project-overview.md`, created and updated by this skill only.
 
-Every project goes through this process. A todo list, a one function utility, a config change, all of them. Projects that look simple are where unexamined assumptions cause the most wasted work. A document may be short, a few sentences is fine for a genuinely small project, but you MUST write it and get approval.
+Writes nothing else. Not `architecture.md`, not `build-plan.md`, not code, not config. If the conversation surfaces something that belongs in another document, note it in your closing report for `/architect` to pick up, and leave the file alone.
 
-## Checklist
+## Guardrails
 
-You MUST create a task for each numbered item and complete them in order.
+**Never name a tool.** No framework, library, database, ORM, host, provider, or package appears in this file or in any question you ask. That is `/architect`'s job, and a scope that names tools rots the moment one is swapped.
 
-### 1. Check the root folder for an existing codebase
+Say "stores the user's saved items", not "stores them in Postgres". Say "sends a confirmation to the user", not "sends it with Resend".
 
-List the project root and look for source folders, a package manifest (`package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, or similar), config files, and a git history.
+If the user names a tool themselves, that is fine and worth remembering. Record it in your closing report as a constraint for `/architect`, not in this file.
 
-- **No codebase found.** This is a fresh project. Start the survey at step 2 with no assumptions about stack or structure.
-- **Codebase found.** Read it first: the directory tree, every package manifest, the lint and build config, the entry points, and the recent commits. Draft each document from what the code actually shows. Only ask the user about things the code cannot tell you, such as intent, audience, and what is deliberately out of scope.
+**Never guess.** Every value in the file is stated by the user, read from an existing codebase, or picked by the user from options you presented.
 
-Also check whether `.konteksto/` already exists. If it does, do not overwrite it silently: report which of the eight documents are already present and ask whether to update them in place or start over.
+**Never write code, scaffold a project, or install anything.**
 
-### 2. Ask clarifying questions, one at a time
+## Asks vs acts
 
-Ask a single question, wait for the answer, then ask the next. Use `AskUserQuestion` when the answer is a choice between known options.
+Sort every question before you ask it.
 
-Cover at minimum: what the product is, the problem it solves, who it is for, what it must do in this build pass, what is explicitly out of scope, and what "done" looks like. For an existing codebase, phrase these as confirmations of what you inferred in step 1 rather than asking the user to restate what the code already says.
+- **INFER**: anything the idea or the existing codebase already shows. The product category, the obvious pages, the platform. Derive it, then confirm it in one line. Do not ask.
+- **ASK**: only what the user alone knows. The real problem, the audience, the business rules, what is deliberately out of scope, what "done" means for this pass.
+- **RECOMMEND**: anything your judgment settles. A sensible page set, a navigation shape, a first pass at what should be out of scope. Make the call, give a one line why, let them override.
 
-### 3. Weigh options for every undecided choice
+Never present a neutral menu with no recommendation, and never bundle the whole product into one accept or change question.
 
-For any stack, structure, or convention choice that is not already fixed by the existing codebase or by the user, present 2 or 3 real approaches with their trade offs and name your recommendation. Wait for the user to pick. Only the picked option goes into a document.
+## Decision panels
 
-Record the choice and the reason at the point the template asks for it, for example the "Why these choices" list in `architecture.md`.
+Every user facing choice is an options panel: 2 to 4 concrete options real to this product, exactly one marked as recommended with a one line why. Use `AskUserQuestion` where available, otherwise ask the same options as plain text. The picker adds its own free text option, so only add one yourself in the plain text fallback.
 
-### 4. Find the MCP servers and skills that match the stack
+Ask in small rounds, up to 4 related questions per round. Do not fire one question at a time when four related ones could be answered together, and do not dump twenty at once.
 
-Run this only after the stack is settled, meaning every layer in the Stack table has a named tool. Tooling is chosen for a known stack, never before one.
+## Execution
 
-**Search these two kinds of source separately, because they are different registries.**
+### Step 1: Survey the project root
 
-*Skills*, which are reusable procedural knowledge for the agent:
+List the project root. Look for source folders, a package manifest (`package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, or similar), config files, and a git history.
 
-- `skills.sh`, a public skills directory. Entries install with `npx skills add <owner/repo>`.
-- The GitHub repository behind any entry you shortlist. Open it and confirm it exists and is maintained before proposing it.
+- **No codebase found.** Fresh project. Nothing about the product can be inferred yet, so the idea has to come from the user.
+- **Codebase found.** Read its routes, entry points, and user facing strings. Draft the pages, the navigation, and the flows from what is actually there, then ask the user to correct you. Never ask someone to describe an app they already built.
 
-*MCP servers*, which give the agent live access to a running system:
+Also check `.konteksto/`. If `project-overview.md` already exists, do not overwrite it silently: show what it says and ask whether to update it in place or start over. If the other documents exist too, say so, and note that changing the overview may make them stale.
 
-- The official Model Context Protocol servers repository and registry, for reference servers.
-- The first party documentation of the vendor whose system the server talks to. A database, hosting platform, or issue tracker publishing its own server is the strongest signal.
-- A marketplace the user already trusts, if they name one.
+Carry what you learn here into your closing report, so `/architect` does not survey the same ground again.
 
-**Judge each candidate against these checks before proposing it.** Say which checks it passed.
+### Step 2: Get the idea
 
-1. It serves a layer that is actually in the Stack table, or a task named in `project-overview.md`. No tool is added because it is popular.
-2. It is first party, or its repository is public, readable, and recently maintained.
-3. You fetched its real source page. Never propose a tool from memory, and never invent an install command. If you cannot fetch it, say so and drop it.
-4. Its access scope is proportionate. Prefer a read only server over a write capable one unless the project needs writes.
+If no idea was given and no argument was passed, stop and ask before anything else:
 
-**Then present, approve, and only then install.**
+"What are you building? Describe the product in one or two sentences: what it does, and who it is for."
 
-Present the shortlist as one table: name, kind, source URL, the stack layer it serves, and what it would be allowed to reach. Recommend a subset and say plainly which ones you would skip.
+Wait for the answer.
 
-Get an explicit yes for each tool by name. A general "sounds good" is not approval to install everything on the list. For each approved tool, run its documented install command, one at a time, and report the result before starting the next.
+### Step 3: Work through the template, section by section
 
-Anything the user declines goes into the Considered and Rejected table in `tooling.md` with the reason, so a later session does not raise it again.
+Read `templates/project-overview.md` in full before writing anything. Then fill it in this order, because each section narrows the next:
 
-If the search finds nothing that passes the checks, that is a valid result. Say so, and write `tooling.md` with the empty sections removed rather than padding it.
+1. **About the Project** and **The Problem it Solves.** What it is, and what existing options fail at. Get this in plain language a stranger could act on. If the answer is vague, push once: a scope built on a fuzzy problem produces a fuzzy build plan.
+2. **Target Audience.** Who this is for. Shapes which edge cases matter later.
+3. **Pages.** One line per route, in the template's exact shape. Recommend a page set from the idea, then let the user cut or add.
+4. **Navigation.** The top level shape, so no page invents its own later.
+5. **Core User Flow.** One subsection per page, ordered steps in plain language. This is the contract `/architect`'s build plan checks itself against, so it must describe real user actions, not screens.
+6. **Features in Scope** and **Features out of Scope.** The fixed list this pass commits to, and the explicit non goals. Be generous with the out of scope list. Every item written there is a feature a later session will not quietly build.
 
-### 5. Fill the Stage 1 foundation docs
+Replace every bracketed placeholder with real content. A finished file contains no literal `<TOKEN>` text. Check this before you present it.
 
-Work one file at a time, in the table order above: `project-overview.md`, `architecture.md`, `tooling.md`, `code-standards.md`, `library-docs.md`.
+Follow the template's repeat instructions. One line per route, one flow subsection per page, one bullet per feature. Produce as many as the product needs, not one example.
 
-For each file:
+### Step 4: Present and get approval
 
-1. Read the template in full before writing anything.
-2. Replace every bracketed placeholder with real project content. A finished file must contain no literal `<TOKEN>` text. Check this before presenting the file.
-3. Follow each template's own repeat instruction. Where a template says to repeat a section once per page, per table, per language, or per library, produce exactly that many, not one example.
-4. Keep a section marked Optional only when it genuinely applies. Remove it when it does not, and say in your message which optional sections you removed and why. Never present a file with an empty section left in as a placeholder.
-5. Present the finished file and get approval before starting the next one. If the user changes something that an earlier file already recorded, go back and update that earlier file too.
+Show the finished file. Call out plainly:
 
-### 6. Fill the Stage 2 planning docs
+- Anything you recommended rather than were told, so the user can push back on your judgment and not only on your transcription.
+- Anything that came up and was deliberately left out.
 
-Only start after all five Stage 1 documents are approved. Same order and same per file process as step 5: `build-plan.md`, `progress-tracker.md`, `ui-registry.md`.
+Get approval before you finish. If the user changes something, edit the file in place.
 
-Extra rules for this stage:
+### Step 5: Hand off
 
-- `build-plan.md` covers every feature listed under Features in Scope in `project-overview.md`, and nothing that is listed as out of scope. Its Feature Count table must add up to the number of tasks actually written.
-- `progress-tracker.md` mirrors `build-plan.md` exactly, one checkbox per task, in the same phase and task order. On a fresh project every box starts unchecked, Last completed reads "nothing yet", and Next names the first task.
-- `ui-registry.md` is skipped when the project has no component based UI layer, which is the same condition under which `code-standards.md` has no Component Structure section. Say that you skipped it rather than writing an empty file. On a fresh project with a UI layer, the registry starts empty apart from its heading and intent line, since no component exists yet.
+Report:
 
-### 7. Close out
+- That `.konteksto/project-overview.md` is written and approved.
+- What the root survey found: whether a codebase exists, and what it showed.
+- Any tool, provider, or constraint the user named during the conversation. This is the only place those belong.
+- Any question that came up which is a how question, not a what question, so `/architect` starts with it.
+- That you wrote nothing else.
 
-Report four things:
-
-- The files written.
-- The optional sections and files skipped, and why.
-- Every agent tool installed in step 4, by name, so the user has one clear record of what changed in their environment.
-- That no application code was written.
-
-Then name the next step, which is a separate request to start building the first task in `build-plan.md`.
+Then name the next step: run `/architect` to design the stack and the build.
