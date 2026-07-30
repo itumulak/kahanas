@@ -39,6 +39,8 @@ Seven documents, all created and updated by this skill only, filled from the mat
 
 Never touch `project-overview.md`. It is `/scope`'s file. If the design work proves it wrong, say so and ask the user to run `/scope` again rather than editing it yourself.
 
+**Two of these are living files, created here and updated elsewhere.** `progress-tracker.md` and `ui-registry.md` are written once by this skill, in their starting state, and every update after that belongs to `/develop`: a ticked task, a new component section. Do not tick a box or register a component that does not exist yet.
+
 Read a template from `templates/`, write the filled copy to `.konteksto/<same-file-name>`. Never edit a template in place.
 
 ## Guardrails
