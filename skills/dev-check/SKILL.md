@@ -37,7 +37,7 @@ The whole chain, once per project then once per task:
 
 ## Artifact ownership
 
-**Verify** owns no durable file. Chat output only, plus screenshots and logs in a scratch area. Its one narrow write is a Notes line in `progress-tracker.md` on a pass, which is how a later session tells an exercised task from an assumed one.
+**Verify** owns no durable file. Chat output only, plus screenshots and logs in a scratch area. Its one narrow write is an appended row in `note-registry.md` on a pass, which is how a later session tells an exercised task from an assumed one. It never touches `progress-tracker.md`, whose only writer is `/dev-develop`.
 
 **Review** owns `.konteksto/reviews/<date>-<task-slug>.md`, one file per run. Dated records, never edited afterwards. A later run writes a new file.
 

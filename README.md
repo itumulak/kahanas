@@ -56,7 +56,7 @@ A verify failure goes to `/dev-debug`. Before a merge: `/dev-check review`, then
 
 ## What it produces
 
-Nine documents in `.konteksto/`, each owned by exactly one skill:
+Ten documents in `.konteksto/`:
 
 ```
 .konteksto/
@@ -68,8 +68,12 @@ Nine documents in `.konteksto/`, each owned by exactly one skill:
 ├── library-docs.md        version specific notes
 ├── build-plan.md          the ordered task list
 ├── progress-tracker.md    live state                    (/dev-develop updates)
+├── note-registry.md       what was run, and what it proved
+│                                    (/dev-develop, /dev-check, /dev-debug append)
 └── ui-registry.md         reusable components           (/dev-develop updates)
 ```
+
+All but one have exactly one writer. `note-registry.md` is the deliberate exception: three skills append to it, each a different claim. `/dev-develop` says the build is clean, `/dev-check verify` says the behavior was exercised, `/dev-debug` says a bug was proven gone. Every row carries its timestamp and the skill that wrote it, nobody edits anybody else's row, and `/dev-sync` writes none, having run nothing itself.
 
 Plus `docker-compose.yml` and `.env.example` at the root, and a project laid out as:
 

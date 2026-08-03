@@ -39,9 +39,10 @@ The whole chain, once per project then once per task:
 
 - Application code, in the folders `project-overview.md`'s Project Shape section fixed. Server code in `backend/`, client code in `app/`, unless that section records a custom layout, in which case follow the real one.
 - `Dockerfile.dev` per half, when the compose file refers to one that does not exist yet.
-- `.konteksto/progress-tracker.md`, on every task. This is what tells the next session where things stand, so it is updated as part of finishing a task, never batched up for later.
+- `.konteksto/progress-tracker.md`, on every task. This is what tells the next session where things stand, so it is updated as part of finishing a task, never batched up for later. You are its only writer.
+- `.konteksto/note-registry.md`, one appended row per task, recording the command that confirmed the build is clean and its result.
 
-  **One line in it is not yours.** `/dev-check verify` writes a Notes line when it proves a task works. Leave that line alone, and never write it yourself, because it is the record that something was actually exercised rather than merely built.
+  **You are one of three writers here.** `/dev-check` appends a row on a verify pass, and `/dev-debug` appends one when it confirms a fix. Append your own row and leave theirs alone, because those rows claim something yours does not: that the behavior was exercised, or that a bug was proven gone. A clean build is neither.
 - `.konteksto/ui-registry.md`, one section per reusable component, at the moment the component is built. `/dev-architect` creates the file empty, and every entry in it comes from here.
 
 **Never writes:**
@@ -152,17 +153,20 @@ The third option exists so an assumption becomes durable. Written in the tracker
 
 Read `flow/build.md` and follow it. Do not read it when the gate ends the run.
 
-### Step 3: Update the tracker
+### Step 3: Update the tracker and the note registry
 
-Only after something is verified working. Edit `progress-tracker.md` surgically. Read it again immediately before writing, in case a teammate moved it, and change only these lines:
+Only after something is verified working. Two files, both edited surgically. Read each again immediately before writing, in case a teammate moved it.
+
+In `progress-tracker.md`, change only these lines:
 
 - Tick this task's checkbox under its phase.
 - Set **Last completed** to this task, and **Next** to the following one in `build-plan.md`.
 - Set **Phase** when this task closed out a phase.
 - Add a line under **Decisions Made During Build** for anything real: a bug found, a fix made, a local choice a later session would otherwise wonder about. Not a diary of every edit.
-- Add the command you used to confirm the build is clean under **Notes**, with its result.
 
-Never rewrite the file, and never tick a box for a task you did not build.
+In `note-registry.md`, append one row to the bottom of the Entries table: the timestamp from the system clock, `/dev-develop`, this task's number and name, and the command you ran to confirm the build is clean with its result. Read the file's Who writes what section if you have not already, then append and touch nothing else.
+
+Never rewrite either file, never tick a box for a task you did not build, and never edit a note row you did not write.
 
 ### Step 4: Report
 

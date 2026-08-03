@@ -50,11 +50,12 @@ Eight documents, all created and updated by this skill only, filled from the mat
 | --- | --- | --- |
 | 6 | `build-plan.md` | Features in Scope, plus the architecture |
 | 7 | `progress-tracker.md` | the exact phases and tasks in `build-plan.md` |
-| 8 | `ui-registry.md` | the component rules in `code-standards.md` and `design.md` |
+| 8 | `note-registry.md` | nothing, it starts empty |
+| 9 | `ui-registry.md` | the component rules in `code-standards.md` and `design.md` |
 
 Never touch `project-overview.md`. It is `/dev-scope`'s file. If the design work proves it wrong, say so and ask the user to run `/dev-scope` again rather than editing it yourself.
 
-**Two of these are living files, created here and updated elsewhere.** `progress-tracker.md` and `ui-registry.md` are written once by this skill, in their starting state, and every update after that belongs to `/dev-develop`: a ticked task, a new component section. Do not tick a box or register a component that does not exist yet.
+**Three of these are living files, created here and updated elsewhere.** `progress-tracker.md`, `note-registry.md`, and `ui-registry.md` are written once by this skill, in their starting state, and every update after that belongs to another skill: a ticked task and a new component section to `/dev-develop`, and a note row to whichever of `/dev-develop`, `/dev-check`, or `/dev-debug` ran the thing. Do not tick a box, register a component, or write a note row for something that does not exist yet.
 
 Read a template from `templates/`, in this skill's folder, and write the filled copy to `.konteksto/<same-file-name>`. Never edit a template in place.
 
@@ -244,12 +245,13 @@ For each:
 
 ### Step 8: Write the Stage 2 documents
 
-Only after all four Stage 1 documents are approved. Same per file process, in order: `build-plan.md`, `progress-tracker.md`, `ui-registry.md`.
+Only after all four Stage 1 documents are approved. Same per file process, in order: `build-plan.md`, `progress-tracker.md`, `note-registry.md`, `ui-registry.md`.
 
 Extra rules:
 
 - `build-plan.md` covers every feature in the Features in Scope list and nothing from the out of scope list. Its Feature Count table must match the number of tasks actually written. Order the phases so each one is visible and testable before the next starts.
 - `progress-tracker.md` mirrors `build-plan.md` exactly, one checkbox per task, same phase and task order. On a fresh project every box starts unchecked, Last completed reads "nothing yet", and Next names the first task.
+- `note-registry.md` always ships, backend or frontend, and always starts with its headings and an empty Entries table. Nothing has been run yet, so writing a row here would be inventing evidence. Keep the Who writes what and Excluded sections exactly as the template has them, since they are the contract the three writing skills read.
 - `ui-registry.md` is skipped when the project has no component based UI layer, the same condition under which `code-standards.md` has no Component Structure section. Say you skipped it rather than writing an empty file. On a fresh project with a UI layer it starts empty apart from its heading, since no component exists yet.
 
 ### Step 9: Check, cross check, and confirm

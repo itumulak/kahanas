@@ -37,7 +37,7 @@ These keep the skill from sprawling, which is the failure mode for anything that
 | Edit `architecture.md`, `code-standards.md`, `design.md`, or `tooling.md` | ❌ flags as stale | `/dev-architect` |
 | Edit `project-overview.md` | ❌ flags as stale | `/dev-scope` |
 | Clear a task built on an unratified assumption | ❌ flags as decision debt | `/dev-architect` |
-| Rewrite the Notes line `/dev-check verify` owns | ❌ leaves alone | `/dev-check` |
+| Add or rewrite any row in `note-registry.md` | ❌ leaves alone | `/dev-develop`, `/dev-check`, `/dev-debug` |
 | Rewrite a line a person wrote by hand | ❌ flags the conflict | the person |
 | Correct a fact in a still stamped document | ✅ corrects surgically | `/dev-sync` |
 
@@ -117,7 +117,9 @@ For each unticked task in `progress-tracker.md`, ask whether the repo **proves**
 
 ### Step 3: Reconcile
 
-**The tracker.** Tick every task the evidence proves. Update Last completed, Next, and Phase to match. Leave alone the Notes line `/dev-check verify` writes, and never write one yourself, since that line means something was actually exercised and you have not exercised anything.
+**The tracker.** Tick every task the evidence proves. Update Last completed, Next, and Phase to match.
+
+**The note registry is read only to you.** Never append a row, and never edit one. Every row there is a claim that a specific skill ran a specific thing and saw a specific result, and you have run nothing. A row you wrote would be a fabricated observation, which is worse than a missing one, because it reads exactly like a real one to the next session.
 
 **A task built on an unratified assumption stays unticked**, however finished the code looks. Only `/dev-architect` clears that, and ticking it here would erase the one signal that a decision is still owed.
 

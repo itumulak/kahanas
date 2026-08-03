@@ -23,7 +23,9 @@ Never modifies application code. Report the breakage and point at `/dev-develop`
 
 Owns no durable file. Chat output only, plus screenshots and logs saved to a scratch area.
 
-One narrow write: on a PASS, add a line under **Notes** in `progress-tracker.md` recording what you ran and that it passed. That is how a later session tells an exercised task from an assumed one.
+One narrow write: on a PASS, append a row to the Entries table in `note-registry.md` recording what you exercised and that it passed. That is how a later session tells an exercised task from an assumed one.
+
+`note-registry.md` has three writers, so read its Who writes what section before the first append. Yours is the row that claims the behavior was observed. Append it at the bottom, and never edit a row `/dev-develop` or `/dev-debug` wrote. `progress-tracker.md` is not yours at all.
 
 ---
 
@@ -144,7 +146,7 @@ An overall PASS requires every behavior verified with cited evidence, and every 
 
 ### Step 5: Report
 
-On a PASS, add the Notes line to `progress-tracker.md`. On a FAIL or BLOCKED, write nothing and report the gaps.
+On a PASS, append your row to `note-registry.md`. On a FAIL or BLOCKED, write nothing and report the gaps, because that file records what was proven and a failure proves nothing.
 
 ```
 ## /dev-check verify complete

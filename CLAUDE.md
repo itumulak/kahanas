@@ -7,21 +7,27 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | Skill | Owns | Answers |
 | --- | --- | --- |
 | `/dev-scope` | `project-overview.md` | What the product is |
-| `/dev-architect` | `architecture.md`, `tooling.md`, `design.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, plus the starting state of `progress-tracker.md` and `ui-registry.md` | How it gets built |
-| `/dev-develop` | the code, and every update to `progress-tracker.md` and `ui-registry.md` | Builds it |
-| `/dev-check` | `.konteksto/reviews/`, plus one Notes line in `progress-tracker.md` on a verify pass | Confirms it actually works |
-| `/dev-debug` | the minimal fix, plus a line in the decision log | Finds out why it does not |
+| `/dev-architect` | `architecture.md`, `tooling.md`, `design.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, plus the starting state of `progress-tracker.md`, `note-registry.md`, and `ui-registry.md` | How it gets built |
+| `/dev-develop` | the code, every update to `progress-tracker.md` and `ui-registry.md`, and a clean build row in `note-registry.md` | Builds it |
+| `/dev-check` | `.konteksto/reviews/`, plus one `note-registry.md` row on a verify pass | Confirms it actually works |
+| `/dev-debug` | the minimal fix, a line in the decision log, and a fix confirmed row in `note-registry.md` | Finds out why it does not |
 | `/dev-test` | the test files, and `test-preferences.json` | Stops it breaking again |
 | `/dev-document` | `CHANGELOG.md`, `.konteksto/releases/`, `.konteksto/postmortems/` | Explains it to people |
 | `/dev-sync` | corrections to `progress-tracker.md` and `ui-registry.md` from repo evidence | Makes the documents true again |
 
-Nine documents in all, and `design.md` is the only optional one: it is skipped entirely for a backend with no `app/`.
+Ten documents in all, and `design.md` is the only optional one: it is skipped entirely for a backend with no `app/`.
 
 **The usual loop:** `/dev-scope` once, `/dev-architect` once, then per task `/dev-develop`, `/dev-check verify`, `/dev-test`. A verify failure goes to `/dev-debug`. Before a merge, `/dev-check review`, then `/dev-document pr`, then `/dev-sync`.
 
 **`test-preferences.json` is a cross skill contract.** `/dev-test` owns it, and `/dev-check review` reads it to decide whether missing coverage is a finding at all. A project that deliberately has no test runner records that there, and the review then stops asking for one.
 
-**Where a document has two writers, both say so.** `progress-tracker.md` is created by `/dev-architect`, updated by `/dev-develop` on every task, and carries one Notes line written only by `/dev-check verify`. Each of those three files states the rule from its own side. An unstated second writer is how this system rots.
+**Where a document has more than one writer, every side says so.** `note-registry.md` is created empty by `/dev-architect` and appended to by three skills: `/dev-develop` records the command that proved the build clean, `/dev-check verify` records what it exercised on a pass, and `/dev-debug` records the check that proved a fix. All four files state the rule from their own side, and so does the registry itself, in its Who writes what section. An unstated extra writer is how this system rots.
+
+**Those three rows are three different claims, which is why they are not one row.** A clean build is not a working feature, and a passing verify is not a fixed bug. Collapsing them loses exactly the distinction a later session needs.
+
+**Append only, and never across writers.** A row is a claim about a moment that has already passed. A skill appends its own row and edits nobody's, and `/dev-sync` writes none at all, because it has run nothing and a fabricated observation reads exactly like a real one.
+
+`progress-tracker.md` sits on the other side of that split: `/dev-architect` creates it, `/dev-develop` is its only updater. Keeping it single writer is why the note rows moved out of it.
 
 **Every generated document is stamped.** A document written by a skill ends with a drafted by line, so a later maintenance pass can tell what a tool wrote from what a person wrote **instead of guessing**. `/dev-sync` reads it: stamp present means a wrong fact may be corrected surgically; stamp gone means a person owns the file, so add a missing fact but never rewrite an existing line.
 

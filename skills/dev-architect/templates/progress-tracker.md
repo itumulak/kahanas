@@ -1,8 +1,10 @@
 # Progress Tracker
 
-*Purpose: the live state of the build, so any agent picking up the project mid session immediately knows what is done, what is in progress, and what is next. This file keeps its exact original structure (Current Status, a checklist Progress section mirroring build-plan.md's phases, Decisions Made During Build, Notes), shown here with one demonstrative phase, one demonstrative decision, and one demonstrative note rather than an invented full project history.*
+*Purpose: the live state of the build, so any agent picking up the project mid session immediately knows what is done, what is in progress, and what is next. This file keeps its exact original structure (Current Status, a checklist Progress section mirroring build-plan.md's phases, Decisions Made During Build), shown here with one demonstrative phase and one demonstrative decision rather than an invented full project history.*
 
 Update this file after every completed feature. Any AI agent reading this should immediately know what is done, what is in progress, and what is next.
+
+**`/dev-develop` is the only skill that writes here.** What was run and what it proved goes in `note-registry.md` instead, which `/dev-develop`, `/dev-check`, and `/dev-debug` all append to. One owner here, three there, and the split is deliberate: it keeps this file's ticks meaning one thing said by one skill.
 
 ---
 
@@ -34,11 +36,3 @@ Repeat one `### Phase N — <PHASE_NAME>` subsection per phase in `build-plan.md
 *Purpose: a running log of real decisions, bugs found, and fixes made during the build, in the order they happened, so later sessions don't repeat the same investigation or silently contradict an earlier choice.*
 
 - <DECISION_OR_BUG_OR_FIX_LOG_ENTRY>
-
----
-
-## Notes
-
-*Purpose: the exact commands used to confirm the build is currently clean, so a new session can re run the same checks instead of inventing its own.*
-
-- <TOOLCHAIN_OR_LINT_CHECK_COMMAND_AND_RESULT>
