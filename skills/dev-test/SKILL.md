@@ -160,6 +160,7 @@ Ground every test in what the code is actually contracted to do:
 
 - **`project-overview.md`**, the Core User Flow steps for anything user facing. Those are the real acceptance criteria.
 - **`architecture.md`**, the Invariants list and the Value Sourcing table. **An invariant is a test waiting to be written**, and a value with a named source is a test that the source is the one actually used.
+- **`build-plan.md`**, the Checkpoint block for the phase this work sits in, when the project has checkpoints. Its Needs test coverage line names what a reviewer expects covered before the phase is signed off. Treat it as a requirement for this suite, not a suggestion. That line is the whole mechanism: a checkpoint states what needs covering and you are what covers it, so anything named there and left untested makes the checkpoint unmeetable. **You are the only writer of test files**, checkpoints included, which is why the checkpoint names the need rather than writing tests itself.
 - **`build-plan.md`**, this task's bullets, for what was supposed to be built.
 
 Match the conventions in `code-standards.md`. A test file that ignores the project's own naming and import rules is the first place drift creeps in.

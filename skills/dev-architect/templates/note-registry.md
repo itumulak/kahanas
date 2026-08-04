@@ -10,13 +10,15 @@ A living log. Append a row, never rewrite one, and never delete a row someone el
 
 *Purpose: every entry in one table, oldest at the top, so a new session reads down and sees the build's real history of checks, proofs, and fixes in the order they happened.*
 
-| Timestamp | Skill | Task | Note |
-| --- | --- | --- | --- |
-| <YYYY-MM-DD HH:MM> | <WRITING_SKILL> | <TASK_NUMBER_AND_NAME> | <WHAT_WAS_RUN_AND_WHAT_IT_PROVED> |
+| Timestamp | Actor | Skill | Task | Note |
+| --- | --- | --- | --- | --- |
+| <YYYY-MM-DD HH:MM> | <GIT_USER> | <WRITING_SKILL> | <TASK_NUMBER_AND_NAME> | <WHAT_WAS_RUN_AND_WHAT_IT_PROVED> |
 
 Append one row per entry, at the bottom.
 
 **Timestamp** is local time to the minute, `YYYY-MM-DD HH:MM`. Take it from the system clock, never from memory, because a guessed timestamp puts entries in the wrong order and the order is most of this file's value.
+
+**Actor** is who ran it, read from `git config user.name` at the time of writing. **Team projects only**: drop this column entirely on a personal project, where every row would carry the same name. It records who ran a check, which is a fact about the past and therefore safe in an append only file. It is **not** an assignment, and nothing here is reassigned. Task ownership lives in `progress-tracker.md`, where it can change.
 
 **Skill** is the writing skill's exact command name: `/dev-develop`, `/dev-check`, or `/dev-debug`. No other skill writes here.
 

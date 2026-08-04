@@ -25,7 +25,7 @@ Owns no durable file. Chat output only, plus screenshots and logs saved to a scr
 
 One narrow write: on a PASS, append a row to the Entries table in `note-registry.md` recording what you exercised and that it passed. That is how a later session tells an exercised task from an assumed one.
 
-`note-registry.md` has three writers, so read its Who writes what section before the first append. Yours is the row that claims the behavior was observed. Append it at the bottom, and never edit a row `/dev-develop` or `/dev-debug` wrote. `progress-tracker.md` is not yours at all.
+`note-registry.md` has three writers, so read its Who writes what section before the first append. Yours is the row that claims the behavior was observed. Append it at the bottom, and never edit a row `/dev-develop` or `/dev-debug` wrote. On a team project the row carries an Actor, read from `git config user.name`. `progress-tracker.md` is not yours at all, checkpoint rows included.
 
 ---
 

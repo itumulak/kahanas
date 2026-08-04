@@ -106,8 +106,8 @@ The design proves wrong or incomplete partway through: the schema cannot hold th
 
 - **Only tick what actually landed.** Confirm first: the files exist, the code type checks, and for a data layer task the schema is live. An interrupted task stays unticked, and you report exactly what is incomplete and why.
 - **Never mark a task done on an unverified build.** Ticking a box is a claim that someone else will rely on.
-- Edit `progress-tracker.md` surgically, per `SKILL.md` step 3: the checkbox, Last completed, Next, and the Decisions log.
-- Append one row to `note-registry.md`, also per `SKILL.md` step 3: the clean build command and its result. Leave the rows `/dev-check` and `/dev-debug` wrote alone.
+- Edit `progress-tracker.md` surgically, per `SKILL.md` step 3: the checkbox, Last completed, Next, and the Decisions log. On a team project, also claim the task's assignee if it reads `(unassigned)`. With checkpoints on, also move the phase's checkpoint row to `due` when this was the phase's last task, and never write an approval.
+- Append one row to `note-registry.md`, also per `SKILL.md` step 3: the clean build command and its result, with the Actor on a team project. Leave the rows `/dev-check` and `/dev-debug` wrote alone.
 - **A task built on a stated assumption stays unticked** until `/dev-architect` ratifies it. Say so rather than leaving the box quietly empty.
 - Relay the track's report block from `ui-guide.md`, `logical-guide.md`, or both.
 - Point at `/dev-check verify` next, and name the next task after that.
