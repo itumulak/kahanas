@@ -39,7 +39,9 @@ The whole chain, once per project then once per task:
 
 ## Artifact ownership
 
-**Writes** the minimal code fix for the proven root cause, and one line in `progress-tracker.md` under Decisions Made During Build recording the cause and the fix. That log is where a later session finds out this ground was already covered.
+**Writes** the minimal code fix for the proven root cause, one line in `progress-tracker.md` under Decisions Made During Build recording the cause and the fix, and one appended row in `note-registry.md` recording the reproduction and the check that confirmed the fix.
+
+Those two are different claims and both are needed. The tracker line is **why** the bug existed, which is what stops a later session covering this ground again. The note row is **what you ran to prove it is gone**, which is what stops a later session taking the fix on trust. `note-registry.md` has three writers, so read its Who writes what section, append at the bottom, and never edit a row `/dev-develop` or `/dev-check` wrote. On a team project the row carries an Actor, read from `git config user.name`.
 
 **Never writes** a feature, a refactor of unrelated code, or any of the design documents. If the bug turns out to be a flawed decision rather than a coding mistake, say so and point at `/dev-architect`. Papering over a wrong design with a code patch buys one day and costs many.
 
@@ -128,7 +130,7 @@ For an investigation that is not trivial, spawn a subagent so the iterative tool
 **Fix**: <the smallest change, and the files touched>
 **Regression test**: <added inline | case handed to /dev-test>
 **Siblings**: <the same cause found elsewhere, fixed or reported | none found>
-**Recorded**: <the line added to progress-tracker.md>
+**Recorded**: <the line added to progress-tracker.md, and the row appended to note-registry.md>
 **Deeper issue**: <a design document this proves wrong, run /dev-architect | none>
 ```
 

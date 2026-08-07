@@ -37,7 +37,10 @@ These keep the skill from sprawling, which is the failure mode for anything that
 | Edit `architecture.md`, `code-standards.md`, `design.md`, or `tooling.md` | ❌ flags as stale | `/dev-architect` |
 | Edit `project-overview.md` | ❌ flags as stale | `/dev-scope` |
 | Clear a task built on an unratified assumption | ❌ flags as decision debt | `/dev-architect` |
-| Rewrite the Notes line `/dev-check verify` owns | ❌ leaves alone | `/dev-check` |
+| Add or rewrite any row in `note-registry.md` | ❌ leaves alone | `/dev-develop`, `/dev-check`, `/dev-debug` |
+| Reassign a task, or change an assignee | ❌ flags for escalation | a person |
+| Approve a checkpoint, or change its approvals | ❌ leaves alone | a person |
+| Move a checkpoint row to `due` the repo proves is due | ✅ corrects | `/dev-sync` |
 | Rewrite a line a person wrote by hand | ❌ flags the conflict | the person |
 | Correct a fact in a still stamped document | ✅ corrects surgically | `/dev-sync` |
 
@@ -117,7 +120,20 @@ For each unticked task in `progress-tracker.md`, ask whether the repo **proves**
 
 ### Step 3: Reconcile
 
-**The tracker.** Tick every task the evidence proves. Update Last completed, Next, and Phase to match. Leave alone the Notes line `/dev-check verify` writes, and never write one yourself, since that line means something was actually exercised and you have not exercised anything.
+**The tracker.** Tick every task the evidence proves. Update Last completed, Next, and Phase to match.
+
+**The note registry is read only to you.** Never append a row, and never edit one. Every row there is a claim that a specific skill ran a specific thing and saw a specific result, and you have run nothing. A row you wrote would be a fabricated observation, which is worse than a missing one, because it reads exactly like a real one to the next session.
+
+**Read it for evidence, though.** It is the best record of who touched what, and on a team project its Actor column is the only place that says so.
+
+**Assignments.** Do not change one, ever, in either direction. Claiming a task belongs to somebody needs a reason that lives in a conversation, not in the repository. Two things get flagged instead:
+
+- **A task with note rows from more than one actor.** Two or more people worked the same task. Flag it for escalation and name every actor, every commit involved, and every branch you can see carrying the work. **Stop there.** Deciding which branch survives, or resolving the conflict between them, is a person's call and usually a project manager's. Recommending a branch would be guessing at intent from file contents, and the wrong guess quietly discards somebody's work.
+- **A ticked task still reading `(unassigned)`.** Somebody built it without claiming it. Flag it, and name the actor from its note rows as the likely owner. **Do not write that name in.** A note row proves who ran a check, not who owns the task.
+
+**Checkpoints.** One correction only: a phase whose tasks are all ticked but whose checkpoint row still reads `not due` moves to `due`, because the repository proves that much. Never write an approval and never clear one. An approval is a claim that a person reviewed something, and you have reviewed nothing. A phase sitting at `due` is reported, not resolved, and it blocks nothing, so never treat it as a reason to hold anything up.
+
+Report, without changing anything, a phase approved by developers only where the project wanted a project manager's sign off. The roles are written beside the names in the Approved by column, so this is read directly rather than worked out. Say it once in the report and leave the table alone.
 
 **A task built on an unratified assumption stays unticked**, however finished the code looks. Only `/dev-architect` clears that, and ticking it here would erase the one signal that a decision is still owed.
 
@@ -155,6 +171,8 @@ Flag when:
 
 Each flag names the document, what the repo shows instead, and which skill fixes it.
 
+**Escalations are a separate list**, because they go to a person rather than to a skill, and burying them among the document flags is how they get skimmed past. Raise one when a task's note rows carry more than one actor, or when a ticked task is still unassigned. Name the task, every actor on it, and the branches involved, then stop. **Never recommend which branch to keep.** From the outside, two branches touching one task look the same whether one is a rewrite of the other or both hold work nobody wants lost, and picking wrong throws away someone's day.
+
 ### Step 6: Report
 
 Output this block. **Omit any section that is empty** rather than writing a heading with nothing under it.
@@ -172,6 +190,9 @@ CONTRADICTIONS:
 
 FLAGGED:
 - <file>, <what the repo shows instead> → run <skill>
+
+ESCALATIONS:
+- <task>, worked by <actors>, on <branches> → needs a person to decide
 
 AMBIGUOUS:
 - <area> → <task A> or <task B>, left alone

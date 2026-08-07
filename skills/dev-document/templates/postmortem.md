@@ -20,9 +20,11 @@ Written to `.konteksto/postmortems/<date>-<slug>.md`.
 | --- | --- |
 | <time> | <the change, alert, or action> |
 
+<Times a person gave you for the incident itself. For anything the workflow did, take the time from note-registry.md rather than from a commit date, since a commit date is when the fix was written and a note row is when it was watched to work.>
+
 ## Root cause
 
-<The proven cause, with the evidence. Where /dev-debug investigated this, its record already holds a cause confirmed by evidence rather than assumed, so use that.>
+<The proven cause, with the evidence. Where /dev-debug investigated this, its record already holds a cause confirmed by evidence rather than assumed, so use that: the cause and fix from the decision log, and the confirming check and its time from note-registry.md.>
 
 ## Why it was not caught sooner
 

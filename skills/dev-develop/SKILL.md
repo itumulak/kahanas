@@ -39,9 +39,12 @@ The whole chain, once per project then once per task:
 
 - Application code, in the folders `project-overview.md`'s Project Shape section fixed. Server code in `backend/`, client code in `app/`, unless that section records a custom layout, in which case follow the real one.
 - `Dockerfile.dev` per half, when the compose file refers to one that does not exist yet.
-- `.konteksto/progress-tracker.md`, on every task. This is what tells the next session where things stand, so it is updated as part of finishing a task, never batched up for later.
+- `.konteksto/progress-tracker.md`, on every task. This is what tells the next session where things stand, so it is updated as part of finishing a task, never batched up for later. You are its only writer during a build; `/dev-sync` may correct it afterward from repo evidence, never while you are working.
 
-  **One line in it is not yours.** `/dev-check verify` writes a Notes line when it proves a task works. Leave that line alone, and never write it yourself, because it is the record that something was actually exercised rather than merely built.
+  **Two lines in it a person owns.** A task's assignee may be reassigned by hand, and a checkpoint approval is only ever written by hand. You may claim an unassigned task and you may mark a checkpoint due, and that is the whole of it. Do not reassign, and never approve.
+- `.konteksto/note-registry.md`, one appended row per task, recording the command that confirmed the build is clean and its result.
+
+  **You are one of three writers here.** `/dev-check` appends a row on a verify pass, and `/dev-debug` appends one when it confirms a fix. Append your own row and leave theirs alone, because those rows claim something yours does not: that the behavior was exercised, or that a bug was proven gone. A clean build is neither.
 - `.konteksto/ui-registry.md`, one section per reusable component, at the moment the component is built. `/dev-architect` creates the file empty, and every entry in it comes from here.
 
 **Never writes:**
@@ -98,8 +101,17 @@ Run `git fetch` quietly, pick the base branch (`main` if it exists, else `master
 - **Behind by any commits.** Warn that a teammate may have already built this, and recommend pulling first.
 - **Uncommitted changes in the folders this task touches.** Warn that the build will tangle with them. Let the user proceed if they say so.
 - **The task is already ticked in `progress-tracker.md`.** Stop and ask before rebuilding.
+- **The task is assigned to someone else.** Only on a team project, meaning task lines in `progress-tracker.md` carry an assignee. Read `git config user.name`, and when the assignee is a different name, stop and ask whether to build it anyway.
 
 Warnings, not blocks, but say them out loud.
+
+**The assignee check cannot reserve anything, and must not be described as though it can.** Two people on two machines both read the same file, both see `(unassigned)`, and both proceed. This catches the common case, one person noticing a task already has an owner, and nothing more. If the user needs a real guarantee, say so plainly and point at branch protection or an issue tracker rather than implying this check is one.
+
+**Picking a task up.** When the task reads `(unassigned)` and you are going to build it, replace `unassigned` with `git config user.name` as part of the tracker update in step 3. That is the only assignee change any skill makes. **Never reassign a task away from someone else**, not even when they appear to have stopped: a person decides that, by editing the line themselves, because the reason a task should move is never in the repository.
+
+**The role file**, on a team project only. Read `.konteksto/role.local.json`. Missing means asking once, developer or project manager, and saving the answer as `{"role": "developer"}` or `{"role": "project-manager"}`. It is gitignored and holds this machine's answer only, so ask on each machine and never copy one person's answer to another.
+
+Use it for one thing: knowing what to offer. A project manager gets told they may reassign a task or record a checkpoint approval by hand; a developer does not, since offering everybody every action is how the wrong person takes one. **It grants nothing.** You still never reassign and never approve, whatever it says, and it cannot tell you who the project manager on this project is, only what the person in front of you answered.
 
 ### Step 1: The decision gate
 
@@ -152,17 +164,22 @@ The third option exists so an assumption becomes durable. Written in the tracker
 
 Read `flow/build.md` and follow it. Do not read it when the gate ends the run.
 
-### Step 3: Update the tracker
+### Step 3: Update the tracker and the note registry
 
-Only after something is verified working. Edit `progress-tracker.md` surgically. Read it again immediately before writing, in case a teammate moved it, and change only these lines:
+Only after something is verified working. Two files, both edited surgically. Read each again immediately before writing, in case a teammate moved it.
+
+In `progress-tracker.md`, change only these lines:
 
 - Tick this task's checkbox under its phase.
 - Set **Last completed** to this task, and **Next** to the following one in `build-plan.md`.
 - Set **Phase** when this task closed out a phase.
 - Add a line under **Decisions Made During Build** for anything real: a bug found, a fix made, a local choice a later session would otherwise wonder about. Not a diary of every edit.
-- Add the command you used to confirm the build is clean under **Notes**, with its result.
+- **Team projects:** set this task's assignee to `git config user.name` if it still reads `(unassigned)`. Leave every other task's assignee alone.
+- **Checkpoints on:** when this task was the last unticked one in its phase, move that phase's row in the Checkpoints table from `not due` to `due`. That is the only checkpoint change you make. **Never write an approval**, however obviously sound the phase looks, because an approval claims a person reviewed it and you are not one.
 
-Never rewrite the file, and never tick a box for a task you did not build.
+In `note-registry.md`, append one row to the bottom of the Entries table: the timestamp from the system clock, `/dev-develop`, this task's number and name, and the command you ran to confirm the build is clean with its result. On a team project the row also carries the Actor, read from `git config user.name`. Read the file's Who writes what section if you have not already, then append and touch nothing else.
+
+Never rewrite either file, never tick a box for a task you did not build, and never edit a note row you did not write.
 
 ### Step 4: Report
 
@@ -173,6 +190,7 @@ Say six things:
 - Anything installed, and why the design called for it.
 - The command you ran to confirm it works, and its result. Quote the failing line if something failed, rather than describing it.
 - Anything you noticed that belongs to another skill: a design document the build proved wrong, a missing compose service, a component worth extracting later.
+- **When this task closed a phase and checkpoints are on**: that the phase's checkpoint is now due, what `build-plan.md` says a reviewer must confirm, and that it needs a person other than whoever built the phase. Say that the next phase may start regardless, since checkpoints are non blocking, and that an unapproved one stays visible in the Checkpoints table until somebody deals with it.
 - The next step: `/dev-check verify` to prove this task works against its flow, then `/dev-test` to lock the behavior in, then the next task from `build-plan.md`. A failure at verify goes to `/dev-debug`, not back here.
 
 Then stop. Do not start the next task.

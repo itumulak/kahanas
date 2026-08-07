@@ -78,6 +78,20 @@ List every feature genuinely committed to; one bullet each.
 
 ---
 
+## Team Shape
+
+*Purpose: who is building this and how they coordinate. Recorded here because it is a fact about the work, not a tool choice, and because it changes the shape of several documents `/dev-architect` writes later. A personal project and a team project need different bookkeeping, and guessing wrong in either direction is expensive: a solo developer does not want assignment columns, and a team without them loses track of who is on what.*
+
+**Mode:** <PERSONAL_OR_TEAM>
+
+**Phase checkpoints:** <YES_OR_NO>
+
+On **team**, `/dev-architect` adds an assignee to every task in `progress-tracker.md` and an actor column to `note-registry.md`, so the plan records who owns a task and the log records who ran each check. On **personal**, both are left out, since there is only ever one answer.
+
+On **yes** to phase checkpoints, `/dev-architect` gives every phase in `build-plan.md` a checkpoint: what a reviewer must confirm before the phase is considered sound. Checkpoints are **non blocking**, so the next phase may start while one is still unapproved, and an unapproved checkpoint is a flag rather than a stop.
+
+---
+
 ## Project Shape
 
 *Purpose: which halves of the product exist, and the folder layout everything is built into. Recorded here because it is a fact about what is being built, not a tool choice. `architecture.md` expands the tree with annotations and real file names; this section only fixes the top level shape.*

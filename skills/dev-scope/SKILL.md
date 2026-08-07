@@ -103,13 +103,38 @@ Read `templates/project-overview.md`, in this skill's folder, in full before wri
 4. **Navigation.** The top level shape, so no page invents its own later.
 5. **Core User Flow.** One subsection per page, ordered steps in plain language. This is the contract `/dev-architect`'s build plan checks itself against, so it must describe real user actions, not screens.
 6. **Features in Scope** and **Features out of Scope.** The fixed list this pass commits to, and the explicit non goals. Be generous with the out of scope list. Every item written there is a feature a later session will not quietly build.
-7. **Project Shape.** Which halves exist, and the folder layout. See the next step, which is long enough to stand on its own.
+7. **Team Shape.** Personal or team, and whether phases get checkpoints. Two questions, in step 4.
+8. **Project Shape.** Which halves exist, and the folder layout. See step 5, which is long enough to stand on its own.
 
 Replace every bracketed placeholder with real content. A finished file contains no literal `<TOKEN>` text. Check this before you present it.
 
 Follow the template's repeat instructions. One line per route, one flow subsection per page, one bullet per feature. Produce as many as the product needs, not one example.
 
-### Step 4: Settle the project shape
+### Step 4: Settle the team shape
+
+Two questions. Both describe how the work happens rather than what gets built, and neither names a tool, so both belong here.
+
+#### Personal or team
+
+Ask whether this is a personal project or a team one. Recommend from what the root survey showed: several distinct authors in `git log` means team, a single author or no history means personal. Say which signal you used, since a solo developer on a shared repository will want to correct you.
+
+Say plainly what the answer changes, because it is not obvious from the question: on **team**, `/dev-architect` gives every task in `progress-tracker.md` an assignee and every row in `note-registry.md` an actor, so the plan records who owns a task and the log records who ran each check. On **personal**, both are left out, since there is only ever one answer and a column with one value in it is noise.
+
+**Say what this does not do.** It records who owns a task; it does not reserve one. Nothing in this workflow can stop two people building the same task at once, because these are instructions an agent reads, not a server holding a lock. If the user needs a real guarantee, that is branch protection or an issue tracker, and it belongs in their setup rather than in these documents. Promising a lock the system cannot deliver is worse than not offering one.
+
+#### Phase checkpoints
+
+Ask whether each phase should end with a checkpoint, meaning a point where someone other than the builder confirms the phase is sound before the project leans on it. Recommend **yes** for a team, since the value is a second pair of eyes and a solo project has none to offer, and **no** for a personal project.
+
+Say what a checkpoint is and is not:
+
+- It records **what a reviewer must confirm** for that phase. `/dev-architect` writes those criteria into `build-plan.md`.
+- It **does not write tests.** `/dev-test` owns every test file, and a checkpoint that wrote its own would make a second writer on them. A checkpoint names what needs covering and routes to `/dev-test`.
+- It is **non blocking.** The next phase may start with a checkpoint still unapproved. It is a flag, not a gate. Confirm the user wants it this way, since people often assume a checkpoint stops the line, and one that does not stop the line is a different thing from what they pictured.
+
+Record both answers in the Team Shape section. Nothing else in this file changes because of them.
+
+### Step 5: Settle the project shape
 
 Two questions, in this order. Both describe what is being built, so both belong here. Neither one names a tool.
 
@@ -152,7 +177,7 @@ Whatever is chosen, write it into the Project Shape section as the real tree, no
 
 Do not create any folder, move any file, or write `docker-compose.yml`. This step records a decision. `/dev-architect` writes the compose file once the stack is known, and `/dev-develop` moves the files.
 
-### Step 5: Present and get approval
+### Step 6: Present and get approval
 
 Show the finished file. Call out plainly:
 
@@ -161,12 +186,13 @@ Show the finished file. Call out plainly:
 
 Get approval before you finish. If the user changes something, edit the file in place.
 
-### Step 6: Hand off
+### Step 7: Hand off
 
 Report:
 
 - That `.konteksto/project-overview.md` is written and approved.
 - What the root survey found: whether a codebase exists, and what it showed.
+- The team shape: personal or team, and whether phase checkpoints are on. `/dev-architect` shapes `progress-tracker.md`, `note-registry.md`, and `build-plan.md` from these two answers, so say them explicitly rather than leaving them to be read back out of the file.
 - The project shape: which halves exist, and whether the layout is the recommended one or a custom one. `/dev-architect` needs both to write the compose file and the folder tree.
 - Any tool, provider, or constraint the user named during the conversation. This is the only place those belong.
 - Any question that came up which is a how question, not a what question, so `/dev-architect` starts with it.

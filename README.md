@@ -56,7 +56,7 @@ A verify failure goes to `/dev-debug`. Before a merge: `/dev-check review`, then
 
 ## What it produces
 
-Nine documents in `.konteksto/`, each owned by exactly one skill:
+Ten documents in `.konteksto/`:
 
 ```
 .konteksto/
@@ -68,8 +68,12 @@ Nine documents in `.konteksto/`, each owned by exactly one skill:
 ├── library-docs.md        version specific notes
 ├── build-plan.md          the ordered task list
 ├── progress-tracker.md    live state                    (/dev-develop updates)
+├── note-registry.md       what was run, and what it proved
+│                                    (/dev-develop, /dev-check, /dev-debug append)
 └── ui-registry.md         reusable components           (/dev-develop updates)
 ```
+
+All but one have exactly one writer. `note-registry.md` is the deliberate exception: three skills append to it, each a different claim. `/dev-develop` says the build is clean, `/dev-check verify` says the behavior was exercised, `/dev-debug` says a bug was proven gone. Every row carries its timestamp and the skill that wrote it, nobody edits anybody else's row, and `/dev-sync` writes none, having run nothing itself.
 
 Plus `docker-compose.yml` and `.env.example` at the root, and a project laid out as:
 
@@ -85,6 +89,10 @@ Plus `docker-compose.yml` and `.env.example` at the root, and a project laid out
 ## Ideas it is built on
 
 **One owner per document.** Two skills writing one file is how a system like this rots. Where a file genuinely has two writers, every side says so.
+
+**Nothing claims a guarantee it cannot keep.** On a team project every task carries an assignee and every note row carries the git user who ran it, and `/dev-develop` stops when a task belongs to somebody else. That is a convention, not a lock, and the documents say as much where they describe it. Two people on two machines both pass the check. Real enforcement is branch protection or an issue tracker, and pretending otherwise would be worse than offering nothing.
+
+**A skill never signs off on itself.** Phase checkpoints are approved by a person, by hand. A skill may mark one due, because the repository proves the phase is finished, but an approval asserts that a human reviewed the work, and a tool writing its own would empty the word. Checkpoints are non blocking: the next phase starts regardless, and an unapproved one stays visible rather than stopping the line.
 
 **A decision is never invented mid build.** `/dev-develop` runs a mechanical test before writing code: every value it must produce needs a named source. Anything unnamed stops the build and routes to `/dev-architect`, because a build in progress will rationalize a real decision as ordinary wiring.
 
