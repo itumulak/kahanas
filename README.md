@@ -67,13 +67,16 @@ Ten documents in `.konteksto/`:
 ├── code-standards.md      the conventions every session follows
 ├── library-docs.md        version specific notes
 ├── build-plan.md          the ordered task list
-├── progress-tracker.md    live state                    (/dev-develop updates)
+├── progress-tracker.md    live state       (/dev-develop, plus the Verify
+│                                            Check column from /dev-check)
 ├── note-registry.md       what was run, and what it proved
 │                                    (/dev-develop, /dev-check, /dev-debug append)
 └── ui-registry.md         reusable components           (/dev-develop updates)
 ```
 
-All but one have exactly one writer. `note-registry.md` is the deliberate exception: three skills append to it, each a different claim. `/dev-develop` says the build is clean, `/dev-check verify` says the behavior was exercised, `/dev-debug` says a bug was proven gone. Every row carries its timestamp and the skill that wrote it, nobody edits anybody else's row, and `/dev-sync` writes none, having run nothing itself.
+All but two have exactly one writer. `progress-tracker.md` splits by column: `/dev-develop` owns the Status of every task, and `/dev-check verify` owns the Verify Check beside it, because "the build is clean" and "somebody watched it work" are different claims and neither skill may make the other's. Both cells carry the model that stamped them and when, and a value that changes is struck through with the new one appended after it, so the whole history stays readable.
+
+`note-registry.md` is the other exception: three skills append to it, each a different claim. `/dev-develop` says the build is clean, `/dev-check verify` says the behavior was exercised, `/dev-debug` says a bug was proven gone. Every row carries its timestamp and the skill that wrote it, nobody edits anybody else's row, and `/dev-sync` writes none, having run nothing itself.
 
 Plus `docker-compose.yml` and `.env.example` at the root, and a project laid out as:
 

@@ -37,7 +37,7 @@ The whole chain, once per project then once per task:
 
 ## Artifact ownership
 
-**Verify** owns no durable file. Chat output only, plus screenshots and logs in a scratch area. Its one narrow write is an appended row in `note-registry.md` on a pass, which is how a later session tells an exercised task from an assumed one. It never touches `progress-tracker.md`, whose only writer is `/dev-develop`.
+**Verify** owns no whole file. Chat output only, plus screenshots and logs in a scratch area, and two narrow writes. It stamps the task's **Verify Check** cell in `progress-tracker.md`, `PASSED` or `FAILED`, and it appends a row to `note-registry.md` on a pass, which is how a later session tells an exercised task from an assumed one. That one column is all of `progress-tracker.md` it may touch: Status belongs to `/dev-develop`, and checkpoint rows and assignees to neither of them.
 
 **Review** owns `.konteksto/reviews/<date>-<task-slug>.md`, one file per run. Dated records, never edited afterwards. A later run writes a new file.
 

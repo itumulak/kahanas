@@ -1,6 +1,6 @@
 # Note Registry
 
-*Purpose: the running record of what was actually run against this build and what it proved, one row per entry, each row naming the skill that wrote it and when. Split out of `progress-tracker.md` because three skills write here and only one writes there, and a shared section inside a single owner's file is how ownership blurs.*
+*Purpose: the running record of what was actually run against this build and what it proved, one row per entry, each row naming the skill that wrote it and when. Split out of `progress-tracker.md` because a verdict and its evidence are different things: that file holds one word per task saying where it stands, and this one holds the run that backs the word up, in as much detail as it takes.*
 
 A living log. Append a row, never rewrite one, and never delete a row someone else's skill wrote. An entry is a claim about a moment that has already passed, so editing it after the fact makes the whole file untrustworthy.
 
@@ -40,7 +40,7 @@ Append one row per entry, at the bottom.
 
 These are different claims and they do not substitute for one another. A clean build is not a working feature, and a passing verify is not a fixed bug. Keeping them as separate rows is what lets a later session tell which of the three it actually has.
 
-**`/dev-check` writes only on a pass.** A fail or a block writes nothing here, because this file records what was proven, and a failure proves nothing about the build.
+**`/dev-check` writes only on a pass.** A fail or a block writes nothing here, because this file records what was proven, and a failure proves nothing about the build. A failed verify is still recorded, as `FAILED` in that task's Verify Check cell in `progress-tracker.md`. The verdict lives there, and only the proof lives here.
 
 ---
 

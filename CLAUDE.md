@@ -8,8 +8,8 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | --- | --- | --- |
 | `/dev-scope` | `project-overview.md` | What the product is, and whether a team builds it |
 | `/dev-architect` | `architecture.md`, `tooling.md`, `design.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, plus the starting state of `progress-tracker.md`, `note-registry.md`, and `ui-registry.md` | How it gets built |
-| `/dev-develop` | the code, every update to `progress-tracker.md` and `ui-registry.md`, and a clean build row in `note-registry.md` | Builds it |
-| `/dev-check` | `.konteksto/reviews/`, plus one `note-registry.md` row on a verify pass | Confirms it actually works |
+| `/dev-develop` | the code, every column of `progress-tracker.md` except Verify Check, all of `ui-registry.md`, and a clean build row in `note-registry.md` | Builds it |
+| `/dev-check` | `.konteksto/reviews/`, the Verify Check column in `progress-tracker.md`, plus one `note-registry.md` row on a verify pass | Confirms it actually works |
 | `/dev-debug` | the minimal fix, a line in the decision log, and a fix confirmed row in `note-registry.md` | Finds out why it does not |
 | `/dev-test` | the test files, and `test-preferences.json` | Stops it breaking again |
 | `/dev-document` | `CHANGELOG.md`, `.konteksto/releases/`, `.konteksto/postmortems/` | Explains it to people |
@@ -27,7 +27,11 @@ Ten documents in all, and `design.md` is the only optional one: it is skipped en
 
 **Append only, and never across writers.** A row is a claim about a moment that has already passed. A skill appends its own row and edits nobody's, and `/dev-sync` writes none at all, because it has run nothing and a fabricated observation reads exactly like a real one.
 
-`progress-tracker.md` sits on the other side of that split: `/dev-architect` creates it, `/dev-develop` is its builder. `/dev-sync` may still correct it from repo evidence after the fact, the same way it always could, but never during a build. Keeping build time writes to one skill is why the note rows moved out of it.
+`progress-tracker.md` splits differently, **by column rather than by row.** `/dev-architect` creates it, `/dev-develop` owns every column of its phase tables except one, and `/dev-check verify` owns that one, Verify Check, and touches nothing else in the file. `/dev-sync` may still correct `/dev-develop`'s columns from repo evidence after the fact, never during a build, and it writes no Verify Check cell at all, for the same reason it writes no note row: it has run nothing.
+
+**A `DONE` Status and a `PASSED` Verify Check are two different claims, so they are two columns.** `DONE` says the code was built and the build is clean. `PASSED` says a model ran the thing and watched it work. A task holding `DONE` with a `FAILED` verify is a real and useful state, and one column could not express it.
+
+**Every Status and Verify Check value is stamped with the model that wrote it and the minute it wrote it**, and a value that changes is superseded by striking the old one through and appending the new, so a cell reads oldest to newest and the last unstruck value is current. Nothing is deleted and nothing is edited in place. A task that went `DONE`, then `BLOCKED`, then `DONE` again is telling a later session something a single final value hides, and the model name is what lets a reader judge how much to trust a stale verdict.
 
 **Every generated document is stamped.** A document written by a skill ends with a drafted by line, so a later maintenance pass can tell what a tool wrote from what a person wrote **instead of guessing**. `/dev-sync` reads it: stamp present means a wrong fact may be corrected surgically; stamp gone means a person owns the file, so add a missing fact but never rewrite an existing line.
 
@@ -35,7 +39,7 @@ The stamp records provenance, not permission. It never licenses overwriting some
 
 **A gap and a contradiction are different problems.** A gap is a fact missing that the repo can prove, and it gets filled. A contradiction is a document disagreeing with the code, and it never gets resolved automatically, because from the outside you cannot tell whether the code drifted or the document was deliberate and the code broke it.
 
-**Team Shape is asked in scope and applied in architect.** `/dev-scope` asks two questions, personal or team, and phase checkpoints on or off, and records the answers in `project-overview.md`. It touches nothing else, because both answers are facts about the work rather than tool choices. `/dev-architect` reads them and shapes three documents: an assignee per task in `progress-tracker.md`, an Actor column in `note-registry.md`, and a Checkpoint block per phase in `build-plan.md` with a Checkpoints table tracking their state. Personal projects get none of it, since a column with one value in it is noise.
+**Team Shape is asked in scope and applied in architect.** `/dev-scope` asks two questions, personal or team, and phase checkpoints on or off, and records the answers in `project-overview.md`. It touches nothing else, because both answers are facts about the work rather than tool choices. `/dev-architect` reads them and shapes three documents: an Assigned column in `progress-tracker.md`, an Actor column in `note-registry.md`, and a Checkpoint block per phase in `build-plan.md` with a Checkpoints table tracking their state. Personal projects get none of it, since a column with one value in it is noise.
 
 **No skill can reserve a task, and no document may pretend otherwise.** The assignee is a convention. `/dev-develop` reads it and stops when a task belongs to someone else, but two people on two machines both pass that check and either can proceed. These are instructions an agent reads, not a server holding a lock. Real enforcement is branch protection or an issue tracker, and every place that mentions assignment says so, because a guarantee the system cannot keep is worse than no guarantee at all.
 
