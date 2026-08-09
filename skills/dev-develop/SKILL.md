@@ -42,6 +42,7 @@ The whole chain, once per project then once per task:
 - `.konteksto/progress-tracker.md`, on every task. This is what tells the next session where things stand, so it is updated as part of finishing a task, never batched up for later. You own every column of its Progress tables **except Verify Check**, which is `/dev-check verify`'s and yours to read only. `/dev-sync` may correct your columns afterward from repo evidence, never while you are working.
 
   **Two things in it a person owns.** A task's assignee may be reassigned by hand, and a checkpoint approval is only ever written by hand. You may claim an unassigned task and you may mark a checkpoint due, and that is the whole of it. Do not reassign, and never approve.
+- `.konteksto/decision-log.md`, an appended entry whenever the build produced a real decision, a bug with a cause worth knowing, or an assumption you had to state. **Only then.** Most tasks that go to plan write nothing here, and a log padded with narration is one `/dev-document` can no longer mine. `/dev-debug` appends here too, so append your own entry and leave its alone.
 - `.konteksto/note-registry.md`, one appended row per task, recording the command that confirmed the build is clean and its result.
 
   **You are one of three writers here.** `/dev-check` appends a row on a verify pass, and `/dev-debug` appends one when it confirms a fix. Append your own row and leave theirs alone, because those rows claim something yours does not: that the behavior was exercised, or that a bug was proven gone. A clean build is neither.
@@ -140,7 +141,7 @@ When unsure, treat it as owed. Building an unnoticed decision is the expensive f
 4. `library-docs.md`, only for a library this task uses.
 5. `tooling.md`, the Local Data Lifecycle section, when the task touches the database.
 6. `design.md` and `ui-registry.md`, only when the task has UI bullets.
-7. `progress-tracker.md`'s Decisions Made During Build, for anything an earlier task already settled.
+7. `decision-log.md`, for anything an earlier task already settled.
 
 **Nothing owed.** Read `flow/build.md` and follow it.
 
@@ -148,7 +149,7 @@ When unsure, treat it as owed. Building an unnoticed decision is the expensive f
 
 1. **Design it first** (recommended): stop here and run `/dev-architect`. Nothing is built.
 2. **No decision needed**: the user judges it genuine wiring. Proceed to `flow/build.md`.
-3. **Build on a stated assumption**: proceed, but first write the assumption into `progress-tracker.md` under Decisions Made During Build, as `assumed, not yet ratified`. The task gets built but **its Status cannot go to `DONE`** until `/dev-architect` confirms it. Say this plainly in your report.
+3. **Build on a stated assumption**: proceed, but first append the assumption to `decision-log.md`, marked `assumed, not yet ratified`. The task gets built but **its Status cannot go to `DONE`** until `/dev-architect` confirms it. Say this plainly in your report.
 
 On **Design it first**, end with:
 
@@ -164,24 +165,25 @@ The third option exists so an assumption becomes durable. Written in the tracker
 
 Read `flow/build.md` and follow it. Do not read it when the gate ends the run.
 
-### Step 3: Update the tracker and the note registry
+### Step 3: Update the tracker, the decision log, and the note registry
 
-Only after something is verified working. Two files, both edited surgically. Read each again immediately before writing, in case a teammate moved it.
+Only after something is verified working. Three files, all edited surgically. Read each again immediately before writing, in case a teammate moved it.
 
 In `progress-tracker.md`, change only these:
 
 - Set this task's **Status** cell in its phase table to `DONE`, stamped as the table's own rules describe: `DONE, <your exact model identifier>, <YYYY-MM-DD HH:MM from the system clock>`. A cell that already holds a value is **superseded, never overwritten**: strike the old value through with `~~` and append the new one after it, leaving exactly one unstruck value at the end. Read the template's Superseding a value section if you have not.
 - **Never touch the Verify Check column.** It belongs to `/dev-check verify`, and a build proves nothing about observed behavior.
-- Set **Note** when the row needs one, meaning a `BLOCKED` status without a reason is incomplete. Otherwise leave it as it is.
+- **Note** is for two rows only. Write one line when you leave this task `BLOCKED`, saying what is blocking it, since a `BLOCKED` row without a reason is incomplete. Clear a Note back to `—` when you supersede the `BLOCKED` it explained. Never write one on a `DONE` or `PENDING` row: that column means something is wrong right now, and filling it with remarks destroys the signal.
 - Set **Last completed** to this task, and **Next** to the following one in `build-plan.md`.
 - Set **Phase** when this task closed out a phase.
-- Add a line under **Decisions Made During Build** for anything real: a bug found, a fix made, a local choice a later session would otherwise wonder about. Not a diary of every edit.
 - **Team projects:** set this task's **Assigned** cell to `git config user.name` if it still reads `unassigned`. Leave every other task's assignee alone.
 - **Checkpoints on:** when this task was the last one in its phase still short of `DONE`, move that phase's row in the Checkpoints table from `not due` to `due`. That is the only checkpoint change you make. **Never write an approval**, however obviously sound the phase looks, because an approval claims a person reviewed it and you are not one.
 
+In `decision-log.md`, append an entry for anything real: a bug found and why it happened, a local choice a later session would otherwise wonder about, an assumption you built on. **Not a diary of every edit.** Read the file's What belongs here section before your first append. Nothing worth recording means nothing gets written, which is the normal case for a task that went to plan.
+
 In `note-registry.md`, append one row to the bottom of the Entries table: the timestamp from the system clock, `/dev-develop`, this task's number and name, and the command you ran to confirm the build is clean with its result. On a team project the row also carries the Actor, read from `git config user.name`. Read the file's Who writes what section if you have not already, then append and touch nothing else.
 
-Never rewrite either file, never stamp a task you did not build, and never edit a note row you did not write.
+Never rewrite any of the three, never stamp a task you did not build, and never edit a note row or a decision entry you did not write.
 
 ### Step 4: Report
 

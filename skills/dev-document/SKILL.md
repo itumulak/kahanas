@@ -70,7 +70,7 @@ Base branch is `main` if it exists, else `master`.
 
 **Then read the workflow's own record**, which is the part a plain git history cannot give you:
 
-- **`progress-tracker.md`**, the Decisions Made During Build log. This is where the real reasons live: the bug someone hit, the assumption they built on, the thing that turned out harder than expected. **It is the single best source for a changelog or a postmortem**, because it was written while it was happening rather than reconstructed afterwards.
+- **`decision-log.md`**. This is where the real reasons live: the bug someone hit, the assumption they built on, the thing that turned out harder than expected. **It is the single best source for a changelog or a postmortem**, because it was written while it was happening rather than reconstructed afterwards.
 - **`note-registry.md`**, the timestamped record of what was actually run and what it proved. The decision log tells you **why**; this tells you **when, and how it was confirmed**. Take the timestamps from here rather than from commit dates for a postmortem timeline, since a commit date is when someone wrote the fix and a note row is when someone watched it work.
 
   Read the row's Skill column before you use it, because the three writers make three different claims. A `/dev-develop` row means the build was clean, a `/dev-check` row means the behavior was exercised, and a `/dev-debug` row means a bug was proven gone. **Only the last two support a claim that something works.** Writing "verified" off a clean build row is exactly the overstatement this file exists to prevent.

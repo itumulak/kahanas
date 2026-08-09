@@ -39,6 +39,7 @@ These keep the skill from sprawling, which is the failure mode for anything that
 | Edit `project-overview.md` | ❌ flags as stale | `/dev-scope` |
 | Clear a task built on an unratified assumption | ❌ flags as decision debt | `/dev-architect` |
 | Add or rewrite any row in `note-registry.md` | ❌ leaves alone | `/dev-develop`, `/dev-check`, `/dev-debug` |
+| Add or rewrite any entry in `decision-log.md` | ❌ leaves alone | `/dev-develop`, `/dev-debug` |
 | Reassign a task, or change an assignee | ❌ flags for escalation | a person |
 | Approve a checkpoint, or change its approvals | ❌ leaves alone | a person |
 | Move a checkpoint row to `due` the repo proves is due | ✅ corrects | `/dev-sync` |
@@ -103,7 +104,7 @@ Then filter to what you sync **from**:
 
 ### Step 2: Gather the evidence
 
-Read the tracker and the registry, plus the parts of the plan you need. Read narrowly.
+Read the tracker, the registry, and `decision-log.md`, plus the parts of the plan you need. Read narrowly. The decision log is where an unratified assumption is recorded, and that is the one thing in it that changes what you may do here.
 
 For each task in `progress-tracker.md` whose Status is not `DONE`, ask whether the repo **proves** it is done:
 
@@ -126,6 +127,8 @@ For each task in `progress-tracker.md` whose Status is not `DONE`, ask whether t
 **The Verify Check column is read only to you**, exactly as the note registry is, and for the same reason. That cell says a model ran the app and watched a behavior, and you have run nothing. Stamping it would be fabricating an observation. A task stamped `DONE` here with an empty Verify Check is reported as never verified, and pointed at `/dev-check verify`.
 
 **The note registry is read only to you.** Never append a row, and never edit one. Every row there is a claim that a specific skill ran a specific thing and saw a specific result, and you have run nothing. A row you wrote would be a fabricated observation, which is worse than a missing one, because it reads exactly like a real one to the next session.
+
+**`decision-log.md` is read only to you for the same reason.** Every entry there is somebody's reasoning at a moment, and you did not build anything, so you decided nothing. Read it for the assumptions marked `assumed, not yet ratified`, which are what keep their tasks off `DONE`, and write nothing into it.
 
 **Read it for evidence, though.** It is the best record of who touched what, and on a team project its Actor column is the only place that says so.
 

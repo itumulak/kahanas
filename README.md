@@ -56,7 +56,7 @@ A verify failure goes to `/dev-debug`. Before a merge: `/dev-check review`, then
 
 ## What it produces
 
-Ten documents in `.konteksto/`:
+Eleven documents in `.konteksto/`:
 
 ```
 .konteksto/
@@ -69,14 +69,20 @@ Ten documents in `.konteksto/`:
 ├── build-plan.md          the ordered task list
 ├── progress-tracker.md    live state       (/dev-develop, plus the Verify
 │                                            Check column from /dev-check)
+├── decision-log.md        what was decided, and why
+│                                    (/dev-develop, /dev-debug append)
 ├── note-registry.md       what was run, and what it proved
 │                                    (/dev-develop, /dev-check, /dev-debug append)
 └── ui-registry.md         reusable components           (/dev-develop updates)
 ```
 
-All but two have exactly one writer. `progress-tracker.md` splits by column: `/dev-develop` owns the Status of every task, and `/dev-check verify` owns the Verify Check beside it, because "the build is clean" and "somebody watched it work" are different claims and neither skill may make the other's. Both cells carry the model that stamped them and when, and a value that changes is struck through with the new one appended after it, so the whole history stays readable.
+Three of them describe the same task from three angles, and they stay separate on purpose. The tracker says **where it stands**, one word per cell, scannable a phase at a time. `note-registry.md` says **what was run** and what it showed. `decision-log.md` says **why**, which no command produces and git does not preserve. Watched it happen goes to the registry, concluded it goes to the log.
 
-`note-registry.md` is the other exception: three skills append to it, each a different claim. `/dev-develop` says the build is clean, `/dev-check verify` says the behavior was exercised, `/dev-debug` says a bug was proven gone. Every row carries its timestamp and the skill that wrote it, nobody edits anybody else's row, and `/dev-sync` writes none, having run nothing itself.
+All but three have exactly one writer. `progress-tracker.md` splits by column: `/dev-develop` owns the Status of every task, and `/dev-check verify` owns the Verify Check beside it, because "the build is clean" and "somebody watched it work" are different claims and neither skill may make the other's. Both cells carry the model that stamped them and when, and a value that changes is struck through with the new one appended after it, so the whole history stays readable.
+
+`decision-log.md` takes appends from `/dev-develop` and `/dev-debug`, and only when there was something to decide. Most tasks add nothing.
+
+`note-registry.md` is the third: three skills append to it, each a different claim. `/dev-develop` says the build is clean, `/dev-check verify` says the behavior was exercised, `/dev-debug` says a bug was proven gone. Every row carries its timestamp and the skill that wrote it, nobody edits anybody else's row, and `/dev-sync` writes none, having run nothing itself.
 
 Plus `docker-compose.yml` and `.env.example` at the root, and a project laid out as:
 

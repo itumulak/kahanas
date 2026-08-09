@@ -48,6 +48,6 @@ These are different claims and they do not substitute for one another. A clean b
 
 *Purpose: what deliberately does not belong here, so this file stays a record of checks rather than drifting into a second decision log.*
 
-- **Decisions, bugs found, and design choices.** Those go in `progress-tracker.md` under Decisions Made During Build. This file is what was run and what it showed.
+- **Decisions, bugs found, and design choices.** Those go in `decision-log.md`. This file is what was run and what it showed.
 - **Review findings.** Those belong to `/dev-check review` and go in `.konteksto/reviews/`.
 - **Test cases.** Those are `/dev-test`'s files.

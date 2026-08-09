@@ -1,18 +1,23 @@
 # Progress Tracker
 
-*Purpose: the live state of the build, so any agent picking up the project mid session immediately knows what is done, what is in progress, and what is next. This file keeps its exact original structure (Current Status, a Progress section whose phase tables mirror build-plan.md's phases, Decisions Made During Build), shown here with one demonstrative phase and one demonstrative decision rather than an invented full project history.*
+*Purpose: the live state of the build, so any agent picking up the project mid session immediately knows what is done, what is in progress, and what is next. Three sections: Current Status, a Progress section whose phase tables mirror build-plan.md's phases, and Checkpoints on a team project that wants them. Shown here with one demonstrative phase rather than an invented full project history.*
 
 Update this file after every completed feature. Any AI agent reading this should immediately know what is done, what is in progress, and what is next.
 
 **`/dev-develop` is this file's builder**, and owns every column of the Progress tables except one. **`/dev-check verify` owns the Verify Check column, and writes nothing else here.** Two writers, split by column, and each side states it: see Who writes what below. `/dev-sync` may also correct this file, but only from repo evidence, after the fact, never during a build.
 
-What was run and what it proved goes in `note-registry.md` instead, which `/dev-develop`, `/dev-check`, and `/dev-debug` all append to. A Status cell here is a verdict, one word plus who stamped it. A note row there is the evidence behind it. Keeping the verdict and its proof in different files is why a stamp stays short enough to scan a whole phase at a glance.
+**This file holds state and nothing else**, which is what keeps it scannable as the build grows. Two neighbours carry the rest:
+
+- **`note-registry.md`**, what was run and what it proved, appended to by `/dev-develop`, `/dev-check`, and `/dev-debug`. A Status cell here is a verdict, one word plus who stamped it. A note row there is the observation behind it.
+- **`decision-log.md`**, what was decided and why, written by `/dev-develop` and `/dev-debug`. A decision needs a paragraph, and a paragraph does not belong in a table anybody reads at a glance.
+
+A stamp stays short enough to scan a whole phase precisely because neither of those lives here.
 
 ---
 
 ## Current Status
 
-*Purpose: the three line answer to "where are we right now," so a new session never has to reconstruct it by reading the whole Progress checklist below.*
+*Purpose: the three line answer to "where are we right now," so a new session never has to reconstruct it by reading every phase table below.*
 
 **Phase:** <CURRENT_PHASE_NAME_AND_STATE>
 **Last completed:** <LAST_COMPLETED_TASK>
@@ -88,9 +93,18 @@ A cell that grows unreadably long is a signal, not a formatting problem. Say so 
 
 ### Note
 
-One short line, for a human, on anything the state alone does not explain. **Why it is blocked** is the main case, and the reason a `BLOCKED` row without a Note is incomplete. A `FAILED` verify gets the one line summary of what failed, with the detail left to `/dev-check`'s report. Anything a person should notice before picking the task up belongs here too.
+**Only two kinds of row carry a Note, and both of them must.** Every other row reads `—`.
 
-Keep it short. This is a flag, not the decision log, and not a substitute for a `note-registry.md` row. `—` when there is nothing to say.
+- A **`BLOCKED`** Status: one line saying what is blocking it. A `BLOCKED` row without a Note is incomplete, because the whole point of the state is telling the next person what to unblock.
+- A **`FAILED`** Verify Check: one line saying what failed, with the detail left to `/dev-check`'s report.
+
+Nothing else. **This column is deliberately not a general comment field**, and the restriction is what makes it useful: a Note in this table means something is wrong right now, so a reader scans for a non empty cell instead of reading every one. Open it up to observations and remarks and the column stops carrying that signal within a week.
+
+The reasoning behind a Note belongs in `decision-log.md`, and the command that proved anything belongs in `note-registry.md`. A Note is a flag, one line, and never a substitute for either.
+
+A Note is cleared the moment its reason goes: when `BLOCKED` is superseded by `DONE`, or a `FAILED` verify by a `PASSED` one, the skill writing that new value replaces the Note with `—` in the same edit. **The Note is the only thing in this table that is overwritten rather than superseded**, because it describes the current state rather than recording history, and the history it would otherwise accumulate is already kept in the struck stamps beside it.
+
+**When a row is both `BLOCKED` and `FAILED`**, one Note covers both, and whichever skill writes last owns the cell: it keeps what still applies and drops what does not. This is the one cell two skills share, and it works only because it holds the present rather than a record. Clear it only when **neither** reason is left.
 
 ### Who writes what
 
@@ -100,19 +114,11 @@ Keep it short. This is a flag, not the decision log, and not a substitute for a 
 | Assigned | `/dev-develop` claims `unassigned` only | a person, by hand, for any reassignment |
 | Status | `/dev-develop` | `/dev-sync`, from repo evidence, after the fact |
 | Verify Check | `/dev-check verify` | nobody |
-| Note | whichever skill wrote the stamp it explains | a person |
+| Note | `/dev-develop` on a `BLOCKED` row, `/dev-check verify` on a `FAILED` one | a person |
 
 **`/dev-check verify` writes the Verify Check cell on a fail as well as a pass**, which is the one place its behavior differs from `note-registry.md`, where it writes only on a pass. The difference is deliberate: this column is a verdict, and a failed verdict is a fact worth recording. That file holds proofs, and a failure proves nothing about the build.
 
 **No skill edits another skill's cell.** `/dev-develop` never touches Verify Check, not even to clear a stale one, and `/dev-check` never touches Status, however plainly wrong it looks. A wrong cell is reported, and its owner fixes it.
-
----
-
-## Decisions Made During Build
-
-*Purpose: a running log of real decisions, bugs found, and fixes made during the build, in the order they happened, so later sessions don't repeat the same investigation or silently contradict an earlier choice.*
-
-- <DECISION_OR_BUG_OR_FIX_LOG_ENTRY>
 
 ---
 
@@ -148,8 +154,8 @@ A team project with checkpoints on, part way through its second phase, shown in 
 ## Current Status
 
 **Phase:** Phase 2 — Booking flow, in progress
-**Last completed:** 05 Availability query endpoint
-**Next:** 07 Confirmation email
+**Last completed:** 04 Booking model and repository
+**Next:** 07 Confirmation email, once 05's failed verify is dealt with
 
 ---
 
@@ -161,24 +167,17 @@ A team project with checkpoints on, part way through its second phase, shown in 
 | --- | --- | --- | --- | --- |
 | 01 Project scaffold and compose stack | Ian Tumulak | DONE, claude-opus-5, 2026-08-02 10:14 | PASSED, claude-opus-5, 2026-08-02 10:41 | — |
 | 02 Postgres schema and migrations | Ian Tumulak | DONE, claude-opus-5, 2026-08-02 15:22 | PASSED, claude-sonnet-5, 2026-08-03 09:05 | — |
-| 03 Session auth | Ana Reyes | ~~PENDING~~ ~~BLOCKED, claude-opus-5, 2026-08-03 11:40~~ DONE, claude-opus-5, 2026-08-04 16:58 | ~~FAILED, claude-sonnet-5, 2026-08-04 17:30~~ PASSED, claude-opus-5, 2026-08-05 09:12 | Cookie was set without `SameSite`, fixed in 4a91c02 |
+| 03 Session auth | Ana Reyes | ~~PENDING~~ ~~BLOCKED, claude-opus-5, 2026-08-03 11:40~~ DONE, claude-opus-5, 2026-08-04 16:58 | ~~FAILED, claude-sonnet-5, 2026-08-04 17:30~~ PASSED, claude-opus-5, 2026-08-05 09:12 | — |
 
 ### Phase 2 — Booking flow
 
 | Task | Assigned | Status | Verify Check | Note |
 | --- | --- | --- | --- | --- |
 | 04 Booking model and repository | Ana Reyes | DONE, claude-opus-5, 2026-08-06 11:03 | PASSED, claude-opus-5, 2026-08-06 11:44 | — |
-| 05 Availability query endpoint | Ian Tumulak | DONE, claude-opus-5, 2026-08-07 14:20 | ~~FAILED, claude-opus-5, 2026-08-07 15:02~~ PASSED, claude-opus-5, 2026-08-08 10:31 | Timezone came from the server, not the venue |
+| 05 Availability query endpoint | Ian Tumulak | DONE, claude-opus-5, 2026-08-07 14:20 | FAILED, claude-opus-5, 2026-08-07 15:02 | Slots came back in the server timezone, not the venue's |
 | 06 Booking form page | Ian Tumulak | BLOCKED, claude-opus-5, 2026-08-08 16:45 | — | Waiting on the date picker decision, see `/dev-architect` |
 | 07 Confirmation email | unassigned | PENDING | — | — |
 | 08 Cancellation flow | unassigned | PENDING | — | — |
-
----
-
-## Decisions Made During Build
-
-- 2026-08-03: the session cookie needs `SameSite=Lax`, since the checkout redirect drops a `Strict` cookie. Found by a failed verify on task 03.
-- 2026-08-08: availability must read the venue timezone from `venues.tz`, never the server clock. `architecture.md`'s Value Sourcing table updated.
 
 ---
 
@@ -193,11 +192,12 @@ A team project with checkpoints on, part way through its second phase, shown in 
 What each part of it demonstrates:
 
 - **Task 03** is a whole life in two cells: pending, blocked, done, then a failed verify superseded by a passing one. Two different models appear in one row, because whichever model was running at the time stamps its own work. None of that history is recoverable from a single final value.
-- **Task 05** holds `DONE` beside a struck `FAILED`. That pair is the reason Status and Verify Check are separate columns: the build was clean and the behavior was still wrong.
-- **Task 06** is `BLOCKED` with its reason in Note, and its Verify Check stays `—`. Nothing ran, so nothing is stamped. A `BLOCKED` row with an empty Note is the one shape that is always incomplete.
+- **Task 03's Note is back to `—`.** It carried one while the row was blocked, and again while the verify was failing. Both reasons are gone, so the Note went with them, and the struck stamps beside it are what remember that any of it happened.
+- **Task 05** holds `DONE` beside a live `FAILED`. That pair is the reason Status and Verify Check are separate columns: the build was clean and the behavior was still wrong. It is `/dev-debug`'s next job, and the Note says in one line what a reader needs to know before opening anything.
+- **Task 06** is `BLOCKED` with its reason in Note, and its Verify Check stays `—`. Nothing ran, so nothing is stamped.
 - **Tasks 07 and 08** are untouched rows: bare `PENDING`, no stamp, `—` in both trailing columns. That is exactly how `/dev-architect` writes every row on a fresh project.
 - **The struck `PENDING` on task 03** carries no stamp either, because it never had one to keep.
-- **The Notes** are one line each and point at the cause. The reasoning behind them lives in the decision log, and the commands that proved them live in `note-registry.md`.
+- **Only the two problem rows carry a Note**, which is the whole point of the column. A reader scans for a non empty cell and finds exactly the two tasks that need somebody. The reasoning behind them lives in `decision-log.md`, and the commands that proved anything live in `note-registry.md`.
 
 On a personal project the same table drops one column and nothing else changes:
 
@@ -207,11 +207,18 @@ On a personal project the same table drops one column and nothing else changes:
 | 01 Project scaffold and compose stack | DONE, claude-opus-5, 2026-08-02 10:14 | PASSED, claude-opus-5, 2026-08-02 10:41 | — |
 ````
 
-The two `note-registry.md` rows that back task 05's cells, showing the split between a verdict and its evidence:
+Where the rest of task 05 lives. `note-registry.md` holds one row, from the build:
 
 ````markdown
 | 2026-08-07 14:20 | Ian Tumulak | /dev-develop | 05 Availability query endpoint | `pnpm typecheck && pnpm build` clean |
-| 2026-08-08 10:31 | Ian Tumulak | /dev-check | 05 Availability query endpoint | GET /api/availability?venue=3&date=2026-09-01 returned the 09:00 to 17:00 slots in Asia/Manila, matching the venue row |
 ````
 
-There is no registry row for the 15:02 failure. The verdict is recorded here, in the Verify Check cell, and only what was proven is recorded there.
+**No row for the 15:02 verify**, because it failed, and that file records only what was proven. The failure is recorded here instead, in the Verify Check cell, with its one line in Note. When `/dev-debug` finds the cause and `/dev-check verify` runs again and passes, the cell gains a struck `FAILED` and a live `PASSED`, the Note goes back to `—`, and the registry finally gains its second row.
+
+And `decision-log.md` holds the reasoning, which is nowhere in either table:
+
+````markdown
+- **2026-08-08**, Ian Tumulak, 05 Availability query endpoint: availability must read the venue timezone from `venues.tz`, never the server clock. `architecture.md`'s Value Sourcing table now records this.
+````
+
+Three files, three different questions: where the task stands, what was run, and why it is the way it is.

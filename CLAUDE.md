@@ -7,15 +7,15 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | Skill | Owns | Answers |
 | --- | --- | --- |
 | `/dev-scope` | `project-overview.md` | What the product is, and whether a team builds it |
-| `/dev-architect` | `architecture.md`, `tooling.md`, `design.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, plus the starting state of `progress-tracker.md`, `note-registry.md`, and `ui-registry.md` | How it gets built |
-| `/dev-develop` | the code, every column of `progress-tracker.md` except Verify Check, all of `ui-registry.md`, and a clean build row in `note-registry.md` | Builds it |
+| `/dev-architect` | `architecture.md`, `tooling.md`, `design.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, plus the starting state of `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `ui-registry.md` | How it gets built |
+| `/dev-develop` | the code, every column of `progress-tracker.md` except Verify Check, all of `ui-registry.md`, a clean build row in `note-registry.md`, and a decision entry when there was one | Builds it |
 | `/dev-check` | `.konteksto/reviews/`, the Verify Check column in `progress-tracker.md`, plus one `note-registry.md` row on a verify pass | Confirms it actually works |
-| `/dev-debug` | the minimal fix, a line in the decision log, and a fix confirmed row in `note-registry.md` | Finds out why it does not |
+| `/dev-debug` | the minimal fix, an entry in `decision-log.md`, and a fix confirmed row in `note-registry.md` | Finds out why it does not |
 | `/dev-test` | the test files, and `test-preferences.json` | Stops it breaking again |
 | `/dev-document` | `CHANGELOG.md`, `.konteksto/releases/`, `.konteksto/postmortems/` | Explains it to people |
 | `/dev-sync` | corrections to `progress-tracker.md` and `ui-registry.md` from repo evidence | Makes the documents true again |
 
-Ten documents in all, and `design.md` is the only optional one: it is skipped entirely for a backend with no `app/`.
+Eleven documents in all, and `design.md` is the only optional one: it is skipped entirely for a backend with no `app/`.
 
 **The usual loop:** `/dev-scope` once, `/dev-architect` once, then per task `/dev-develop`, `/dev-check verify`, `/dev-test`. A verify failure goes to `/dev-debug`. Before a merge, `/dev-check review`, then `/dev-document pr`, then `/dev-sync`.
 
@@ -32,6 +32,12 @@ Ten documents in all, and `design.md` is the only optional one: it is skipped en
 **A `DONE` Status and a `PASSED` Verify Check are two different claims, so they are two columns.** `DONE` says the code was built and the build is clean. `PASSED` says a model ran the thing and watched it work. A task holding `DONE` with a `FAILED` verify is a real and useful state, and one column could not express it.
 
 **Every Status and Verify Check value is stamped with the model that wrote it and the minute it wrote it**, and a value that changes is superseded by striking the old one through and appending the new, so a cell reads oldest to newest and the last unstruck value is current. Nothing is deleted and nothing is edited in place. A task that went `DONE`, then `BLOCKED`, then `DONE` again is telling a later session something a single final value hides, and the model name is what lets a reader judge how much to trust a stale verdict.
+
+**Three files hold three different things about the same task, and none of them may absorb another.** `progress-tracker.md` says where it stands, in one word per cell, so a phase can be read at a glance. `note-registry.md` says what was run and what it showed, an observation somebody could reproduce. `decision-log.md` says what was decided and why, which no command produces and no repository preserves. The test when placing something is whether you watched it happen or concluded it: watched goes to the registry, concluded goes to the log.
+
+`decision-log.md` was inside the tracker until the tracker became a state table, and it moved out for the same reason the note rows did: a table is read at a glance and a decision needs a paragraph, so growing one inside the other made both worse. It is also the file `/dev-document` mines for changelogs and postmortems, which is why padding it with narration costs something real.
+
+**The tracker's Note column is deliberately narrow.** Only a `BLOCKED` Status or a `FAILED` Verify Check carries one, both must, and every other row reads `—`. A Note means something is wrong right now, so a reader scans for a non empty cell rather than reading every one. It is also the one cell that is overwritten rather than superseded: when its reason goes, it clears, because the struck stamps beside it already keep the history.
 
 **Every generated document is stamped.** A document written by a skill ends with a drafted by line, so a later maintenance pass can tell what a tool wrote from what a person wrote **instead of guessing**. `/dev-sync` reads it: stamp present means a wrong fact may be corrected surgically; stamp gone means a person owns the file, so add a missing fact but never rewrite an existing line.
 
