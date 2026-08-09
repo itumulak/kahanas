@@ -1,6 +1,6 @@
 {
   "name": "kahanas",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A document driven engineering workflow as Agent Skills. Takes a project from an idea to shipped, verified code, keeping every decision in version controlled documents instead of a chat log.",
   "keywords": [
     "claude-code",
