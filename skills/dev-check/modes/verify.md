@@ -31,7 +31,11 @@ Owns no whole file. Chat output only, plus screenshots and logs saved to a scrat
 
 **Write two: the note row.** On a PASS, append a row to the Entries table in `note-registry.md` recording what you exercised and that it passed. That is how a later session tells an exercised task from an assumed one.
 
-`note-registry.md` has three writers, so read its Who writes what section before the first append. Yours is the row that claims the behavior was observed. Append it at the bottom, and never edit a row `/dev-develop` or `/dev-debug` wrote. On a team project the row carries an Actor, read from `git config user.name`.
+`note-registry.md` has three writers, so read its Who writes what section before the first append. Yours is the row that claims the behavior was observed. Append it at the bottom, and never edit a row `/dev-develop` or `/dev-debug` wrote.
+
+The row carries the Timestamp as `YYYY-MM-DD HH:MM` from the system clock, the Author as your exact model identifier such as `claude-opus-5`, the Skill as `/dev-check`, and on a team project the Actor from `git config user.name`. Write `unknown-model` and say so rather than guessing one. **Author matters most on your rows**, since verify is the mode most often run on a different model than built the code, and the registry is where that becomes visible.
+
+`decision-log.md` is not yours at all. You decide nothing, you observe.
 
 **A fail writes the tracker cell and no note row.** The two files hold different things: the cell is the verdict, and a failed verdict is worth recording, while the registry holds proofs, and a failure proves nothing about the build.
 

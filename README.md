@@ -82,6 +82,8 @@ All but three have exactly one writer. `progress-tracker.md` splits by column: `
 
 `decision-log.md` takes appends from `/dev-develop` and `/dev-debug`, and only when there was something to decide. Most tasks add nothing.
 
+Both append only files are tables carrying a Timestamp and an **Author**, the exact model identifier that wrote the row. The Actor column beside it, the person, is team only. Author is not: the model changes between sessions when the person does not, and it is what tells a reader how much to trust a six week old row.
+
 `note-registry.md` is the third: three skills append to it, each a different claim. `/dev-develop` says the build is clean, `/dev-check verify` says the behavior was exercised, `/dev-debug` says a bug was proven gone. Every row carries its timestamp and the skill that wrote it, nobody edits anybody else's row, and `/dev-sync` writes none, having run nothing itself.
 
 Plus `docker-compose.yml` and `.env.example` at the root, and a project laid out as:

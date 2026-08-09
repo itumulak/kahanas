@@ -39,7 +39,7 @@ These keep the skill from sprawling, which is the failure mode for anything that
 | Edit `project-overview.md` | ❌ flags as stale | `/dev-scope` |
 | Clear a task built on an unratified assumption | ❌ flags as decision debt | `/dev-architect` |
 | Add or rewrite any row in `note-registry.md` | ❌ leaves alone | `/dev-develop`, `/dev-check`, `/dev-debug` |
-| Add or rewrite any entry in `decision-log.md` | ❌ leaves alone | `/dev-develop`, `/dev-debug` |
+| Add or rewrite any row in `decision-log.md` | ❌ leaves alone | `/dev-develop`, `/dev-debug` |
 | Reassign a task, or change an assignee | ❌ flags for escalation | a person |
 | Approve a checkpoint, or change its approvals | ❌ leaves alone | a person |
 | Move a checkpoint row to `due` the repo proves is due | ✅ corrects | `/dev-sync` |
@@ -128,7 +128,7 @@ For each task in `progress-tracker.md` whose Status is not `DONE`, ask whether t
 
 **The note registry is read only to you.** Never append a row, and never edit one. Every row there is a claim that a specific skill ran a specific thing and saw a specific result, and you have run nothing. A row you wrote would be a fabricated observation, which is worse than a missing one, because it reads exactly like a real one to the next session.
 
-**`decision-log.md` is read only to you for the same reason.** Every entry there is somebody's reasoning at a moment, and you did not build anything, so you decided nothing. Read it for the assumptions marked `assumed, not yet ratified`, which are what keep their tasks off `DONE`, and write nothing into it.
+**`decision-log.md` is read only to you for the same reason.** Every row there is somebody's reasoning at a moment, and you did not build anything, so you decided nothing. Read it for the rows marked `assumed, not yet ratified`, which are what keep their tasks off `DONE`, and write nothing into it. Its Task column is what lets you match a row to a task without guessing.
 
 **Read it for evidence, though.** It is the best record of who touched what, and on a team project its Actor column is the only place that says so.
 

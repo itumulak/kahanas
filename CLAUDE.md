@@ -8,9 +8,9 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | --- | --- | --- |
 | `/dev-scope` | `project-overview.md` | What the product is, and whether a team builds it |
 | `/dev-architect` | `architecture.md`, `tooling.md`, `design.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, plus the starting state of `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `ui-registry.md` | How it gets built |
-| `/dev-develop` | the code, every column of `progress-tracker.md` except Verify Check, all of `ui-registry.md`, a clean build row in `note-registry.md`, and a decision entry when there was one | Builds it |
+| `/dev-develop` | the code, every column of `progress-tracker.md` except Verify Check, all of `ui-registry.md`, a clean build row in `note-registry.md`, and a `decision-log.md` row when there was one | Builds it |
 | `/dev-check` | `.konteksto/reviews/`, the Verify Check column in `progress-tracker.md`, plus one `note-registry.md` row on a verify pass | Confirms it actually works |
-| `/dev-debug` | the minimal fix, an entry in `decision-log.md`, and a fix confirmed row in `note-registry.md` | Finds out why it does not |
+| `/dev-debug` | the minimal fix, a cause row in `decision-log.md`, and a fix confirmed row in `note-registry.md` | Finds out why it does not |
 | `/dev-test` | the test files, and `test-preferences.json` | Stops it breaking again |
 | `/dev-document` | `CHANGELOG.md`, `.konteksto/releases/`, `.konteksto/postmortems/` | Explains it to people |
 | `/dev-sync` | corrections to `progress-tracker.md` and `ui-registry.md` from repo evidence | Makes the documents true again |
@@ -35,7 +35,9 @@ Eleven documents in all, and `design.md` is the only optional one: it is skipped
 
 **Three files hold three different things about the same task, and none of them may absorb another.** `progress-tracker.md` says where it stands, in one word per cell, so a phase can be read at a glance. `note-registry.md` says what was run and what it showed, an observation somebody could reproduce. `decision-log.md` says what was decided and why, which no command produces and no repository preserves. The test when placing something is whether you watched it happen or concluded it: watched goes to the registry, concluded goes to the log.
 
-`decision-log.md` was inside the tracker until the tracker became a state table, and it moved out for the same reason the note rows did: a table is read at a glance and a decision needs a paragraph, so growing one inside the other made both worse. It is also the file `/dev-document` mines for changelogs and postmortems, which is why padding it with narration costs something real.
+`decision-log.md` was inside the tracker until the tracker became a state table, and it moved out for the same reason the note rows did: **the two are indexed differently.** The tracker is one row per task, rewritten in place as that task moves. The log and the registry are one row per event, in the order events happened, and nothing in either is ever rewritten. A file cannot be both at once. The log is also what `/dev-document` mines for changelogs and postmortems, which is why padding it with narration costs something real.
+
+**All three tables stamp who wrote each row and when**, to the minute. The tracker stamps inside its Status and Verify Check cells; the log and the registry each carry a Timestamp and an Author column. **Author is the exact model identifier**, and it survives on a personal project even though Actor does not, because the model changes between sessions when the person does not, and a reader weighing a six week old verdict wants to know what produced it.
 
 **The tracker's Note column is deliberately narrow.** Only a `BLOCKED` Status or a `FAILED` Verify Check carries one, both must, and every other row reads `—`. A Note means something is wrong right now, so a reader scans for a non empty cell rather than reading every one. It is also the one cell that is overwritten rather than superseded: when its reason goes, it clears, because the struck stamps beside it already keep the history.
 

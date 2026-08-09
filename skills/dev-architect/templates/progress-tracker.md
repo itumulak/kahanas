@@ -9,7 +9,7 @@ Update this file after every completed feature. Any AI agent reading this should
 **This file holds state and nothing else**, which is what keeps it scannable as the build grows. Two neighbours carry the rest:
 
 - **`note-registry.md`**, what was run and what it proved, appended to by `/dev-develop`, `/dev-check`, and `/dev-debug`. A Status cell here is a verdict, one word plus who stamped it. A note row there is the observation behind it.
-- **`decision-log.md`**, what was decided and why, written by `/dev-develop` and `/dev-debug`. A decision needs a paragraph, and a paragraph does not belong in a table anybody reads at a glance.
+- **`decision-log.md`**, what was decided and why, appended to by `/dev-develop` and `/dev-debug`. It is one row per decision in the order they happened, where this file is one row per task rewritten as the task moves. Different index, different file.
 
 A stamp stays short enough to scan a whole phase precisely because neither of those lives here.
 
@@ -210,15 +210,15 @@ On a personal project the same table drops one column and nothing else changes:
 Where the rest of task 05 lives. `note-registry.md` holds one row, from the build:
 
 ````markdown
-| 2026-08-07 14:20 | Ian Tumulak | /dev-develop | 05 Availability query endpoint | `pnpm typecheck && pnpm build` clean |
+| 2026-08-07 14:20 | Ian Tumulak | claude-opus-5 | /dev-develop | 05 Availability query endpoint | `pnpm typecheck && pnpm build` clean |
 ````
 
 **No row for the 15:02 verify**, because it failed, and that file records only what was proven. The failure is recorded here instead, in the Verify Check cell, with its one line in Note. When `/dev-debug` finds the cause and `/dev-check verify` runs again and passes, the cell gains a struck `FAILED` and a live `PASSED`, the Note goes back to `—`, and the registry finally gains its second row.
 
-Task 05 has no `decision-log.md` entry yet either, because nobody has worked out why it fails. Task 06 does, and it is the entry its `BLOCKED` Note points at:
+Task 05 has no `decision-log.md` row yet either, because nobody has worked out why it fails. Task 06 does, and it is the row its `BLOCKED` Note points at:
 
 ````markdown
-- **2026-08-08**, Ian Tumulak, 06 Booking form page: stopped rather than choosing a date picker. Two candidates, neither on `code-standards.md`'s approved list, and the choice fixes the accessibility story for every form after this one. Routed to `/dev-architect`, and the task is `BLOCKED` until it comes back.
+| 2026-08-08 16:45 | Ian Tumulak | claude-opus-5 | /dev-develop | 06 Booking form page | stopped rather than choosing a date picker. Two candidates, neither on `code-standards.md`'s approved list, and the choice fixes the accessibility story for every form after this one. Routed to `/dev-architect`, and the task is `BLOCKED` until it comes back |
 ````
 
 Three files, three different questions: where the task stands, what was run, and why it is the way it is. The Worked example sections in `note-registry.md` and `decision-log.md` show the same build from their own side.

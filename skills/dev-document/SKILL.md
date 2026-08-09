@@ -76,7 +76,7 @@ Base branch is `main` if it exists, else `master`.
   Read the row's Skill column before you use it, because the three writers make three different claims. A `/dev-develop` row means the build was clean, a `/dev-check` row means the behavior was exercised, and a `/dev-debug` row means a bug was proven gone. **Only the last two support a claim that something works.** Writing "verified" off a clean build row is exactly the overstatement this file exists to prevent.
 - **`build-plan.md`**, for what the tasks in this range were meant to deliver.
 - **`.konteksto/reviews/`**, for anything `/dev-check review` flagged and whether it was fixed.
-- **A `/dev-debug` record**, for a postmortem: the cause and fix in the decision log, paired with its `note-registry.md` row for when the fix was confirmed and by what check. Together they are a proven root cause with its evidence and its timing, which is exactly what the postmortem needs and exactly what people get wrong when writing one from memory.
+- **A `/dev-debug` record**, for a postmortem: its `decision-log.md` row for the cause and fix, paired with its `note-registry.md` row for when the fix was confirmed and by what check. Both tables carry a Skill column, so filter on `/dev-debug` to find the pair. Together they are a proven root cause with its evidence and its timing, which is exactly what the postmortem needs and exactly what people get wrong when writing one from memory.
 
 Read the diff itself at write time. For a very large one, offload the reading to a read only subagent on a cheap model and write from its summary.
 
