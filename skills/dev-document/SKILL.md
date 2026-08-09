@@ -70,13 +70,13 @@ Base branch is `main` if it exists, else `master`.
 
 **Then read the workflow's own record**, which is the part a plain git history cannot give you:
 
-- **`progress-tracker.md`**, the Decisions Made During Build log. This is where the real reasons live: the bug someone hit, the assumption they built on, the thing that turned out harder than expected. **It is the single best source for a changelog or a postmortem**, because it was written while it was happening rather than reconstructed afterwards.
+- **`decision-log.md`**. This is where the real reasons live: the bug someone hit, the assumption they built on, the thing that turned out harder than expected. **It is the single best source for a changelog or a postmortem**, because it was written while it was happening rather than reconstructed afterwards.
 - **`note-registry.md`**, the timestamped record of what was actually run and what it proved. The decision log tells you **why**; this tells you **when, and how it was confirmed**. Take the timestamps from here rather than from commit dates for a postmortem timeline, since a commit date is when someone wrote the fix and a note row is when someone watched it work.
 
   Read the row's Skill column before you use it, because the three writers make three different claims. A `/dev-develop` row means the build was clean, a `/dev-check` row means the behavior was exercised, and a `/dev-debug` row means a bug was proven gone. **Only the last two support a claim that something works.** Writing "verified" off a clean build row is exactly the overstatement this file exists to prevent.
 - **`build-plan.md`**, for what the tasks in this range were meant to deliver.
 - **`.konteksto/reviews/`**, for anything `/dev-check review` flagged and whether it was fixed.
-- **A `/dev-debug` record**, for a postmortem: the cause and fix in the decision log, paired with its `note-registry.md` row for when the fix was confirmed and by what check. Together they are a proven root cause with its evidence and its timing, which is exactly what the postmortem needs and exactly what people get wrong when writing one from memory.
+- **A `/dev-debug` record**, for a postmortem: its `decision-log.md` row for the cause and fix, paired with its `note-registry.md` row for when the fix was confirmed and by what check. Both tables carry a Skill column, so filter on `/dev-debug` to find the pair. Together they are a proven root cause with its evidence and its timing, which is exactly what the postmortem needs and exactly what people get wrong when writing one from memory.
 
 Read the diff itself at write time. For a very large one, offload the reading to a read only subagent on a cheap model and write from its summary.
 

@@ -28,8 +28,9 @@ These keep the skill from sprawling, which is the failure mode for anything that
 
 | Action | `/dev-sync` | Owner |
 |---|---|---|
-| Tick a `progress-tracker.md` task the repo proves is done | ✅ corrects | `/dev-sync` |
-| Update Last completed, Next, and Phase to match the ticks | ✅ corrects | `/dev-sync` |
+| Stamp a `progress-tracker.md` task `DONE` the repo proves is done | ✅ corrects | `/dev-sync` |
+| Update Last completed, Next, and Phase to match the Status column | ✅ corrects | `/dev-sync` |
+| Write or change a Verify Check cell | ❌ leaves alone | `/dev-check verify` |
 | Register a component in `ui-registry.md` that exists in code but is missing | ✅ adds | `/dev-sync` |
 | Correct a registry entry whose props no longer match the code | ✅ corrects | `/dev-sync` |
 | Add a dependency to `library-docs.md` that the manifest gained | ✅ adds a stub, flags it for detail | `/dev-sync` |
@@ -38,6 +39,7 @@ These keep the skill from sprawling, which is the failure mode for anything that
 | Edit `project-overview.md` | ❌ flags as stale | `/dev-scope` |
 | Clear a task built on an unratified assumption | ❌ flags as decision debt | `/dev-architect` |
 | Add or rewrite any row in `note-registry.md` | ❌ leaves alone | `/dev-develop`, `/dev-check`, `/dev-debug` |
+| Add or rewrite any row in `decision-log.md` | ❌ leaves alone | `/dev-develop`, `/dev-debug` |
 | Reassign a task, or change an assignee | ❌ flags for escalation | a person |
 | Approve a checkpoint, or change its approvals | ❌ leaves alone | a person |
 | Move a checkpoint row to `due` the repo proves is due | ✅ corrects | `/dev-sync` |
@@ -75,7 +77,7 @@ The whole chain, once per project then once per task:
 
 Exactly what the Boundaries table grants, and nothing else.
 
-It is the **sweeper**: the one skill that ticks a task another skill finished but never recorded, and registers a component someone built without registering it. Those gaps accumulate silently, and they are what make a tracker stop being trusted.
+It is the **sweeper**: the one skill that stamps a task another skill finished but never recorded, and registers a component someone built without registering it. Those gaps accumulate silently, and they are what make a tracker stop being trusted.
 
 ---
 
@@ -102,9 +104,9 @@ Then filter to what you sync **from**:
 
 ### Step 2: Gather the evidence
 
-Read the tracker and the registry, plus the parts of the plan you need. Read narrowly.
+Read the tracker, the registry, and `decision-log.md`, plus the parts of the plan you need. Read narrowly. The decision log is where an unratified assumption is recorded, and that is the one thing in it that changes what you may do here.
 
-For each unticked task in `progress-tracker.md`, ask whether the repo **proves** it is done:
+For each task in `progress-tracker.md` whose Status is not `DONE`, ask whether the repo **proves** it is done:
 
 - The files its bullets describe exist and contain what they promised.
 - For a data task, the migration exists **and** the schema is live, per the rule in `/dev-develop`'s `logical-guide.md` phase 2. Query the real database rather than trusting the migration file.
@@ -112,30 +114,34 @@ For each unticked task in `progress-tracker.md`, ask whether the repo **proves**
 
 **Proof means what is in the repo, not what a commit message claims.** A commit saying "add password reset" is a claim, and the route either exists or it does not.
 
-**Only act on an unambiguous match.** Tick a task only when the file plainly belongs to it. Where code could belong to either of two tasks, do not pick: record it as ambiguous and move on.
+**Only act on an unambiguous match.** Stamp a task only when the file plainly belongs to it. Where code could belong to either of two tasks, do not pick: record it as ambiguous and move on.
 
-**Be conservative.** Tick on clearly present evidence, and when unsure, leave it. An unticked finished task is a small annoyance. A ticked unfinished one sends the next session past work that was never done.
+**Be conservative.** Stamp on clearly present evidence, and when unsure, leave it. A finished task still reading `PENDING` is a small annoyance. An unfinished one stamped `DONE` sends the next session past work that was never done.
 
 **A document you cannot parse does not get edited.** A tracker with broken headings or a hand edit that broke its shape is reported as needing a person, never repaired by guessing. Never act on a misread.
 
 ### Step 3: Reconcile
 
-**The tracker.** Tick every task the evidence proves. Update Last completed, Next, and Phase to match.
+**The tracker.** Stamp `DONE` on every task the evidence proves, in the shape that file's Progress section sets: `DONE, <your exact model identifier>, <YYYY-MM-DD HH:MM from the system clock>`, superseding the old value by striking it through rather than overwriting it. Update Last completed, Next, and Phase to match the Status column.
+
+**The Verify Check column is read only to you**, exactly as the note registry is, and for the same reason. That cell says a model ran the app and watched a behavior, and you have run nothing. Stamping it would be fabricating an observation. A task stamped `DONE` here with an empty Verify Check is reported as never verified, and pointed at `/dev-check verify`.
 
 **The note registry is read only to you.** Never append a row, and never edit one. Every row there is a claim that a specific skill ran a specific thing and saw a specific result, and you have run nothing. A row you wrote would be a fabricated observation, which is worse than a missing one, because it reads exactly like a real one to the next session.
+
+**`decision-log.md` is read only to you for the same reason.** Every row there is somebody's reasoning at a moment, and you did not build anything, so you decided nothing. Read it for the rows marked `assumed, not yet ratified`, which are what keep their tasks off `DONE`, and write nothing into it. Its Task column is what lets you match a row to a task without guessing.
 
 **Read it for evidence, though.** It is the best record of who touched what, and on a team project its Actor column is the only place that says so.
 
 **Assignments.** Do not change one, ever, in either direction. Claiming a task belongs to somebody needs a reason that lives in a conversation, not in the repository. Two things get flagged instead:
 
 - **A task with note rows from more than one actor.** Two or more people worked the same task. Flag it for escalation and name every actor, every commit involved, and every branch you can see carrying the work. **Stop there.** Deciding which branch survives, or resolving the conflict between them, is a person's call and usually a project manager's. Recommending a branch would be guessing at intent from file contents, and the wrong guess quietly discards somebody's work.
-- **A ticked task still reading `(unassigned)`.** Somebody built it without claiming it. Flag it, and name the actor from its note rows as the likely owner. **Do not write that name in.** A note row proves who ran a check, not who owns the task.
+- **A `DONE` task still reading `unassigned`.** Somebody built it without claiming it. Flag it, and name the actor from its note rows as the likely owner. **Do not write that name in.** A note row proves who ran a check, not who owns the task.
 
-**Checkpoints.** One correction only: a phase whose tasks are all ticked but whose checkpoint row still reads `not due` moves to `due`, because the repository proves that much. Never write an approval and never clear one. An approval is a claim that a person reviewed something, and you have reviewed nothing. A phase sitting at `due` is reported, not resolved, and it blocks nothing, so never treat it as a reason to hold anything up.
+**Checkpoints.** One correction only: a phase whose tasks all read `DONE` but whose checkpoint row still reads `not due` moves to `due`, because the repository proves that much. Never write an approval and never clear one. An approval is a claim that a person reviewed something, and you have reviewed nothing. A phase sitting at `due` is reported, not resolved, and it blocks nothing, so never treat it as a reason to hold anything up.
 
 Report, without changing anything, a phase approved by developers only where the project wanted a project manager's sign off. The roles are written beside the names in the Approved by column, so this is read directly rather than worked out. Say it once in the report and leave the table alone.
 
-**A task built on an unratified assumption stays unticked**, however finished the code looks. Only `/dev-architect` clears that, and ticking it here would erase the one signal that a decision is still owed.
+**A task built on an unratified assumption stays off `DONE`**, however finished the code looks. Only `/dev-architect` clears that, and stamping it here would erase the one signal that a decision is still owed.
 
 **The registry.** For every reusable component in the code with no entry, add one: what it is for, its props, and a short real usage example read from an actual call site. For an entry whose props no longer match the code, correct the entry, because the code is the truth and a stale registry causes duplicates.
 
@@ -171,7 +177,7 @@ Flag when:
 
 Each flag names the document, what the repo shows instead, and which skill fixes it.
 
-**Escalations are a separate list**, because they go to a person rather than to a skill, and burying them among the document flags is how they get skimmed past. Raise one when a task's note rows carry more than one actor, or when a ticked task is still unassigned. Name the task, every actor on it, and the branches involved, then stop. **Never recommend which branch to keep.** From the outside, two branches touching one task look the same whether one is a rewrite of the other or both hold work nobody wants lost, and picking wrong throws away someone's day.
+**Escalations are a separate list**, because they go to a person rather than to a skill, and burying them among the document flags is how they get skimmed past. Raise one when a task's note rows carry more than one actor, or when a `DONE` task is still unassigned. Name the task, every actor on it, and the branches involved, then stop. **Never recommend which branch to keep.** From the outside, two branches touching one task look the same whether one is a rewrite of the other or both hold work nobody wants lost, and picking wrong throws away someone's day.
 
 ### Step 6: Report
 
@@ -183,7 +189,7 @@ Output this block. **Omit any section that is empty** rather than writing a head
 SCOPE: <N> changed files, <branch against base | uncommitted>
 
 RECONCILED:
-- <file>, <what you ticked, added, or corrected, one line>
+- <file>, <what you stamped, added, or corrected, one line>
 
 CONTRADICTIONS:
 - <file> says <what it claims>, the code shows <what is actually there> → your call which is wrong

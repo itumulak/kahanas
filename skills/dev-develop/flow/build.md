@@ -68,7 +68,7 @@ Where you do need it, spawn a read only subagent with web access on a cheap mode
 
 **Resume first. Never rebuild what is already done.**
 
-Read `progress-tracker.md`. Find the first unticked task, or the one you were asked for. A ticked box means someone believed it was finished, so stop and ask before rebuilding it.
+Read `progress-tracker.md`. Find the first task whose Status is not `DONE`, or the one you were asked for. A `DONE` stamp means someone believed it was finished, so stop and ask before rebuilding it. A `BLOCKED` one means someone stopped on purpose: read its Note before doing anything, since the reason may still hold.
 
 Say where you are picking up, plainly: "this plan is 4 of 12 done, resuming at the session handling task."
 
@@ -102,13 +102,15 @@ The design proves wrong or incomplete partway through: the schema cannot hold th
 
 **Remove superseded code in the same task that replaced it.** Old and new side by side is not done. The details are in `logical-guide.md`, phase 6.
 
-## Step 6: Update the tracker and report
+## Step 6: Update the documents and report
 
-- **Only tick what actually landed.** Confirm first: the files exist, the code type checks, and for a data layer task the schema is live. An interrupted task stays unticked, and you report exactly what is incomplete and why.
-- **Never mark a task done on an unverified build.** Ticking a box is a claim that someone else will rely on.
-- Edit `progress-tracker.md` surgically, per `SKILL.md` step 3: the checkbox, Last completed, Next, and the Decisions log. On a team project, also claim the task's assignee if it reads `(unassigned)`. With checkpoints on, also move the phase's checkpoint row to `due` when this was the phase's last task, and never write an approval.
-- Append one row to `note-registry.md`, also per `SKILL.md` step 3: the clean build command and its result, with the Actor on a team project. Leave the rows `/dev-check` and `/dev-debug` wrote alone.
-- **A task built on a stated assumption stays unticked** until `/dev-architect` ratifies it. Say so rather than leaving the box quietly empty.
+- **Only stamp `DONE` on what actually landed.** Confirm first: the files exist, the code type checks, and for a data layer task the schema is live. An interrupted task stays `PENDING`, or goes to `BLOCKED` with the reason in its Note, and you report exactly what is incomplete and why.
+- **Never mark a task done on an unverified build.** A `DONE` stamp is a claim that someone else will rely on.
+- Edit `progress-tracker.md` surgically, per `SKILL.md` step 3: the task's Status cell, Last completed, and Next, plus a Note only when you are leaving the task `BLOCKED`. Supersede an existing Status by striking it through and appending the new stamp, never by overwriting it. **Leave the Verify Check column alone**, it is `/dev-check verify`'s. On a team project, also claim the task's Assigned cell if it reads `unassigned`. With checkpoints on, also move the phase's checkpoint row to `due` when this was the phase's last task, and never write an approval.
+- Append one row to `note-registry.md`, also per `SKILL.md` step 3: the clean build command and its result. Leave the rows `/dev-check` and `/dev-debug` wrote alone.
+- Append one row to `decision-log.md` only when this task produced a real decision, a cause worth knowing, or a stated assumption. A task that went to plan writes nothing there.
+- Both rows carry the Timestamp, the Author as your exact model identifier, the Skill, and the Actor on a team project. `SKILL.md` step 3 has the exact fields.
+- **A task built on a stated assumption stays off `DONE`** until `/dev-architect` ratifies it. The assumption goes in `decision-log.md`, marked `assumed, not yet ratified`, and you say so in the report rather than leaving a `PENDING` row nobody can explain.
 - Relay the track's report block from `ui-guide.md`, `logical-guide.md`, or both.
 - Point at `/dev-check verify` next, and name the next task after that.
 

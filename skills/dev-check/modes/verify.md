@@ -21,11 +21,23 @@ Never modifies application code. Report the breakage and point at `/dev-develop`
 
 ## Artifact ownership
 
-Owns no durable file. Chat output only, plus screenshots and logs saved to a scratch area.
+Owns no whole file. Chat output only, plus screenshots and logs saved to a scratch area, and two narrow writes.
 
-One narrow write: on a PASS, append a row to the Entries table in `note-registry.md` recording what you exercised and that it passed. That is how a later session tells an exercised task from an assumed one.
+**Write one: the Verify Check cell.** In `progress-tracker.md`, set this task's Verify Check cell in its phase table, `PASSED` on a pass and `FAILED` on a fail, stamped as that file's Progress section describes: `PASSED, <your exact model identifier>, <YYYY-MM-DD HH:MM from the system clock>`. A cell that already holds a value is superseded, never overwritten: strike the old one through with `~~` and append the new one after it, leaving exactly one unstruck value. On a `FAILED`, put a one line summary of what failed in the row's Note, and leave the detail to your report. On a `PASSED` that supersedes an earlier `FAILED`, clear that Note back to `—` in the same edit: the reason for it is gone, and Note is the one cell in the table that is overwritten rather than kept.
 
-`note-registry.md` has three writers, so read its Who writes what section before the first append. Yours is the row that claims the behavior was observed. Append it at the bottom, and never edit a row `/dev-develop` or `/dev-debug` wrote. On a team project the row carries an Actor, read from `git config user.name`. `progress-tracker.md` is not yours at all, checkpoint rows included.
+**That column is the only thing in `progress-tracker.md` you may touch.** Status is `/dev-develop`'s, the Assigned cell is a person's, and checkpoint rows are nobody's here. Never change one, however plainly wrong it looks. Report it instead.
+
+**BLOCKED writes nothing.** A behavior you could not exercise is not a verdict about the task, and a cell left at `—` says truthfully that nobody has checked yet.
+
+**Write two: the note row.** On a PASS, append a row to the Entries table in `note-registry.md` recording what you exercised and that it passed. That is how a later session tells an exercised task from an assumed one.
+
+`note-registry.md` has three writers, so read its Who writes what section before the first append. Yours is the row that claims the behavior was observed. Append it at the bottom, and never edit a row `/dev-develop` or `/dev-debug` wrote.
+
+The row carries the Timestamp as `YYYY-MM-DD HH:MM` from the system clock, the Author as your exact model identifier such as `claude-opus-5`, the Skill as `/dev-check`, and on a team project the Actor from `git config user.name`. Write `unknown-model` and say so rather than guessing one. **Author matters most on your rows**, since verify is the mode most often run on a different model than built the code, and the registry is where that becomes visible.
+
+`decision-log.md` is not yours at all. You decide nothing, you observe.
+
+**A fail writes the tracker cell and no note row.** The two files hold different things: the cell is the verdict, and a failed verdict is worth recording, while the registry holds proofs, and a failure proves nothing about the build.
 
 ---
 
@@ -146,7 +158,11 @@ An overall PASS requires every behavior verified with cited evidence, and every 
 
 ### Step 5: Report
 
-On a PASS, append your row to `note-registry.md`. On a FAIL or BLOCKED, write nothing and report the gaps, because that file records what was proven and a failure proves nothing.
+Write the verdict where it belongs before reporting:
+
+- **PASS**: stamp `PASSED` in this task's Verify Check cell, and append your row to `note-registry.md`.
+- **FAIL**: stamp `FAILED` in that cell with a one line Note, and write nothing in `note-registry.md`, because that file records what was proven and a failure proves nothing.
+- **BLOCKED**: write in neither file. Nothing was exercised, so there is no verdict to record.
 
 ```
 ## /dev-check verify complete
