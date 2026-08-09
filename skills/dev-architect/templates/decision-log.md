@@ -54,11 +54,18 @@ Append one entry per decision, at the bottom.
 
 **Reference only. Delete this whole section when writing the real file**, and never copy an entry out of it. Every line below is invented.
 
+A team project part way through its second phase, eight tasks planned and five built. It is the same build shown in the Worked example sections of `progress-tracker.md` and `note-registry.md`, so the three can be read side by side.
+
 ````markdown
-- **2026-08-03**, Ana Reyes, 03 Session auth: the session cookie needs `SameSite=Lax`. A `Strict` cookie is dropped on the return leg of the checkout redirect, so the user landed back logged out. Found by a failed verify, not by the type checker.
-- **2026-08-06**, Ian Tumulak, —: booking times are stored as UTC and rendered in the venue timezone. Storing local time seemed simpler until the first venue crossed a daylight saving boundary.
-- **2026-08-08**, Ian Tumulak, 05 Availability query endpoint: availability must read the venue timezone from `venues.tz`, never the server clock. `architecture.md`'s Value Sourcing table now records this. Assumed at first, then ratified by `/dev-architect` the same day.
-- **2026-08-09**, Ian Tumulak, 06 Booking form page: `assumed, not yet ratified`, the date picker will be the one already used in the admin area rather than a new dependency. Building on this until `/dev-architect` confirms it, and the task stays off `DONE` in the meantime.
+- **2026-08-05**, Ana Reyes, 03 Session auth: the session cookie needs `SameSite=Lax`. A `Strict` cookie is dropped on the return leg of the checkout redirect, so the user came back logged out. Found by a failed verify, and invisible to the type checker.
+- **2026-08-06**, Ian Tumulak, —: booking times are stored as UTC and rendered in the venue timezone. Local time in the column looked simpler until the first venue crossed a daylight saving boundary twice a year.
+- **2026-08-08**, Ian Tumulak, 06 Booking form page: stopped rather than choosing a date picker. Two candidates, neither on `code-standards.md`'s approved list, and the choice fixes the accessibility story for every form after this one. Routed to `/dev-architect`, and the task is `BLOCKED` until it comes back.
 ````
 
-What it demonstrates: every entry gives a reason, not only an outcome; one belongs to no task and carries `—`; one is explicitly unratified, which is the signal that keeps its task off `DONE`; and the timezone pair shows a general rule and the specific task that forced it, recorded separately because they are useful to different readers.
+What it demonstrates:
+
+- **Every entry gives the reason, not only the outcome.** `SameSite=Lax` on its own would be undone by the first person who found it inconvenient. The redirect sentence is what stops them.
+- **The second entry belongs to no single task** and carries `—`. It is a rule the whole build now obeys, and it came out of one task without belonging to it.
+- **The third is a decision owed rather than a decision made.** `/dev-develop` refused to invent it, and this entry is why task 06 sits at `BLOCKED` in the tracker with a one line Note pointing this way.
+- **Nothing here records that a build passed or that a task got finished.** Those are a `note-registry.md` row and a Status cell. Five tasks were built, and only two of them produced an entry here, which is the normal ratio: most tasks go to plan and decide nothing.
+- **The dates track when the thinking happened, not when the code landed.** The `SameSite` entry is dated the day the cause was proven, which is the day after the verify that exposed it and two days after the task was built. Ordering by the fix commit would have put it in the wrong place in the story.

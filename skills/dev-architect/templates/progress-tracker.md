@@ -215,10 +215,10 @@ Where the rest of task 05 lives. `note-registry.md` holds one row, from the buil
 
 **No row for the 15:02 verify**, because it failed, and that file records only what was proven. The failure is recorded here instead, in the Verify Check cell, with its one line in Note. When `/dev-debug` finds the cause and `/dev-check verify` runs again and passes, the cell gains a struck `FAILED` and a live `PASSED`, the Note goes back to `—`, and the registry finally gains its second row.
 
-And `decision-log.md` holds the reasoning, which is nowhere in either table:
+Task 05 has no `decision-log.md` entry yet either, because nobody has worked out why it fails. Task 06 does, and it is the entry its `BLOCKED` Note points at:
 
 ````markdown
-- **2026-08-08**, Ian Tumulak, 05 Availability query endpoint: availability must read the venue timezone from `venues.tz`, never the server clock. `architecture.md`'s Value Sourcing table now records this.
+- **2026-08-08**, Ian Tumulak, 06 Booking form page: stopped rather than choosing a date picker. Two candidates, neither on `code-standards.md`'s approved list, and the choice fixes the accessibility story for every form after this one. Routed to `/dev-architect`, and the task is `BLOCKED` until it comes back.
 ````
 
-Three files, three different questions: where the task stands, what was run, and why it is the way it is.
+Three files, three different questions: where the task stands, what was run, and why it is the way it is. The Worked example sections in `note-registry.md` and `decision-log.md` show the same build from their own side.

@@ -51,3 +51,37 @@ These are different claims and they do not substitute for one another. A clean b
 - **Decisions, bugs found, and design choices.** Those go in `decision-log.md`. This file is what was run and what it showed.
 - **Review findings.** Those belong to `/dev-check review` and go in `.konteksto/reviews/`.
 - **Test cases.** Those are `/dev-test`'s files.
+
+---
+
+## Worked example
+
+**Reference only. Delete this whole section when writing the real file**, and never copy a row out of it. Every row below is invented, and an invented row is a fabricated observation, which is the one thing this file must never contain.
+
+A team project part way through its second phase, eight tasks planned and five built. It is the same build shown in the Worked example sections of `progress-tracker.md` and `decision-log.md`, so the three can be read side by side.
+
+````markdown
+| Timestamp | Actor | Skill | Task | Note |
+| --- | --- | --- | --- | --- |
+| 2026-08-02 10:14 | Ian Tumulak | /dev-develop | 01 Project scaffold and compose stack | `docker compose up -d` brought all four services healthy, `pnpm build` clean |
+| 2026-08-02 10:41 | Ian Tumulak | /dev-check | 01 Project scaffold and compose stack | loaded http://localhost:3000, the placeholder page rendered, no console errors |
+| 2026-08-02 15:22 | Ian Tumulak | /dev-develop | 02 Postgres schema and migrations | `pnpm migrate up` applied 3 migrations, `pnpm typecheck` clean |
+| 2026-08-03 09:05 | Ian Tumulak | /dev-check | 02 Postgres schema and migrations | `\d bookings` against the live database shows all 9 columns including `venue_id` and `starts_at` |
+| 2026-08-04 16:58 | Ana Reyes | /dev-develop | 03 Session auth | `pnpm typecheck && pnpm build` clean |
+| 2026-08-05 08:50 | Ana Reyes | /dev-debug | 03 Session auth | reproduced the logout by completing checkout and returning; with `SameSite=Lax` the session survived the redirect on 5 of 5 attempts |
+| 2026-08-05 09:12 | Ana Reyes | /dev-check | 03 Session auth | signed in, completed the checkout redirect, still signed in on return, screenshot at `.scratch/auth-return.png` |
+| 2026-08-06 11:03 | Ana Reyes | /dev-develop | 04 Booking model and repository | `pnpm typecheck && pnpm test:unit` clean, 12 passing |
+| 2026-08-06 11:44 | Ana Reyes | /dev-check | 04 Booking model and repository | POST /api/bookings returned 201, the row is in the live database with the venue's UTC offset applied |
+| 2026-08-07 14:20 | Ian Tumulak | /dev-develop | 05 Availability query endpoint | `pnpm typecheck && pnpm build` clean |
+````
+
+What it demonstrates:
+
+- **All three writers appear**, and each says a different thing. `/dev-develop` says the toolchain is happy. `/dev-check` says somebody watched the behavior. `/dev-debug` says a bug was proven gone. None of them substitutes for another, which is why task 03 has all three.
+- **Task 05 has one row, from the build**, and nothing else. Its verify failed, and a failure writes nothing here. The verdict is recorded as `FAILED` in that task's Verify Check cell in `progress-tracker.md` instead, with a one line Note. Reading this file alone, a task with a `/dev-develop` row and no `/dev-check` row is exactly a task nobody has proven yet.
+- **Task 06 has no rows at all.** It is `BLOCKED` and was never built, so nothing was run and nothing is recorded.
+- **Every Note names a command or a surface and its result**, not an intention. `pnpm build clean` and `POST /api/bookings returned 201` can both be re run by somebody who doubts them. "auth works now" cannot.
+- **The `/dev-debug` row records the reproduction as well as the fix**, because a fix confirmed without a reproduction is a fix nobody can trust.
+- **The order is the value.** Task 03's rows read build, then debug, then verify, which tells the story of the failure without any of them describing it.
+
+Two things this example deliberately does not contain: the reason `SameSite=Lax` was needed, which is an entry in `decision-log.md`, and the fact that task 03 is now `DONE`, which is a cell in `progress-tracker.md`.

@@ -242,7 +242,7 @@ For each:
 2. Replace every bracketed placeholder with real content. No literal `<TOKEN>` survives. Check before presenting.
 3. Follow the template's repeat instructions. One section per table, per language, per client, per library. Produce as many as the project needs.
 4. Keep a section marked Optional only when it genuinely applies. Remove it otherwise and say which you removed and why. Never present an empty section as a placeholder.
-5. **Delete every section marked Reference only**, such as the Worked example at the end of `progress-tracker.md` and `decision-log.md`. Read it, then leave it out of the file you write. Its content is invented, and invented tasks, names, and dates left in a real document send the next session looking for work nobody did.
+5. **Delete every section marked Reference only**, meaning the Worked example at the end of `progress-tracker.md`, `decision-log.md`, and `note-registry.md`. Read it, then leave it out of the file you write. Its content is invented, and invented tasks, names, and dates left in a real document send the next session looking for work nobody did.
 6. Present the file, get approval, then start the next. If a change contradicts an earlier file, go back and fix that file too.
 
 ### Step 8: Write the Stage 2 documents
@@ -254,7 +254,7 @@ Extra rules:
 - `build-plan.md` covers every feature in the Features in Scope list and nothing from the out of scope list. Its Feature Count table must match the number of tasks actually written. Order the phases so each one is visible and testable before the next starts.
 - `progress-tracker.md` mirrors `build-plan.md` exactly, one Progress table per phase and one row per task, same phase and task order. On a fresh project every row reads `PENDING` with no stamp, an empty Verify Check and Note written as `—`, Last completed reads "nothing yet", and Next names the first task. **Never stamp a row here.** A stamp names a model and a minute, and nothing has run yet. Its Worked example section is Reference only: read it for the shape, and delete it from the file you write.
 - `decision-log.md` always ships, and always starts with its headings and an empty Entries list. Nothing has been decided during a build that has not started, so an entry here would be invented reasoning. Keep the What belongs here section exactly as the template has it, since it is the boundary the writing skills read, and delete the Worked example.
-- `note-registry.md` always ships, backend or frontend, and always starts with its headings and an empty Entries table. Nothing has been run yet, so writing a row here would be inventing evidence. Keep the Who writes what and Excluded sections exactly as the template has them, since they are the contract the three writing skills read.
+- `note-registry.md` always ships, backend or frontend, and always starts with its headings and an empty Entries table. Nothing has been run yet, so writing a row here would be inventing evidence. Keep the Who writes what and Excluded sections exactly as the template has them, since they are the contract the three writing skills read, and delete the Worked example.
 
 **Team Shape decides the shape of three of these.** Read that section in `project-overview.md` before writing any of them, and follow it exactly rather than deciding for yourself. `/dev-scope` asked the user, and this is where their answer takes effect.
 
