@@ -163,6 +163,10 @@ On **Design it first**, end with:
 
 **The third option is not available for a visual gap.** When what is owed is how a surface looks or behaves, meaning no approved prototype, a state or interaction the prototype does not cover, or a change that made an approved one wrong, only options 1 and 2 exist. The task goes `BLOCKED` with the surface named in its Note.
 
+**A visual gap means a surface, and only a surface.** This applies on a project that has an `app/` and a `design.md`, to a task with UI bullets. **A backend only project can never have one**, since it has no prototypes to be missing, and neither can a task with only Logic bullets. Nothing about a missing design blocks an endpoint, a migration, a job, or a service. Read this rule as narrowly as it is written, because read widely it would stop work that displays nothing to anybody.
+
+**On a task with both kinds of bullet, the logic half still gets built.** Only the surface stops. The task goes `BLOCKED` because it is unfinished, and its Note says what landed as well as what is waiting. `ui-guide.md` has the detail.
+
 The reason is that a recorded assumption works for a logic decision and does not work for a visual one. A stated assumption about a retry policy is visible, reviewable, and obviously provisional. An invented layout looks exactly like a designed one, so nobody reviews it, nothing records it, and the next surface invents a different answer to the same question. `ui-guide.md` holds the full rule.
 
 The third option exists so an assumption becomes durable. Written in the tracker it survives a cleared session, a teammate reads it, and the next task builds against it rather than inventing a second, different assumption.

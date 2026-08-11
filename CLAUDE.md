@@ -21,7 +21,9 @@ Thirteen documents in all, plus the design prototypes. `design.md` and `design-r
 
 **The surfaces come from the flows, not from the page list.** The Pages section of `project-overview.md` holds the screens somebody thought of. The Core User Flow holds what actually happens, and the surface that gets missed is nearly always a failure branch of a step. A product that mocks its dashboard and forgets the verification screen, the recovery codes, and the wrong code path has designed one surface out of eight, and only reading the flows finds that.
 
-**A missing design blocks its own task and nothing else.** The plan is written in full regardless. This is the same shape as an unratified assumption keeping one task off `DONE` without holding up the project, and it is deliberately not a project wide gate, because a gate nobody can work around is a gate everybody works around.
+**A missing design blocks its own surface and nothing else.** The plan is written in full regardless. This is the same shape as an unratified assumption keeping one task off `DONE` without holding up the project, and it is deliberately not a project wide gate, because a gate nobody can work around is a gate everybody works around.
+
+**Read that as narrowly as it sounds.** A backend only project can never have a visual gap, having no prototypes to be missing, and neither can a task with only Logic bullets. On a task with both, the logic half is still built and only the surface stops. A missing design never blocks an endpoint, a migration, or a job, because none of them shows anybody anything.
 
 **`/dev-develop` is not the designer on a project with an `app/`.** It implements an approved prototype at high fidelity and may not introduce a layout, an interaction, or a product decision. **The stated assumption option is withdrawn for a visual gap**: a recorded assumption about a retry policy is visible and obviously provisional, while an invented layout looks exactly like a designed one, so nobody reviews it and the next surface invents a different answer.
 

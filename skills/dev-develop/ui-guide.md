@@ -69,6 +69,8 @@ Five documents, and they decide different things:
 
 ## The visual gap rule
 
+**What this rule covers, and nothing else: a surface.** It applies on the UI track of a project that has an `app/` and a `design.md`. A backend only project has no prototypes to be missing, and a task with only Logic bullets never reaches this file. Neither is ever blocked by this rule, and a missing design is not a reason to hold up work that displays nothing.
+
 **Stop the affected work and route it back to `/dev-architect` whenever any of these is true:**
 
 - this surface has no row in `design-registry.md`, or its row is not `APPROVED`
@@ -77,6 +79,10 @@ Five documents, and they decide different things:
 - building it faithfully would require a product decision the prototype does not settle
 
 Use the machinery that already exists, in `SKILL.md` step 1: the task goes `BLOCKED` with its reason in the Note, and you name the exact surface and what is missing.
+
+**On a task that is both UI and Logic, only the UI half stops.** Build the logic, which `flow/build.md` step 5 has you doing first anyway, then stop at the surface. The task still goes `BLOCKED`, since it is not finished and `DONE` would be a lie, and **its Note says both things**: what landed and which surface is waiting on a design.
+
+That is the same shape as a partly finished rollout. Half a task is fine and reported precisely; a task that quietly looks finished is not. When the design arrives, running `/dev-develop` again resumes at the surface and skips what is already built.
 
 **With one difference, and it is the point of this rule. The stated assumption option is not available for a visual gap.** For a logic decision, building on a recorded assumption is a real choice with a real audit trail. For a visual one it is not, because an invented layout looks exactly like a designed one, nobody reviews it, and the next surface invents a different answer to the same question. **Never improvise a missing visual product decision.**
 
