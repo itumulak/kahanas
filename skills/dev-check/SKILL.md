@@ -2,7 +2,7 @@
 name: dev-check
 allowed-tools: Bash, Read, Grep, Glob, Write, Agent, AskUserQuestion
 argument-hint: [verify | review]
-description: "Run /dev-check to confirm a task is sound before moving on. Two modes: verify runs the real app and proves the behavior against the flows in project-overview.md, and on a UI task checks it against the approved design at all three breakpoints; review runs a senior code read on a different model than wrote the code. Verify after /dev-develop, review before a merge. Never edits your code, and never edits a design."
+description: "Run /dev-check to confirm a task is sound before moving on. Two modes: verify runs the real app and proves the behavior against the flows in project-overview.md, and on a UI task checks it against the approved design at every breakpoint the project defines; review runs a senior code read on a different model than wrote the code. Verify after /dev-develop, review before a merge. Never edits your code, and never edits a design."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)

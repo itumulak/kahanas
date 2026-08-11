@@ -10,17 +10,45 @@ A surface with no approved design is not a gap in the code. It is a product deci
 
 ## Entries
 
-| Surface | Required by | File | Status | Note |
-| --- | --- | --- | --- | --- |
-| <SURFACE_NAME> | <FLOW_AND_STEP_IN_PROJECT_OVERVIEW> | `designs/<SLUG>.html` | <STATUS_STAMP> | — |
+| Surface | Required by | File | Required states | Status | Note |
+| --- | --- | --- | --- | --- | --- |
+| <SURFACE_NAME> | <FLOW_AND_STEP_IN_PROJECT_OVERVIEW> | `designs/<SLUG>.html` | <STATES_THIS_SURFACE_NEEDS> | <STATUS_STAMP> | — |
 
 One row per surface. Order them the way the flows run, so a reader following a journey reads down the table.
-
-**Surface** is what a person would call the screen or the significant state: `Login`, `Dashboard`, `Two factor challenge`, `Recovery codes`. Not a component, and not a route.
 
 **Required by** names the flow and the step in `project-overview.md` that needs it. This column is what makes the completeness audit mechanical rather than a matter of memory, and it is the column most often left vague. `Enable two factor, step 4` is useful. `Security` is not.
 
 **File** is the path under `.konteksto/designs/`, or `—` when nothing exists yet.
+
+**Required states** lists the states this surface actually has, comma separated: `default, submitting, invalid code, locked`. This is what makes completeness strong without multiplying rows, and it is checked by `/dev-develop` when it builds and by `/dev-check verify` when it looks.
+
+### Surface, state, and interaction are three different things
+
+*Keep this section. Without the distinction, a registry grows a row for every state of every screen, and a six entity product produces eighty rows nobody reads.*
+
+| Term | Means | Gets a row |
+| --- | --- | --- |
+| **Surface** | a distinct user context needing its own composition | yes |
+| **State** | a variation of one surface: loading, empty, error, success, locked | no, it goes in Required states |
+| **Interaction** | a behavior within a surface: submit, filter, confirm, regenerate | no, the prototype demonstrates it |
+
+An orders page that is loading, empty, populated, or failing is **one surface with four states**, not four surfaces. Recovery codes after two factor setup is **a separate surface**, because its purpose and composition differ from the setup screen even though the same flow reaches both.
+
+**The test: would a designer compose this from scratch, or is it the same composition showing different content?** Composed from scratch is a surface. Different content in the same frame is a state.
+
+### One prototype may cover several surfaces
+
+**What matters is coverage, not file count.** Every surface must map to an approved prototype. Several surfaces may map to the same file where they are genuinely steps of one thing:
+
+```
+| Checkout, cart      | ... | `designs/checkout.html` | ...
+| Checkout, shipping  | ... | `designs/checkout.html` | ...
+| Checkout, payment   | ... | `designs/checkout.html` | ...
+```
+
+And one complex surface may warrant several files. The registry is the mapping, so a rule forcing one file per surface would buy nothing and would split a flow that reads better whole.
+
+**A shared file is approved once, and every row pointing at it moves together.** Approving `checkout.html` approves the three rows above, and a change to it puts all three back into the lifecycle. Where you want them to move independently, they belong in separate files.
 
 ---
 
@@ -32,9 +60,17 @@ One row per surface. Order them the way the flows run, so a reader following a j
 | `DRAFT` | an artifact exists and is not finished | `/dev-architect` |
 | `READY FOR REVIEW` | finished, self critiqued, waiting on a person | `/dev-architect` |
 | `CHANGE REQUIRED` | was approved, and something has since made it wrong | `/dev-architect` |
-| `APPROVED` | a person looked at it and accepted it | **a person, by hand** |
+| `APPROVED` | a person looked at it and accepted it | **only a person decides**, see below |
 
-**Only a person writes `APPROVED`, and no skill may write it under any circumstances.** An approval asserts that a human reviewed something. A tool writing its own would empty the word, and every rule downstream that depends on approval would then depend on nothing. This is the same rule that governs phase checkpoints, for the same reason.
+**No skill may ever originate an approval.** An approval asserts that a human reviewed something. A tool deciding its own would empty the word, and every rule downstream that depends on approval would then depend on nothing. This is the same rule that governs phase checkpoints, for the same reason.
+
+**A skill may record an approval a person actually gave.** Deciding and writing down are different acts, and requiring somebody to hand edit markdown after saying yes is ceremony rather than safety. Three conditions, all required:
+
+1. **The person said yes to this specific artifact, explicitly.** A direct approval of the thing in front of them.
+2. **A vague yes is not one.** "Looks good", "sure", "whatever you think", and silence are not approvals, exactly as `/dev-scope`'s interview refuses them. Ask again as a concrete question rather than banking it.
+3. **The name recorded is the person's, taken from what they said or from who you are talking to.** Never from `git config`, which proves who owns the checkout and not who approved anything, and which a skill could otherwise read to approve on its own behalf.
+
+**When in doubt, do not record it.** A design wrongly sitting at `READY FOR REVIEW` costs one question. A design wrongly reading `APPROVED` costs whatever gets built on it.
 
 **A skill may write every other value**, including moving an approved design to `CHANGE REQUIRED` when a scope change or a build clearly invalidated it. Recording that something has gone stale is an observation. Deciding it is fixed is not.
 
@@ -52,6 +88,8 @@ APPROVED  →  CHANGE REQUIRED  →  DRAFT  →  READY FOR REVIEW  →  APPROVED
 
 **An approved design is never silently changed.** Editing the file without moving the row back through the lifecycle means the word `APPROVED` is describing something nobody approved.
 
+**An accessibility departure makes the prototype stale, not the implementation wrong.** When `/dev-develop` has to depart from an approved prototype to meet the contrast or touch target target in `design.md`, the built page is correct and the prototype is now the thing that disagrees with reality. That row moves to `CHANGE REQUIRED`, and `/dev-architect` fixes the prototype to match what shipped. Leaving it at `APPROVED` would mean the next surface inherits the same inaccessible pattern from a document that says somebody blessed it.
+
 ---
 
 ## Stamping
@@ -63,7 +101,9 @@ DRAFT, claude-opus-5, 2026-08-11 14:02
 APPROVED, Ian Tumulak, 2026-08-11 16:30
 ```
 
-A model writes its **exact model identifier**, or `unknown-model` when it genuinely cannot tell, and says so in its report rather than guessing one. A person writes their git user name.
+A model writes its **exact model identifier**, or `unknown-model` when it genuinely cannot tell, and says so in its report rather than guessing one.
+
+**An `APPROVED` stamp carries the approving person's name**, whether they wrote the row or a skill recorded their explicit yes. Never a model identifier, and never a name read out of `git config`. The evidence that matters is the approval interaction, not who owns the checkout, and a shared machine makes the git identity worth nothing.
 
 **A value that changes is superseded, never overwritten.** Strike the old one through and append the new one after it, leaving exactly one unstruck value, which is the current one:
 
@@ -93,8 +133,8 @@ The history is the point. A surface that was approved, then required a change, t
 
 | Skill | May write | Must not |
 | --- | --- | --- |
-| `/dev-architect` | every row, and every Status except `APPROVED` | write `APPROVED`, ever |
-| a person | `APPROVED`, by hand | nothing is off limits, it is their product |
+| `/dev-architect` | every row, every Status except `APPROVED`, and an `APPROVED` a person explicitly gave | decide an approval itself, or infer one from a vague yes |
+| a person | anything, including `APPROVED` directly | nothing is off limits, it is their product |
 | `/dev-develop` | nothing | write here. It reports a gap and routes to `/dev-architect` |
 | `/dev-check` | nothing | write here. It reports a mismatch |
 | `/dev-sync` | nothing | write here, including a row for a surface it found in code |

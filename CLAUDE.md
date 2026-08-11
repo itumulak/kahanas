@@ -17,7 +17,30 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 
 Thirteen documents in all, plus the design prototypes. `design.md` and `design-registry.md` are the optional ones, skipped together with `.konteksto/designs/` for a backend with no `app/`.
 
-**Design is decided upstream and never invented during a build.** `/dev-architect` produces an interactive HTML prototype per surface in `.konteksto/designs/`, a person approves it, and `/dev-develop` implements it. Where the user supplied designs, their originals are copied to `designs/sources/` and never overwritten, because that artifact is the only thing in the project they actually authored.
+**Do not write a document count into a skill's instructions.** The number above is here, in the overview, where a person maintaining the set will see it. A count written beside a list inside a procedure is wrong the first time anybody extends the list, and this project has already shipped that bug twice.
+
+## The one invariant behind most of the ownership rules
+
+**No downstream skill may create upstream intent.**
+
+| Skill | Owns | May never create |
+| --- | --- | --- |
+| `/dev-scope` | product intent | — |
+| `/dev-architect` | technical and design intent | product intent |
+| `/dev-develop` | implementation | design or product intent |
+| `/dev-check` | observations | any intent at all |
+| `/dev-test` | regression protection | any intent at all |
+| `/dev-sync` | corrections the repo proves | any intent at all |
+
+Most of the individual rules below are this one rule applied to a particular file. `/dev-develop` finding a missing design cannot design it. `/dev-check` finding a wrong prototype cannot fix it. `/dev-sync` finding a term in the code cannot make it the project's word. `/dev-architect` finding a product requirement cannot add it to the scope.
+
+**When a new rule is needed, check whether this already covers it.** A rule derived from the invariant needs no separate justification and will not drift out of step with the others.
+
+**A new artifact needs a fundamentally different owner, lifecycle, or truth source.** There are already six state and knowledge files: `progress-tracker.md`, `decision-log.md`, `note-registry.md`, `ui-registry.md`, `design-registry.md`, and `glossary.md`. Each earns its place on that test. New information goes into an existing artifact unless it can pass the same one, because the cost of another file is paid by every session that has to know it exists.
+
+**Design is decided upstream and never invented during a build.** `/dev-architect` produces interactive HTML prototypes in `.konteksto/designs/` covering every surface, a person approves them, and `/dev-develop` implements them. **Coverage is the rule, not one file per surface**: several steps of a checkout may share one prototype, and one complicated screen may need several, with `design-registry.md` holding the mapping either way.
+
+**A surface is a distinct user context needing its own composition.** Loading, empty, and error are states of one surface rather than three more surfaces, and they are listed in the registry's Required states column. Without that distinction a six entity product produces eighty rows nobody reads. Where the user supplied designs, their originals are copied to `designs/sources/` and never overwritten, because that artifact is the only thing in the project they actually authored.
 
 **The surfaces come from the flows, not from the page list.** The Pages section of `project-overview.md` holds the screens somebody thought of. The Core User Flow holds what actually happens, and the surface that gets missed is nearly always a failure branch of a step. A product that mocks its dashboard and forgets the verification screen, the recovery codes, and the wrong code path has designed one surface out of eight, and only reading the flows finds that.
 
@@ -27,9 +50,11 @@ Thirteen documents in all, plus the design prototypes. `design.md` and `design-r
 
 **`/dev-develop` is not the designer on a project with an `app/`.** It implements an approved prototype at high fidelity and may not introduce a layout, an interaction, or a product decision. **The stated assumption option is withdrawn for a visual gap**: a recorded assumption about a retry policy is visible and obviously provisional, while an invented layout looks exactly like a designed one, so nobody reviews it and the next surface invents a different answer.
 
-**Exact pixel equality is not the bar, because nothing can check it.** A component library injects its own spacing and fonts rasterize differently on every machine. What is checkable is every region present in the same order, the same hierarchy, every designed state reachable, every interaction behaving, at all three breakpoints. Accessibility outranks reproduction: a prototype with an unreachable touch target is fixed in the build and reported, not copied faithfully.
+**Exact pixel equality is not the bar, because nothing can check it.** A component library injects its own spacing and fonts rasterize differently on every machine. What is checkable is every region present in the same order, the same hierarchy, every designed state reachable, every interaction behaving, at every breakpoint `design.md` defines. Accessibility outranks reproduction: a prototype with an unreachable touch target is fixed in the build and reported, not copied faithfully.
 
-**Only a person writes `APPROVED`**, in `design-registry.md`, by hand. A skill may write every other status including `CHANGE REQUIRED`, because noticing a design has gone stale is an observation while deciding it is fixed is not. This is the checkpoint rule again, and for the same reason.
+**No skill may originate an approval, and a skill may record one a person actually gave.** Deciding and writing down are different acts, and making somebody hand edit markdown after saying yes is ceremony rather than safety. The conditions are strict: an explicit yes to that specific artifact, never a vague one, and the name recorded is the person's rather than whatever `git config` holds. A skill writes every other status including `CHANGE REQUIRED`, because noticing a design has gone stale is an observation while deciding it is fixed is not.
+
+**An accessibility departure makes the prototype stale, not the implementation wrong.** When a built page has to depart from an approved design to meet the contrast or touch target target, the build is correct and the design is now what disagrees with reality. `/dev-develop` reports it, `/dev-check verify` routes it, `/dev-architect` moves the row to `CHANGE REQUIRED` and fixes the prototype. Unrouted, the next surface inherits the same inaccessible pattern from a document still claiming somebody blessed it.
 
 **The usual loop:** `/dev-scope` once, `/dev-architect` once, then per task `/dev-develop`, `/dev-check verify`, `/dev-test`. A verify failure goes to `/dev-debug`. Before a merge, `/dev-check review`, then `/dev-document pr`, then `/dev-sync`.
 

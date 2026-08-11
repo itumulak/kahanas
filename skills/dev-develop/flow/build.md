@@ -37,7 +37,7 @@ Read, in this order, and no more than this:
 
 **Completeness check, before any code, not partway through.**
 
-Confirm the design actually covers this task: on the logical track a data model, an interface surface, and the security expectation; on the UI track **an approved prototype for every surface it touches**, covering the states, the interactions, and all three breakpoints. Then run the **input coverage test** from `SKILL.md` again against the specific values this task produces.
+Confirm the design actually covers this task: on the logical track a data model, an interface surface, and the security expectation; on the UI track **an approved prototype for every surface it touches**, covering the states, the interactions, and every breakpoint `design.md` defines. Then run the **input coverage test** from `SKILL.md` again against the specific values this task produces.
 
 A surface with no approved prototype, or a prototype missing something this task needs, is a visual gap. **It stops that surface, on this task, and nothing else.** Never a logical task, never a backend only project, and on a task that is both, never its logic half. `ui-guide.md` holds the rule.
 

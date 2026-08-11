@@ -20,7 +20,7 @@ Every page leaves this skill as a complete, professional surface, faithful to it
 
 This is committed here, at the top, before the token and accessibility rules, precisely so it cannot get crowded out by them.
 
-**Fidelity, and what outranks it.** Reproduce the approved prototype with high visual and interaction fidelity. Exact pixel equality is not the bar and cannot be, since a component library injects its own spacing and fonts rasterize differently on every machine. What is checkable, and what you are held to, is that every element is present, in the same order and grouping, with the same hierarchy and the same tokens, at all three breakpoints, with every designed state reachable.
+**Fidelity, and what outranks it.** Reproduce the approved prototype with high visual and interaction fidelity. Exact pixel equality is not the bar and cannot be, since a component library injects its own spacing and fonts rasterize differently on every machine. What is checkable, and what you are held to, is that every element is present, in the same order and grouping, with the same hierarchy and the same tokens, at every breakpoint `design.md` defines, with every designed state reachable.
 
 Where two of those pull against each other, this order settles it:
 
@@ -33,7 +33,9 @@ Where two of those pull against each other, this order settles it:
 | 5 | typography and spacing |
 | 6 | visual detail |
 
-**Accessibility outranks literal reproduction.** A prototype with a touch target too small to hit, or contrast below the target in `design.md`, is not reproduced faithfully. Fix it, build it correctly, and **say so in the report**, so the prototype gets corrected rather than the two drifting apart.
+**Accessibility outranks literal reproduction.** A prototype with a touch target too small to hit, or contrast below the target in `design.md`, is not reproduced faithfully. Fix it, build it correctly, and **say so in the report**.
+
+**A departure like that makes the prototype stale, not your implementation wrong.** Your build is the correct one, and the approved design is now the thing that disagrees with reality. You cannot write `design-registry.md`, so say it plainly under Departures: `/dev-check verify` routes it, and `/dev-architect` moves the row to `CHANGE REQUIRED` and fixes the prototype. **Left unsaid, the next surface inherits the same inaccessible pattern** from a document that still claims somebody approved it.
 
 **Disqualifiers. Any one of these means it is not done, so fix it before reporting:**
 
@@ -45,7 +47,7 @@ Where two of those pull against each other, this order settles it:
 - an orphaned control, such as a toggle with nothing around it
 - a bare functional widget where a real product would ship a whole surface, with real copy, layout, and supporting content
 
-**Prove it before you report.** Audit your own build against that list and fix every hit. When you have a browser available, render the page and look at it, the way a designer checks their own work. That is the only reliable way to catch a broken render, and a screenshot costs less than a round trip with the user.
+**Run your implementation checks before you report.** That is your job and it is not the same as acceptance verification, which is `/dev-check verify`'s: you confirm what you built is sound, it confirms what was built is what the product needed. Audit your own build against that list and fix every hit. When you have a browser available, render the page and look at it, the way a designer checks their own work. That is the only reliable way to catch a broken render, and a screenshot costs less than a round trip with the user.
 
 ## Where the design comes from
 
@@ -115,7 +117,7 @@ Open the approved prototype and work out what it actually specifies, before writ
 - **The hierarchy**: what a person reads first, second, and third, and what makes that so.
 - **Every state it demonstrates**, and how each is reached.
 - **Every interaction it demonstrates**: what is clickable, what opens, what confirms, what validates.
-- **All three layouts**, and specifically what genuinely changes between them rather than what merely reflows.
+- **Every layout the prototype composes**, one per breakpoint in `design.md`, and specifically what genuinely changes between them rather than what merely reflows.
 
 **Work top down, the way the prototype is composed.** A page assembled from the inside out, one widget at a time, is how you end up with a control floating in a dead zone, and it is also how you end up matching a prototype in its parts and not as a whole.
 
@@ -127,7 +129,7 @@ Follow the Component Structure section of `code-standards.md` exactly: the impor
 
 - Reuse a registered component wherever one fits.
 - Build **every state the prototype demonstrates**, not a subset. The states beyond the populated one are where products feel unfinished, and they are also the ones most likely to be skipped under time pressure.
-- Compose each of the three layouts as the prototype composes it. **The phone is a separate layout, not the desktop one collapsed**, and where the prototype recomposes it, recompose it the same way.
+- Compose each layout as the prototype composes it, one per breakpoint in `design.md`. **The phone is a separate layout, not the desktop one collapsed**, and where the prototype recomposes it, recompose it the same way.
 - Keep the component focused. A component doing the work of three is a component nobody reuses.
 
 ### Phase 4: Wire it
@@ -150,13 +152,13 @@ A component that is built but not registered will be rebuilt by someone else, sl
 
 ### Phase 7: Look at it, beside the prototype
 
-Render the built page **and the prototype**, and compare them at each of the three breakpoints in `design.md`. Reading the markup is not this phase. Looking at it is.
+Render the built page **and the prototype**, and compare them at every breakpoint `design.md` defines. Reading the markup is not this phase. Looking at it is.
 
-Walk the list you wrote in phase 2: every region present and in order, the hierarchy reading the same way, every state reachable, every interaction behaving, and all three layouts composed as designed. Then check the disqualifier list at the top of this guide.
+Walk the list you wrote in phase 2: every region present and in order, the hierarchy reading the same way, every state reachable, every interaction behaving, and every layout composed as designed. Then check the disqualifier list at the top of this guide.
 
 Fix what you find. **Where you deliberately departed from the prototype**, meaning an accessibility fix that outranked it, say so explicitly rather than leaving a difference for somebody else to discover and read as a mistake.
 
-This is your own check, and it is not the last one. `/dev-check verify` compares against the same prototype independently, because the skill that built something is not the one that should certify it.
+**This is an implementation check, not acceptance verification, and it is not the last one.** `/dev-check verify` compares against the same prototype independently, because the skill that built something is not the one that should certify it. Both happen. Skipping this one because that one exists leaves a page nobody has ever looked at.
 
 ## Report
 
@@ -169,7 +171,7 @@ This is your own check, and it is not the last one. `/dev-check verify` compares
 **Registered**: <components added to ui-registry.md> | none
 **Reused**: <existing registered components used> | none
 **States**: <every state the prototype demonstrates, and that all are built> | <which are missing and why>
-**Breakpoints**: <the three, each composed as designed> | <what differs and why>
+**Breakpoints**: <each one in design.md, composed as designed> | <what differs and why>
 **Departures**: <anything built differently from the prototype, with the reason, usually accessibility> | none
 **Data**: <real source bound> | <placeholder, deferred by the plan, wired in task N>
 **Accessibility**: <checklist.md worked through, anything outstanding>

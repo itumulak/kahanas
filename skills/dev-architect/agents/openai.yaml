@@ -4,4 +4,4 @@
 interface:
   display_name: "Dev Architect"
   short_description: "Settle the stack, the design, and the build plan"
-  default_prompt: "Run the dev-architect skill: read its SKILL.md, then design how this product gets built and how it looks. Settle the stack layer by layer, write the local development containers, produce an interactive HTML prototype per surface in .konteksto/designs/, and fill the planning documents in .konteksto/."
+  default_prompt: "Run the dev-architect skill: read its SKILL.md, then design how this product gets built and how it looks. Settle the stack layer by layer, write the local development containers, produce interactive HTML prototypes covering every surface in .konteksto/designs/, and fill the planning documents in .konteksto/."

@@ -66,7 +66,16 @@ The whole chain, once per project then once per task:
 
 **Never reset the local database on your own initiative.** `tooling.md`'s Local Data Lifecycle section decides that, and someone else's work in progress may be sitting in it.
 
-**Never verify your own work.** Running the app and confirming it matches the flow belongs to `/dev-check verify`, deliberately, because the thing that wrote the code is the worst judge of whether it does what the product needed.
+**Never perform acceptance verification on your own work, and always run your implementation checks.** These are two different jobs and the words matter, because told loosely the first rule reads as permission to skip the second.
+
+| | Yours | `/dev-check verify`'s |
+| --- | --- | --- |
+| **Implementation checks** | build, type check, lint, the Definition of Done, rendering a page and looking at it | no |
+| **Acceptance verification** | no | running the app and judging it against the flow and the approved design |
+
+You confirm **what you built is sound**. It confirms **what was built is what the product needed**, and that claim belongs elsewhere because the thing that wrote the code is the worst judge of it.
+
+**Skipping your own checks is not deference, it is an unverified build.** A `DONE` stamp on something you never ran is exactly what the Definition of Done exists to prevent.
 
 ## Asks vs acts
 

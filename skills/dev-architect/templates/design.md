@@ -110,7 +110,9 @@ Reference points: <PRODUCTS_OR_SITES_WHOSE_FEEL_IS_CLOSE>
 
 *Purpose: the decisions a single mockup cannot show, settled once rather than per page.*
 
-- **Breakpoints:** <THE_BREAKPOINTS_THIS_PROJECT_USES>
+- **Breakpoints:** <THE_BREAKPOINTS_THIS_PROJECT_USES, NAMED_AND_WITH_THEIR_WIDTHS>
+
+  **This list is the authority, and everything downstream counts from it.** Prototypes compose one layout per breakpoint, `/dev-develop` builds them all, and `/dev-check verify` needs a screenshot of each. The default is three, meaning desktop, tablet, and phone. A project needing two, or four with a wide desktop, changes this line only, and every rule follows without being edited.
 - **Mobile approach:** <WHAT_CHANGES_AT_THE_SMALL_END: NAV_TABLES_DENSITY>
 - **Contrast target:** <THE_MINIMUM_THIS_PROJECT_HOLDS_TO>
 - <OTHER_ACCESSIBILITY_DIRECTION>

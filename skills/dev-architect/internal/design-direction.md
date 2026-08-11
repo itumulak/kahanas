@@ -66,12 +66,13 @@ The completeness audit, and the reason this step exists at all.
 For every flow, enumerate every surface it requires:
 
 - the screens it names
-- every state that step reaches: empty, loading, error, success
 - every failure branch, meaning what a person sees when the step does not work
 - every confirmation or destructive step
 - every recovery path
 
-Then write one row per surface into `design-registry.md`, with the flow and step in the Required by column, and a status of `MISSING` where nothing exists.
+Then write one row per surface into `design-registry.md`, with the flow and step in the Required by column, the states that surface needs in the Required states column, and a status of `MISSING` where nothing exists.
+
+**States do not get their own rows.** An orders page that is loading, empty, populated, or failing is one surface with four states, and listing them in the Required states column keeps completeness strong without turning a six entity product into eighty rows. Read the Surface, state, and interaction section of the registry template before the first row: the test is whether a designer would compose it from scratch, or whether it is the same composition holding different content.
 
 **A worked example, because this is the part most often done shallowly.** A product adding two factor authentication has a mockup for the dashboard and nothing else. The flow says: the user opens security settings, enables two factor, scans a code, enters a verification code, and saves recovery codes. That is five surfaces, and the failure branches add more: a wrong verification code, a lost authenticator, and turning it off again. Seven of eight surfaces were missing, and the one that existed was the one nobody needed designed.
 
@@ -81,7 +82,7 @@ Then write one row per surface into `design-registry.md`, with the flow and step
 
 Only the parts a prototype cannot invent per screen. Ask in one round of up to four questions, and **anchor every one to a real flow** rather than asking in the abstract.
 
-- **Breakpoints.** The exact widths for desktop, tablet, and phone. **Settle these before the first prototype**, since the prototype and the eventual code must use the same numbers or nothing built can match anything designed.
+- **Breakpoints.** The exact widths, and how many. Three is the default and the usual answer, meaning desktop, tablet, and phone, and a product genuinely needing two or four says so here so every later rule follows this list rather than a fixed number. **Settle them before the first prototype**, since the prototype and the eventual code must use the same values or nothing built can match anything designed.
 - **Density.** Roomy or compact. A flow about scanning many rows wants a different answer from one about reading.
 - **Dark mode.** Whether it exists at all. Deciding later means revisiting every colour.
 - **The states vocabulary.** What empty, loading, and error mean in this product, settled once so every surface handles them the same way.
@@ -99,15 +100,21 @@ On a project that already has a styling config, there is no `shared/tokens.css` 
 
 ## Step 5: Build the prototypes
 
-One file per surface, at `.konteksto/designs/<slug>.html`. **Never one large file for the whole application**, which becomes unreadable by the fifth screen and unreviewable by the tenth.
+**What matters is coverage, not file count: every surface in the registry maps to a prototype.** Usually one file per surface, at `.konteksto/designs/<slug>.html`. Several surfaces may share one file where they are genuinely steps of one thing, for example a checkout whose cart, shipping, payment, and confirmation read better as one interactive sequence, and one complicated surface may warrant several files. The registry holds the mapping either way.
 
-**Each file is self contained and needs no build step and no network.** Inline the CSS and JavaScript, or link only to `shared/`. A prototype that depends on a CDN is a blank page the day that CDN moves, and these files sit in version control for years.
+**Never one large file for the whole application**, which becomes unreadable by the fifth screen and unreviewable by the tenth.
+
+**Surfaces sharing a file are approved together and go stale together.** Where you want them to move through the lifecycle independently, give them separate files. The registry template's Surface, state, and interaction section has the rest of the distinction, including why a loading state is not its own surface.
+
+**Each file is independently renderable, with no application infrastructure at all.** No install, no build step, no dev server for the product, and no network. Inline the CSS and JavaScript, or link only to `shared/`. Two reasons, and the second is the one people forget: a prototype that depends on a CDN is a blank page the day that CDN moves, and these files sit in version control for years. And a prototype needing the app to run cannot be reviewed before the app exists, which is exactly when it needs reviewing.
+
+**Record the preview command in `tooling.md`**, under Previewing a prototype, along with the visual verification tool `/dev-check` will use. Settle both here rather than when the first verify blocks on having no way to take a screenshot.
 
 **Interactive means every interaction the flow actually names is demonstrated.** Buttons that do something, navigation that navigates, forms that validate, menus that open, modals that appear, destructive actions that confirm, and every state reachable rather than described. The point is that a still image cannot answer what happens when you click, and half the disagreements about a design are about exactly that.
 
 **Use fixture data and simulated behavior.** Local state, hardcoded rows, a timeout standing in for a request. **Never build a real backend, a real API call, a real database, or real authentication to make a prototype interactive.** That is production code, it is forbidden here, and it is `/dev-develop`'s work.
 
-**All three layouts, deliberately composed.** Desktop uses the space rather than centring a narrow column in it. Tablet reconsiders the grid and the navigation. The phone is a separate composition: what is prioritized, what the navigation becomes, what happens to a dense table, and whether something becomes a sheet or a drawer.
+**Every breakpoint in `design.md`, deliberately composed.** Three is the usual answer and the default, meaning desktop, tablet, and phone, and a product that genuinely needs two or four says so there instead of fighting this rule. Desktop uses the space rather than centring a narrow column in it. Tablet reconsiders the grid and the navigation. The phone is a separate composition: what is prioritized, what the navigation becomes, what happens to a dense table, and whether something becomes a sheet or a drawer.
 
 **Later surfaces inherit the approved system.** Once one surface is approved, its colours, type, spacing, components, and structure are the system, and every later prototype adopts them. A departure is a proposal to the user with its reason, never a quiet change.
 
@@ -117,9 +124,13 @@ One file per surface, at `.konteksto/designs/<slug>.html`. **Never one large fil
 
 Then present the surface and set its row to `READY FOR REVIEW`.
 
-**You may never write `APPROVED`.** Only a person does, by hand, and the registry says so from its own side too. Present the prototype, say what to look at, and ask. An approval you wrote yourself would make every rule that depends on approval depend on nothing.
+**You may never decide an `APPROVED`.** Present the prototype, say what to look at, and ask. An approval you originated would make every rule that depends on approval depend on nothing.
 
-Where the user asks for changes, revise and present again. Where they accept, they write the row.
+**You may record an approval they gave.** Once they say yes to that specific prototype, write the row in their name rather than sending them off to edit markdown, which is ceremony rather than safety. Three conditions, all required and all in the registry template: the yes is explicit and about this artifact, a vague yes does not count, and the name is theirs rather than one read from `git config`.
+
+**A vague yes gets a concrete question, not a recorded approval.** "Looks good" and "whatever you think" are the same signal `/dev-scope`'s interview refuses, and for the same reason: they usually mean somebody skimmed. Ask about the specific thing you want blessed.
+
+Where the user asks for changes, revise and present again.
 
 ## Step 7: Record it
 

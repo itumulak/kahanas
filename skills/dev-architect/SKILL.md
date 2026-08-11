@@ -12,7 +12,7 @@ Write everything this skill produces, files and messages alike, in plain simple 
 
 ## What this skill does
 
-Answers **how the product gets built**, given a `project-overview.md` that already says what it is. Settles every load bearing technical decision, and on a project with a frontend every design decision too, then records the result across nine documents in `.konteksto/` plus one interactive prototype per surface.
+Answers **how the product gets built**, given a `project-overview.md` that already says what it is. Settles every load bearing technical decision, and on a project with a frontend every design decision too, then records the result across the documents in `.konteksto/` plus interactive prototypes covering every surface.
 
 `/dev-scope` owns the what and never names a tool. This skill makes every tool call there is.
 
@@ -32,7 +32,9 @@ The whole chain, once per project then once per task:
 
 ## Artifact ownership
 
-Nine documents, all created and updated by this skill only, filled from the matching template in `templates/`, which lives in this skill's own folder. Plus, on a project with an `app/`, the prototypes in `.konteksto/designs/`.
+The documents below, all created and updated by this skill only, filled from the matching template in `templates/`, which lives in this skill's own folder. Plus, on a project with an `app/`, the prototypes in `.konteksto/designs/`.
+
+**No count appears anywhere in these instructions, deliberately.** A number written beside a list that later grows is wrong the first time somebody adds to it, and it had already gone wrong twice here before anybody noticed. The list is the list.
 
 **Stage 1, the foundation.** What the system is made of.
 
@@ -45,7 +47,7 @@ Nine documents, all created and updated by this skill only, filled from the matc
 | 5 | `code-standards.md` | the Stack table, and where `design.md` says the tokens live |
 | 6 | `library-docs.md` | the approved dependency list in `code-standards.md` |
 
-**Stage 2, the plan.** Turns the foundation into an ordered build. Starts only once every Stage 1 document is approved.
+**Stage 2, the plan.** Turns the foundation into an ordered build. Starts only once every **applicable** Stage 1 artifact is approved, meaning the design ones do not hold up a backend that never had them.
 
 | Order | Document | Depends on |
 | --- | --- | --- |
@@ -68,7 +70,7 @@ Never touch `project-overview.md`. It is `/dev-scope`'s file. If the design work
 
 **`.konteksto/designs/` is yours and nobody else's.** Every prototype in it, and the `sources/` folder holding what the user supplied. `/dev-develop` builds from a prototype and never edits one. `/dev-check` compares against one and never edits one. A design that turns out to be wrong comes back here.
 
-**One value in `design-registry.md` is not yours: `APPROVED`.** A person writes it by hand. You may write every other status, including moving an approved design to `CHANGE REQUIRED` when something invalidated it, because noticing that is an observation and deciding it is fixed is not. Writing your own approval would empty the word and every rule downstream that depends on it.
+**One value in `design-registry.md` is not yours to decide: `APPROVED`.** You may **record** an approval a person actually gave, on the strict conditions the registry template sets out, and you may never originate one. An explicit yes to that specific artifact counts; "looks good" does not, and the name you write is theirs rather than whatever `git config` holds. You write every other status, including moving an approved design to `CHANGE REQUIRED` when something invalidated it, because noticing that is an observation and deciding it is fixed is not.
 
 **Four of these are living files, created here and updated elsewhere.** `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `ui-registry.md` are written once by this skill, in their starting state, and every update after that belongs to another skill: a task's Status and a new component section to `/dev-develop`, a task's Verify Check to `/dev-check verify`, a decision row to `/dev-develop` or `/dev-debug`, and a note row to whichever of `/dev-develop`, `/dev-check`, or `/dev-debug` ran the thing. Do not stamp a task, register a component, log a decision, or write a note row for something that does not exist yet.
 
@@ -80,9 +82,9 @@ Do NOT write application code, scaffold a project, or install a package the prod
 
 Four narrow exceptions. Agent tooling found in step 6, meaning skills and MCP servers, may be set up during this skill, but only per the consent rules in that step, and only for a tool the user approved by name. `docker-compose.yml` plus `.env.example` are written in step 5, because they are the structure the build sits in rather than the product itself. On a team project, `.gitignore` gains a line for `.konteksto/role.local.json`, because that file must never be committed and this is the only skill that creates the need for it.
 
-**The fourth is design prototypes**, and it is the widest, so its edges are stated exactly. You may write standalone HTML, CSS, and small amounts of JavaScript **inside `.konteksto/designs/` only**, as design artifacts. They are not application code, nothing in `app/` may import them, and no line of one is copied into the product by you.
+**The fourth is design prototypes**, and it is the widest, so its edges are stated exactly. You may write standalone HTML, CSS, and JavaScript **inside `.konteksto/designs/` only**, as design artifacts. They are not application code, nothing in `app/` may import them, and no line of one is copied into the product by you.
 
-Inside that folder you still may not write production anything: no framework components, no API calls, no persistence, no authentication, no business logic. A prototype is made interactive with fixture data, local state, and simulated responses. **The moment making a prototype behave would require building a real service, stop**, because that is `/dev-develop`'s work and the prototype does not need it.
+**The limit is responsibility, not size.** Inside that folder you may not write production anything: no framework components, no API calls, no persistence, no authentication, no business logic. A prototype is made interactive with fixture data, local state, and simulated responses. A genuinely interactive surface may need a few hundred lines of prototype JavaScript, and that is fine. **The moment making it behave would require building a real service, stop**, because that is `/dev-develop`'s work and the prototype does not need it.
 
 Do NOT fill a document with a guess. Every value is read from the existing codebase, stated by the user, found at a source you actually fetched, or picked by the user from options you presented.
 
@@ -113,7 +115,7 @@ The full mechanics, including the free text slot, generating options fresh rathe
 - **Read what `/dev-scope` handed you**, if anything: whether a codebase exists, the stack it showed, and any tool or constraint the user named during scoping. Do not survey the same ground again.
 - **Work out whether the code is actually somebody else's.** A manifest and a source tree are not proof of an existing codebase, because `/dev-develop` scaffolds this project itself as the first task in the plan. Code whose stack matches what `.konteksto/architecture.md` already specifies is **our own scaffold**, and it is not brownfield. Only code with no matching documents, or code that diverges from them, is a real existing codebase.
 - **If a real codebase exists and you were not handed a survey**, read it now: the directory tree, every package manifest, the lint and build config, the entry points. The stack that is already there is a decision already made. Record it, do not re litigate it.
-- **Check `.konteksto/` for existing documents.** Report which of the nine are present, plus any prototypes in `designs/` and what `design-registry.md` says about them. Never overwrite one silently; ask whether to update in place or start over. **An approved prototype is never overwritten at all**, it goes back through the lifecycle.
+- **Check `.konteksto/` for existing documents.** Report which of the expected artifacts are present, plus any prototypes in `designs/` and what `design-registry.md` says about them. Never overwrite one silently; ask whether to update in place or start over. **An approved prototype is never overwritten at all**, it goes back through the lifecycle.
 
 ### Step 2: Run the design conversation
 
@@ -178,7 +180,7 @@ Four rules worth seeing from here, because they are the ones that change what th
 
 **A missing design blocks its own task and nothing else.** Write the whole plan regardless. `/dev-develop` stops on the task whose surface has no approved design, exactly like an unratified assumption keeps one task off `DONE` without holding up the project.
 
-**You may never write `APPROVED`.** Present, set the row to `READY FOR REVIEW`, and ask.
+**You may never decide an `APPROVED`.** Present, set the row to `READY FOR REVIEW`, and ask. Once they say yes to that specific prototype, you may record it in their name.
 
 ### Step 4: Audit an existing codebase
 
@@ -294,7 +296,7 @@ For each:
 
 ### Step 8: Write the Stage 2 documents
 
-Only after all four Stage 1 documents are approved. Same per file process, in order: `build-plan.md`, `progress-tracker.md`, `decision-log.md`, `note-registry.md`, `ui-registry.md`.
+Only after every **applicable** Stage 1 artifact is approved. Applicable matters: a backend with no `app/` never had `design.md`, `design-registry.md`, or any prototype, and waiting on them would wait forever. Same per file process, in order: `build-plan.md`, `progress-tracker.md`, `decision-log.md`, `note-registry.md`, `ui-registry.md`.
 
 Extra rules:
 

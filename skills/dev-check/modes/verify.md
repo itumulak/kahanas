@@ -85,11 +85,13 @@ You now hold four lists: the flow steps to confirm, the surfaces to confirm exis
 - the hierarchy reading the same way, meaning what draws the eye first
 - every state the prototype demonstrates, reachable in the built page
 - every interaction it demonstrates, behaving the same way
-- each of the three breakpoints in `design.md`, composed as designed rather than merely reflowed
+- every breakpoint `design.md` defines, composed as designed rather than merely reflowed
 
 **Exact pixel equality is not the bar and you must not report against it.** A component library injects its own spacing and fonts rasterize differently on every machine, so a pixel comparison fails on a correct build and tells you nothing. The list above is what a person could actually check, which is why it is the list.
 
 **Accessibility outranks reproduction.** Where the built page departs from the prototype to fix a contrast or touch target problem, that is a pass with a note, never a fail. `/dev-develop` was told to report those departures, and a departure it reported and you confirmed is the system working.
+
+**Route every confirmed departure to `/dev-architect`, because it makes the prototype stale.** The implementation is right and the approved design is now wrong, so that row has to reach `CHANGE REQUIRED` and the prototype has to be fixed. Neither you nor `/dev-develop` may write that, which is exactly why saying it in your report is the only thing that moves it. A departure nobody routed leaves an inaccessible pattern sitting under the word `APPROVED`, where the next surface copies it.
 
 No task and no matching flow, for example a small fix outside the plan? Verify against observed behavior alone, and say in the report that there was no contract to check against.
 
@@ -162,6 +164,10 @@ Roll the observations into a verdict per flow step and per promised surface. Ass
 **Off design is a third kind, and it goes to a different place.** Missing and not live go to `/dev-develop`. Off design goes to `/dev-develop` when the build diverged from an approved design, and to `/dev-architect` when the prototype itself turns out to be wrong or silent on what was needed. Say which you think it is, and why.
 
 **A design conformance check needs the same evidence as everything else.** A screenshot at that breakpoint, or the item is `blocked`, not met. Reading the code and judging it to match is exactly what this mode exists to prevent, and it is easier to slip into on visual work than on any other kind.
+
+**Use the mechanism `tooling.md` records**, in its Visual verification section: the tool, the browser, and the exact command. That section exists because this skill has no browser of its own and the environment may not have one either.
+
+**Where it is missing or says the project has none, report every conformance item as `blocked` and say why in one line.** Do not improvise a tool, and do not fall back to reading the markup and calling it a match. A block that keeps appearing is a prompt to install something, and it is honest. A silent downgrade turns the design contract into decoration while still reporting a pass.
 
 Conformance is a PASS only when every flow step is met and every promised surface exists. One missing or not live item makes the whole verdict a FAIL.
 
