@@ -92,16 +92,9 @@ Record the answers in `design.md`. **Every answer must be consistent with a flow
 
 ### Where the tokens live before there is any code
 
-**Every prototype reads `.konteksto/designs/shared/tokens.css`, on every project**, and never hardcodes a value. That holds whether or not real code exists, because a prototype has to render on its own and a production config is often a `tailwind.config.js` or a `theme.ts` that a plain HTML file cannot read at all.
+**`design.md`'s Where the tokens live section defines this.** Read it and follow it. In short: every prototype reads `.konteksto/designs/shared/tokens.css` on every project, and which file is authoritative depends on whether the production config exists yet.
 
-**What changes between projects is which file is authoritative, not which file the prototypes read.**
-
-- **Greenfield.** Nothing else exists, so `shared/tokens.css` is where you write the starting values, and it is the authority until real code appears.
-- **An existing styling config.** That config is the authority. Generate `shared/tokens.css` from it, mark it derived, and change no value in it.
-
-**Fill in `design.md`'s Production source line now, even on a greenfield project**, using the path the folder structure in `architecture.md` implies, marked as not created yet. `/dev-develop` writes that file on the first UI task and the pointer is already correct, so nothing needs repointing afterwards. **Do not leave it to be updated later**, because this skill may not run again at that moment and a pointer waiting on a future session is a pointer that stays wrong.
-
-**The mirror is derived, never authored, once production exists.** A value is changed in the production source and the mirror is regenerated, the way a lockfile is regenerated rather than hand corrected. Both files existing is normal and expected; two files deciding is what must never happen.
+What it needs from you at this step: write the starting values into the mirror on a greenfield project, generate the mirror from the real config on a project that has one, and **fill in the Production source line either way**, so nothing needs repointing later.
 
 ## Step 5: Build the prototypes
 
@@ -131,9 +124,7 @@ Then present the surface and set its row to `READY FOR REVIEW`.
 
 **You may never decide an `APPROVED`.** Present the prototype, say what to look at, and ask. An approval you originated would make every rule that depends on approval depend on nothing.
 
-**You may record an approval they gave.** Once they say yes to that specific prototype, write the row in their name rather than sending them off to edit markdown, which is ceremony rather than safety. Three conditions, all required and all in the registry template: the yes is explicit and about this artifact, a vague yes does not count, and the name is theirs rather than one read from `git config`.
-
-**A vague yes gets a concrete question, not a recorded approval.** "Looks good" and "whatever you think" are the same signal `/dev-scope`'s interview refuses, and for the same reason: they usually mean somebody skimmed. Ask about the specific thing you want blessed.
+**You may record an approval they gave**, in their name, rather than sending them off to edit markdown. The registry template's Status values section sets the conditions a yes has to meet first. Follow it exactly, and where the answer is vague, ask a concrete question instead of banking it.
 
 Where the user asks for changes, revise and present again.
 
