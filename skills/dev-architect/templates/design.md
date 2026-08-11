@@ -54,9 +54,11 @@ Reference points: <PRODUCTS_OR_SITES_WHOSE_FEEL_IS_CLOSE>
 
 ## Where the tokens live
 
-*Purpose: a pointer, never a copy. Values live in one place so they cannot drift.*
+*Purpose: names the one file that decides each token value, and the one file the prototypes read. They are usually not the same file, and saying which is authoritative is what stops them drifting.*
 
-| Kind | Where it is defined |
+**Production source**, the authority once it exists: <PATH_TO_THE_STYLING_CONFIG>
+
+| Kind | Defined in |
 | --- | --- |
 | Colour | <FILE_PATH> |
 | Typography | <FILE_PATH> |
@@ -67,9 +69,24 @@ Reference points: <PRODUCTS_OR_SITES_WHOSE_FEEL_IS_CLOSE>
 
 **Font:** <FONT_NAME_AND_HOW_IT_IS_LOADED>
 
-**Before any app code exists**, the table above points at `.konteksto/designs/shared/tokens.css`, which the prototypes use so no prototype hardcodes a value. **That is a handover, not a second home.** `/dev-develop` derives the project's real styling config from it on the first UI task, then this table is updated to point at the real one and the prototype file stops being the source.
+**Prototype mirror:** `.konteksto/designs/shared/tokens.css`
 
-**Both entries must never be live at once.** Two copies of a colour drift, and the copy in the older file is always the one that goes stale. On a project that already has a styling config there is no `shared/tokens.css` at all, and the prototypes read the real one.
+### Which one is authoritative
+
+**Exactly one file decides a value, and the other copies it.** Which one depends only on whether the production config exists yet.
+
+| When | The authority | The mirror |
+| --- | --- | --- |
+| No app code yet | `shared/tokens.css`, since nothing else exists | none |
+| Production config exists | the production source above | `shared/tokens.css`, **derived from it, never authored** |
+
+**Write the production path in from the start, even before the file exists**, taking it from the folder structure in `architecture.md` and marking it not created yet. That way nothing has to be repointed later: the path was always right, and the file simply becomes real when `/dev-develop` writes it on the first UI task. **A pointer that has to be updated later is a pointer nobody updates**, because the skill that owns this file may not run again at that moment.
+
+**The mirror exists on every project, including one with a real config already.** Prototypes must render on their own with no application infrastructure, and a production config is often a `tailwind.config.js`, a `theme.ts`, or something else a plain HTML file cannot read at all. Pointing a prototype at it would break the prototype for no gain.
+
+**The mirror is a derived artifact, and this is what stops it becoming a second source of truth.** Nobody edits a value in it to change the product. When the production source changes, the mirror is regenerated from it, exactly as a lockfile is regenerated rather than hand corrected. Where the two disagree, the production source is right and the mirror is stale, always, with no case where it goes the other way.
+
+**Both files existing is normal, and only one of them ever decides anything.**
 
 ---
 

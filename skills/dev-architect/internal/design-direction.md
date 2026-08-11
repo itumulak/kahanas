@@ -92,11 +92,16 @@ Record the answers in `design.md`. **Every answer must be consistent with a flow
 
 ### Where the tokens live before there is any code
 
-On a greenfield project there is no styling config yet, so `.konteksto/designs/shared/tokens.css` is the token source, and every prototype uses it rather than hardcoding a value.
+**Every prototype reads `.konteksto/designs/shared/tokens.css`, on every project**, and never hardcodes a value. That holds whether or not real code exists, because a prototype has to render on its own and a production config is often a `tailwind.config.js` or a `theme.ts` that a plain HTML file cannot read at all.
 
-**That is a handover, not a second home.** `/dev-develop` derives the project's real styling config from it on the first UI task, and from that moment `design.md` points at the real one and the prototype file is history. Say this plainly in `design.md`'s Where the tokens live table, because two live copies of a colour drift and the copy in the older file is always the one that goes stale.
+**What changes between projects is which file is authoritative, not which file the prototypes read.**
 
-On a project that already has a styling config, there is no `shared/tokens.css` at all. The prototypes read the real one.
+- **Greenfield.** Nothing else exists, so `shared/tokens.css` is where you write the starting values, and it is the authority until real code appears.
+- **An existing styling config.** That config is the authority. Generate `shared/tokens.css` from it, mark it derived, and change no value in it.
+
+**Fill in `design.md`'s Production source line now, even on a greenfield project**, using the path the folder structure in `architecture.md` implies, marked as not created yet. `/dev-develop` writes that file on the first UI task and the pointer is already correct, so nothing needs repointing afterwards. **Do not leave it to be updated later**, because this skill may not run again at that moment and a pointer waiting on a future session is a pointer that stays wrong.
+
+**The mirror is derived, never authored, once production exists.** A value is changed in the production source and the mirror is regenerated, the way a lockfile is regenerated rather than hand corrected. Both files existing is normal and expected; two files deciding is what must never happen.
 
 ## Step 5: Build the prototypes
 
@@ -106,7 +111,7 @@ On a project that already has a styling config, there is no `shared/tokens.css` 
 
 **Surfaces sharing a file are approved together and go stale together.** Where you want them to move through the lifecycle independently, give them separate files. The registry template's Surface, state, and interaction section has the rest of the distinction, including why a loading state is not its own surface.
 
-**Each file is independently renderable, with no application infrastructure at all.** No install, no build step, no dev server for the product, and no network. Inline the CSS and JavaScript, or link only to `shared/`. Two reasons, and the second is the one people forget: a prototype that depends on a CDN is a blank page the day that CDN moves, and these files sit in version control for years. And a prototype needing the app to run cannot be reviewed before the app exists, which is exactly when it needs reviewing.
+**Each file is independently renderable, with no application infrastructure at all.** No install, no build step, no dev server for the product, and no network. Inline the CSS and JavaScript, or link only to `shared/`. **Never link a prototype at anything under `app/`**, including the production styling config, since that reintroduces the dependency this rule exists to prevent and often points at a file a browser cannot read anyway. Two reasons, and the second is the one people forget: a prototype that depends on a CDN is a blank page the day that CDN moves, and these files sit in version control for years. And a prototype needing the app to run cannot be reviewed before the app exists, which is exactly when it needs reviewing.
 
 **Record the preview command in `tooling.md`**, under Previewing a prototype, along with the visual verification tool `/dev-check` will use. Settle both here rather than when the first verify blocks on having no way to take a screenshot.
 

@@ -63,7 +63,11 @@ Five documents, and they decide different things:
 
 **The token values are in neither.** `design.md` points at the CSS or styling config that holds them. Read them there, and never copy a value into a component.
 
-**On the first UI task of a greenfield project**, that pointer may still target `.konteksto/designs/shared/tokens.css`. Derive the project's real styling config from it as part of this task, then say so in your report so `/dev-architect` repoints `design.md`. **Do not leave both live**, since two copies of a colour drift and the older one always goes stale.
+**On the first UI task of a greenfield project**, `design.md` names a Production source that does not exist yet. **Create it at exactly that path**, with the values from `.konteksto/designs/shared/tokens.css`, and say so in your report. The pointer was written to be correct in advance, so it needs no update and you must not go and change it.
+
+**From that moment the production config is authoritative and the prototype mirror is derived.** Both files keep existing, which is fine and expected: the prototypes need a stylesheet they can actually read. What must never happen is a value being changed in the mirror. Change it in the production source, and `/dev-architect` regenerates the mirror.
+
+**Where you find the two disagreeing, the production source is right.** Report the drift and do not edit the mirror yourself, since everything in `.konteksto/designs/` belongs to `/dev-architect`.
 
 **Read `ui-registry.md` before building any component.** Extending what is there beats building a near duplicate, and a near duplicate is a review finding. Register anything new the moment you build it.
 

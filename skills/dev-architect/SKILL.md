@@ -279,12 +279,12 @@ This exists so a later run, here or in `/dev-sync`, can tell what a tool wrote f
 
 Skip `design.md` when there is no `app/`. **Never copy token values into `design.md` itself**, which only ever points at where they live, because two copies of a colour drift and the copy in the document is always the one that goes stale.
 
-Where the values go depends on whether the project has code yet:
+`design.md` names two files and says which one decides. The prototypes always read `.konteksto/designs/shared/tokens.css`, on every project, because a prototype must render on its own and a production config is often a `tailwind.config.js` or a `theme.ts` no plain HTML file can consume.
 
-- **An existing project with a styling config.** Point `design.md` at it. Change nothing, since those values are decisions already made.
-- **A greenfield project.** Write the starting values to `.konteksto/designs/shared/tokens.css` and point `design.md` there. `/dev-develop` moves them into the real styling config on the first UI task, and `design.md` is repointed then.
+- **An existing project with a styling config.** That config is the authority. Generate the mirror from it and change no value in it.
+- **A greenfield project.** Write the starting values into the mirror, which is the authority until real code exists. **Fill in the Production source line anyway**, using the path `architecture.md`'s folder structure implies, marked as not created yet, so nothing has to be repointed once `/dev-develop` creates it. A pointer left to be fixed later is one that stays wrong, since this skill may not run again at that moment.
 
-**You may not write the project's styling config yourself**, on a greenfield project or any other. That is application code and the guardrail above covers it with no exception. `shared/tokens.css` is inside `.konteksto/designs/`, which is why it is allowed and why it is temporary.
+**You may not write the project's styling config yourself**, greenfield or otherwise. That is application code and the guardrail above covers it with no exception. `shared/tokens.css` is inside `.konteksto/designs/`, which is the only reason it is allowed.
 
 **Write the round cap into `tooling.md`'s Doubt pass rounds section**, using the answer step 6a got, or `3` where no doubt pass ran and nothing was asked. That section is what stops a later run asking the same question again.
 
