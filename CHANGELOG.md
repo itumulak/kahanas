@@ -4,7 +4,9 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
-## [Unreleased]
+## [0.3.0] — 2026-08-11
+
+Design moves upstream. `/dev-architect` now settles how the product looks, not only how it is built, and `/dev-develop` implements what a person approved rather than composing a surface itself. Three new documents, and one change of role.
 
 ### Added
 
