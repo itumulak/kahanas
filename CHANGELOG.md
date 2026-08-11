@@ -4,6 +4,12 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
+## [0.4.1] — 2026-08-11
+
+### Added
+
+- **`UPGRADING.md`**, for moving a project already using these skills onto a newer version. The core of it is that the skills folder is disposable and `.konteksto/` never is, plus three rules that keep a migration honest: never backfill a new file, never stamp old work with a model and minute nobody knows, and let new sections arrive when `/dev-architect` next runs. Covers the two migrations that need real care, converting the tracker to a table and adopting the design registry on a frontend that already exists.
+
 ## [0.4.0] — 2026-08-11
 
 Maintenance. Nothing a project using these skills will run differently, and the reason it exists is that every stale instruction found while reviewing 0.3.0 came from one cause.
@@ -29,7 +35,6 @@ Design moves upstream. `/dev-architect` now settles how the product looks, not o
 - **`glossary.md`, a twelfth document.** The project's own word for each thing in its domain, plus the words it rejects for that thing. `/dev-scope` writes it from the product conversation, `/dev-architect` adds what the design revealed, and everything else reads it and names what it builds from it. The Avoid line is the working part: a definition alone stops nobody, since the person about to write `client` is not wondering what `customer` means.
 - **A Definition of Done section in `code-standards.md`**, a short table of checks with the exact command for each, written once by `/dev-architect`. The bar for stamping a task `DONE` was scattered across two skills as prose before this, which meant every session set it again from memory. It deliberately excludes runtime proof, tests, and human review, since those are other skills' claims and folding them in would have made `DONE` mean four things.
 - **A doubt pass in `/dev-architect`**, in `internal/doubt-pass.md`, for the few decisions a later skill cannot cheaply reverse. It sends the decision and what it must satisfy to a fresh reviewer on another model, with its own reasoning stripped out, then sorts the findings. **The user sets how many rounds it may run, 1 to 3, asked once and recorded in `tooling.md` so no later session asks again**, since every round costs a subagent on another model. The cap is a ceiling rather than a quota: a pass stops as soon as findings go trivial, which is usually after one. Separate from the cross check, which reads a finished document and is always the user's call.
-
 - **A Visual verification section in `tooling.md`**, naming the browser tool, the command, and where the images land, plus a preview command for the prototypes. `/dev-check` has no browser of its own, so without this it would report every UI conformance item as blocked forever. A project with no such tool says so in one line, and verify then blocks honestly instead of quietly reading markup and calling it a match.
 - **A Required states column in `design-registry.md`**, with the distinction between a surface, a state, and an interaction. Loading, empty, and error are states of one surface rather than three more surfaces, without which a six entity product produces eighty rows nobody reads.
 - **The invariant behind most of the ownership rules**, stated once near the top of `CLAUDE.md` and `README.md`: **no downstream skill may create upstream intent**. Plus the test a new artifact has to pass before the set grows again.

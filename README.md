@@ -20,6 +20,8 @@ Commit the installed folder to share the workflow with your team.
 
 Every skill answers to `/dev-scope`, `/dev-architect`, and so on.
 
+**Already on an older version?** Read [UPGRADING.md](UPGRADING.md). The short version: delete and reinstall the skills, and never delete `.konteksto/`, which holds the reasoning the whole workflow exists to keep.
+
 **Why the prefix.** The names these skills want, `scope`, `check`, `test`, are ordinary words. Installed bare, any personal skill of the same name in `~/.claude/skills` shadows them, and the wrong one runs with no error to say which. `dev-scope` collides with nothing.
 
 ## The skills
