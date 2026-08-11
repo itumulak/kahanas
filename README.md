@@ -113,9 +113,13 @@ Plus `docker-compose.yml` and `.env.example` at the root, and a project laid out
 
 **Generated is not applied.** A migration that exists is not a migration that ran, and no type check will tell you the difference.
 
+**The bar for done is set once, not per task.** `code-standards.md` carries a Definition of Done: a short table of checks with the exact command for each, written at design time and read by every skill that stamps a task. It is deliberately separate from the acceptance criteria, which change with every task, because a bar renegotiated for the task in front of you always moves in the same direction.
+
+**A decision that is expensive to undo gets doubted before it stands.** `/dev-architect` sends the few load bearing ones to a fresh reviewer on another model, with an adversarial brief and without its own reasoning attached, since a reviewer handed your argument reviews the argument and finds it coherent. Three rounds at most, then it goes to the person.
+
 **A note without a source is a guess in a trusted place.** Every section of `library-docs.md` says where it came from: a documentation URL and the date it was read, or a plain admission that nobody checked. Both are useful. What is not useful is a note that could be either.
 
-Two of these were sharpened by reading [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), MIT licensed, which is worth a look on its own: the interviewing technique in `/dev-scope` and the sourcing rule above.
+Four of these were sharpened by reading [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), MIT licensed, which is worth a look on its own: the interviewing technique in `/dev-scope`, the sourcing rule, the definition of done, and the doubt pass.
 
 ## Requirements
 

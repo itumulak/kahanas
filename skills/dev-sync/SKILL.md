@@ -118,6 +118,12 @@ For each task in `progress-tracker.md` whose Status is not `DONE`, ask whether t
 
 **Be conservative.** Stamp on clearly present evidence, and when unsure, leave it. A finished task still reading `PENDING` is a small annoyance. An unfinished one stamped `DONE` sends the next session past work that was never done.
 
+**You cannot confirm the Definition of Done, so say so rather than implying you did.** That table in `code-standards.md` is the bar `/dev-develop` clears before stamping, and clearing it means running its commands. You run nothing, for the same reason you write no note row: a check you did not run and an observation you did not make are the two things this skill must never fabricate.
+
+So the stamp you write here is a narrower claim than the one `/dev-develop` writes, and your report says which tasks carry it: the code the task promised is plainly in the repo, and nobody has confirmed it meets the project's bar. Point those at `/dev-develop` to finish the check, alongside `/dev-check verify` for the ones with an empty Verify Check.
+
+**Do not run the commands yourself to close the gap.** Running a build is not reconciliation, it changes the working tree, and it turns a maintenance pass into a build session nobody asked for.
+
 **A document you cannot parse does not get edited.** A tracker with broken headings or a hand edit that broke its shape is reported as needing a person, never repaired by guessing. Never act on a misread.
 
 ### Step 3: Reconcile

@@ -218,6 +218,16 @@ The headline, so it is visible from here: **asking is mandatory, searching is no
 
 Skip the file entirely when the stack walk chose no new tool.
 
+### Step 6a: Doubt the decisions that are expensive to undo
+
+Run this once the design conversation's completeness gate has passed and before a single document is written, on the few decisions a later skill cannot cheaply reverse.
+
+**Read `internal/doubt-pass.md` and follow it.** It holds the trigger list, the brief for the doubter, how to sort what comes back, and the cap.
+
+The two rules worth seeing from here. **Send the doubter the decision and what it must satisfy, and none of your reasoning**, because a reviewer given your argument reviews your argument and finds it coherent, which it is. And **it writes nothing anywhere**, including `decision-log.md`, which is not this skill's file to write rows in.
+
+Skip the file when nothing this pass settled meets the trigger list. That is a normal outcome on a small project, and doubting an easily reversed choice costs an afternoon and buys nothing.
+
 ### Step 7: Write the Stage 1 documents
 
 **Read `internal/standards.md` before writing `code-standards.md`.** It holds the convention questions, the four architecture style presets in `patterns/`, and the rule that an existing codebase gets its conventions derived from the code rather than recited from memory.
@@ -235,6 +245,8 @@ This exists so a later run, here or in `/dev-sync`, can tell what a tool wrote f
 **The stamp records provenance, not permission.** It never licenses overwriting a line someone edited. A stamped file still gets the same care as an unstamped one.
 
 Skip `design.md` when there is no `app/`. Write the token values into the project's own styling config and **point at them** from `design.md`, never copy them into it. Two copies of a colour drift, and the copy in the document is always the one that goes stale.
+
+**Fill the Definition of Done in `code-standards.md` with this project's real commands**, not a generic list. It is the standing bar every later skill checks before stamping a task `DONE`, so a row reading "tests pass" on a project whose test command you never confirmed is worse than an empty table: it will be ticked from memory. Keep the section and its Not on this list subsection as the template has them, since the exclusions are what stop it growing into a gate that swallows `/dev-check` and `/dev-test`.
 
 **`library-docs.md` is sourced, not recalled.** Read the version out of the project's manifest, fetch the docs page for that version, and put its URL and the date you read it on the section's Source line. Where you keep a note you could not verify, write the unverified shape the template gives rather than softening the note itself, since a hedge inside prose gets skimmed and a Source line does not. Keep the Where a note comes from section exactly as the template has it: `/dev-sync` and `/dev-develop` both read it, and a sourcing rule only holds while it is written down.
 
@@ -308,7 +320,7 @@ Then name the next step: a separate request to build the first task in `build-pl
 
 ## Reference files
 
-Both live in this skill's folder, read only when you reach them.
+All of these live in this skill's folder, read only when you reach them.
 
 - `internal/design-direction.md`: the design source question, the starter template recommendations, and the behavior follow ups. Read at step 3, frontend only.
 - `internal/brownfield-audit.md`: the structure confirmation, the existing component decision, and the dependency audit. Read at step 4, existing codebases only.
@@ -319,3 +331,4 @@ Both live in this skill's folder, read only when you reach them.
 - `internal/judgment.md`: the posture, the known failure patterns, the challenge the premise step, and the rules that hold across every decision. **Read in full before step 2**, alongside the conversation protocol.
 - `internal/design-conversation.md`: the interview protocol. The already built check, framing, the dimension checklist, question mechanics, the six stages, and the completeness gate. **Read in full before step 2**, and it is a hard gate, not a suggestion.
 - `internal/tool-discovery.md`: the skill and MCP consent gate, the two registries, the candidate checks, and how each kind is set up. Read at step 6, and only when the stack walk chose a new tool.
+- `internal/doubt-pass.md`: the trigger list, the adversarial brief, how to sort the findings, and the three round cap. Read at step 6a, and only for a decision that is expensive to undo.
