@@ -29,7 +29,7 @@ Read, in this order, and no more than this:
 5. **`project-overview.md`**, the Core User Flow steps for any page this task serves. That is the contract `/dev-check verify` will hold the result against.
 6. **`library-docs.md`**, only for a library this task actually uses. Skip the rest.
 7. **`tooling.md`**, the Local Data Lifecycle section, whenever this task touches the database. It says whether local data resets between tasks or persists, and the exact reset command.
-8. **`design.md`** and **`ui-registry.md`**, only on the UI track. `design.md` is the art direction, and it is not optional reading before building a surface.
+8. **`design-registry.md`**, the **approved prototype** it names, **`design.md`**, and **`ui-registry.md`**, only on the UI track. Read the registry row first, because a surface that is not `APPROVED` stops the task before any of the rest matters. None of these is optional reading before building a surface.
 
 **Never reset the local database unless Local Data Lifecycle says to.** Someone else's work in progress may be sitting in it, and there is no undo. Where that section says data persists, work with what is there.
 
@@ -37,7 +37,9 @@ Read, in this order, and no more than this:
 
 **Completeness check, before any code, not partway through.**
 
-Confirm the design actually covers this task: on the logical track a data model, an interface surface, and the security expectation; on the UI track the states the surface needs. Then run the **input coverage test** from `SKILL.md` again against the specific values this task produces.
+Confirm the design actually covers this task: on the logical track a data model, an interface surface, and the security expectation; on the UI track **an approved prototype for every surface it touches**, covering the states, the interactions, and all three breakpoints. Then run the **input coverage test** from `SKILL.md` again against the specific values this task produces.
+
+A surface with no approved prototype, or a prototype missing something this task needs, is a visual gap. It stops this task and only this task, and `ui-guide.md` holds the rule.
 
 A gap here is not a thing to fill in as you go. Go back to the gate.
 

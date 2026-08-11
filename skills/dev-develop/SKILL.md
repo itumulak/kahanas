@@ -1,7 +1,7 @@
 ---
 name: dev-develop
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion
-description: "Run /dev-develop to build the next task from .konteksto/build-plan.md, or a named one. Reads the architecture and code standards, builds, then stamps the task DONE in the progress tracker. If a load bearing decision is owed and no document records it, it stops and routes you to /dev-architect instead of inventing one."
+description: "Run /dev-develop to build the next task from .konteksto/build-plan.md, or a named one. Reads the architecture and code standards, implements UI from the approved design prototype rather than composing one, builds, then stamps the task DONE in the progress tracker. If a load bearing decision is owed and no document records it, or a surface has no approved design, it stops and routes you to /dev-architect instead of inventing one."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -127,7 +127,7 @@ A decision is also owed when you would otherwise invent:
 
 - A library, provider, or integration `code-standards.md` does not list.
 - A data model or a column `architecture.md`'s schema does not have.
-- A whole page's composition, when `project-overview.md` gives the flow and `design.md` does not settle the pattern.
+- A whole page's composition, or any part of one, that no approved prototype settles. On a project with an `app/`, composition is `/dev-architect`'s decision and arrives as an approved file in `.konteksto/designs/`.
 - A behavior a flow step constrains but no document defines.
 
 **What counts as a local detail instead.** Only a choice among options the documents already permit: a variable name, a loop shape, which existing helper to call. **The moment a choice fixes where a value comes from, or changes a behavior the flows constrain, it is load bearing however small it looks.**
@@ -142,7 +142,7 @@ When unsure, treat it as owed. Building an unnoticed decision is the expensive f
 4. `glossary.md`, for the name of anything this task creates.
 5. `library-docs.md`, only for a library this task uses.
 6. `tooling.md`, the Local Data Lifecycle section, when the task touches the database.
-7. `design.md` and `ui-registry.md`, only when the task has UI bullets.
+7. `design-registry.md`, `design.md`, the approved prototype, and `ui-registry.md`, only when the task has UI bullets. Check the registry row first: a surface that is not `APPROVED` is a visual gap, and the gate below handles it.
 8. `decision-log.md`, for anything an earlier task already settled.
 
 **Nothing owed.** Read `flow/build.md` and follow it.
@@ -160,6 +160,10 @@ On **Design it first**, end with:
 > /dev-architect
 > ```
 > Settle this first: <the specific choice>. Then run `/dev-develop` again and I will build to it.
+
+**The third option is not available for a visual gap.** When what is owed is how a surface looks or behaves, meaning no approved prototype, a state or interaction the prototype does not cover, or a change that made an approved one wrong, only options 1 and 2 exist. The task goes `BLOCKED` with the surface named in its Note.
+
+The reason is that a recorded assumption works for a logic decision and does not work for a visual one. A stated assumption about a retry policy is visible, reviewable, and obviously provisional. An invented layout looks exactly like a designed one, so nobody reviews it, nothing records it, and the next surface invents a different answer to the same question. `ui-guide.md` holds the full rule.
 
 The third option exists so an assumption becomes durable. Written in the tracker it survives a cleared session, a teammate reads it, and the next task builds against it rather than inventing a second, different assumption.
 

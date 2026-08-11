@@ -7,7 +7,7 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | Skill | Owns | Answers |
 | --- | --- | --- |
 | `/dev-scope` | `project-overview.md`, and `glossary.md` | What the product is, what its parts are called, and whether a team builds it |
-| `/dev-architect` | `architecture.md`, `tooling.md`, `design.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, additions to `glossary.md`, plus the starting state of `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `ui-registry.md` | How it gets built |
+| `/dev-architect` | `architecture.md`, `tooling.md`, `design.md`, `design-registry.md`, `.konteksto/designs/`, `code-standards.md`, `library-docs.md`, `build-plan.md`, additions to `glossary.md`, plus the starting state of `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `ui-registry.md` | How it gets built, and how it looks |
 | `/dev-develop` | the code, every column of `progress-tracker.md` except Verify Check, all of `ui-registry.md`, a clean build row in `note-registry.md`, and a `decision-log.md` row when there was one | Builds it |
 | `/dev-check` | `.konteksto/reviews/`, the Verify Check column in `progress-tracker.md`, plus one `note-registry.md` row on a verify pass | Confirms it actually works |
 | `/dev-debug` | the minimal fix, a cause row in `decision-log.md`, and a fix confirmed row in `note-registry.md` | Finds out why it does not |
@@ -15,7 +15,19 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | `/dev-document` | `CHANGELOG.md`, `.konteksto/releases/`, `.konteksto/postmortems/` | Explains it to people |
 | `/dev-sync` | corrections to `progress-tracker.md` and `ui-registry.md` from repo evidence | Makes the documents true again |
 
-Twelve documents in all, and `design.md` is the only optional one: it is skipped entirely for a backend with no `app/`.
+Thirteen documents in all, plus the design prototypes. `design.md` and `design-registry.md` are the optional ones, skipped together with `.konteksto/designs/` for a backend with no `app/`.
+
+**Design is decided upstream and never invented during a build.** `/dev-architect` produces an interactive HTML prototype per surface in `.konteksto/designs/`, a person approves it, and `/dev-develop` implements it. Where the user supplied designs, their originals are copied to `designs/sources/` and never overwritten, because that artifact is the only thing in the project they actually authored.
+
+**The surfaces come from the flows, not from the page list.** The Pages section of `project-overview.md` holds the screens somebody thought of. The Core User Flow holds what actually happens, and the surface that gets missed is nearly always a failure branch of a step. A product that mocks its dashboard and forgets the verification screen, the recovery codes, and the wrong code path has designed one surface out of eight, and only reading the flows finds that.
+
+**A missing design blocks its own task and nothing else.** The plan is written in full regardless. This is the same shape as an unratified assumption keeping one task off `DONE` without holding up the project, and it is deliberately not a project wide gate, because a gate nobody can work around is a gate everybody works around.
+
+**`/dev-develop` is not the designer on a project with an `app/`.** It implements an approved prototype at high fidelity and may not introduce a layout, an interaction, or a product decision. **The stated assumption option is withdrawn for a visual gap**: a recorded assumption about a retry policy is visible and obviously provisional, while an invented layout looks exactly like a designed one, so nobody reviews it and the next surface invents a different answer.
+
+**Exact pixel equality is not the bar, because nothing can check it.** A component library injects its own spacing and fonts rasterize differently on every machine. What is checkable is every region present in the same order, the same hierarchy, every designed state reachable, every interaction behaving, at all three breakpoints. Accessibility outranks reproduction: a prototype with an unreachable touch target is fixed in the build and reported, not copied faithfully.
+
+**Only a person writes `APPROVED`**, in `design-registry.md`, by hand. A skill may write every other status including `CHANGE REQUIRED`, because noticing a design has gone stale is an observation while deciding it is fixed is not. This is the checkpoint rule again, and for the same reason.
 
 **The usual loop:** `/dev-scope` once, `/dev-architect` once, then per task `/dev-develop`, `/dev-check verify`, `/dev-test`. A verify failure goes to `/dev-debug`. Before a merge, `/dev-check review`, then `/dev-document pr`, then `/dev-sync`.
 

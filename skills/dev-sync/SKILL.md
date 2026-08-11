@@ -35,6 +35,7 @@ These keep the skill from sprawling, which is the failure mode for anything that
 | Correct a registry entry whose props no longer match the code | ✅ corrects | `/dev-sync` |
 | Add a dependency to `library-docs.md` that the manifest gained | ✅ adds a stub, flags it for detail | `/dev-sync` |
 | Add or change a term in `glossary.md`, including one the code plainly uses | ❌ reports it, as a rejected word or a missing one | `/dev-scope` or `/dev-architect` |
+| Add a row or change a status in `design-registry.md`, or edit anything in `designs/` | ❌ reports the mismatch | `/dev-architect`, and a person for `APPROVED` |
 | Add a task or reorder `build-plan.md` | ❌ leaves alone | `/dev-architect` |
 | Edit `architecture.md`, `code-standards.md`, `design.md`, or `tooling.md` | ❌ flags as stale | `/dev-architect` |
 | Edit `project-overview.md` | ❌ flags as stale | `/dev-scope` |
@@ -165,6 +166,8 @@ Give the stub the Source line the template defines for exactly this case:
 ```
 
 **Write that line even though it looks like filler.** A section with no Source reads as an oversight, and the next skill along cannot tell whether somebody checked the docs and forgot the line or never checked at all. This says which, in one line, and it is the only reason the stub is safe to leave behind.
+
+**Surfaces.** On a project with an `app/`, read `design-registry.md` and check it against the routes and pages the code actually has. Report a page in the code with no row, and a row whose prototype file is gone. **Write nothing there and never touch a prototype**, for the reason directly below: the code proves a page exists and never proves it was designed, still less that a person approved it. A row invented from a route would quietly assert both.
 
 **Vocabulary.** Read `glossary.md`, then check the words the code actually uses for the concepts in it: type names, table names, routes, user facing strings. Report every place the code uses a word the glossary rejects on an Avoid line, and every domain concept in the code with no entry at all.
 

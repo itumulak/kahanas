@@ -56,7 +56,7 @@ A verify failure goes to `/dev-debug`. Before a merge: `/dev-check review`, then
 
 ## What it produces
 
-Twelve documents in `.konteksto/`:
+Thirteen documents in `.konteksto/`, plus the design prototypes:
 
 ```
 .konteksto/
@@ -65,7 +65,12 @@ Twelve documents in `.konteksto/`:
 │                                    (/dev-scope, /dev-architect adds)
 ├── architecture.md        stack, boundaries, invariants (/dev-architect)
 ├── tooling.md             containers, agent tooling
-├── design.md              art direction (frontend only)
+├── design.md              the design system (frontend only)
+├── design-registry.md     every surface, and whether its design
+│                          is approved (frontend only)
+├── designs/               one interactive HTML prototype per surface,
+│   ├── sources/           plus the user's own artifacts, never overwritten
+│   └── *.html                                          (/dev-architect)
 ├── code-standards.md      the conventions every session follows
 ├── library-docs.md        version specific notes
 ├── build-plan.md          the ordered task list
@@ -80,7 +85,9 @@ Twelve documents in `.konteksto/`:
 
 Three of them describe the same task from three angles, and they stay separate on purpose. The tracker says **where it stands**, one word per cell, scannable a phase at a time. `note-registry.md` says **what was run** and what it showed. `decision-log.md` says **why**, which no command produces and git does not preserve. Watched it happen goes to the registry, concluded it goes to the log.
 
-All but four have exactly one writer. `progress-tracker.md` splits by column: `/dev-develop` owns the Status of every task, and `/dev-check verify` owns the Verify Check beside it, because "the build is clean" and "somebody watched it work" are different claims and neither skill may make the other's. Both cells carry the model that stamped them and when, and a value that changes is struck through with the new one appended after it, so the whole history stays readable.
+`design-registry.md` splits between a skill and a person: `/dev-architect` writes every status except `APPROVED`, which only a person writes, by hand. It may still mark an approved design `CHANGE REQUIRED`, because noticing something has gone stale is an observation and deciding it is fixed is not.
+
+All but five have exactly one writer. `progress-tracker.md` splits by column: `/dev-develop` owns the Status of every task, and `/dev-check verify` owns the Verify Check beside it, because "the build is clean" and "somebody watched it work" are different claims and neither skill may make the other's. Both cells carry the model that stamped them and when, and a value that changes is struck through with the new one appended after it, so the whole history stays readable.
 
 `decision-log.md` takes appends from `/dev-develop` and `/dev-debug`, and only when there was something to decide. Most tasks add nothing.
 
@@ -116,6 +123,10 @@ Plus `docker-compose.yml` and `.env.example` at the root, and a project laid out
 **A reviewer is never the model that wrote the code.** A model reading its own output shares its own blind spots.
 
 **Generated is not applied.** A migration that exists is not a migration that ran, and no type check will tell you the difference.
+
+**A design is approved before it is built, never invented during the build.** `/dev-architect` produces an interactive prototype per surface and a person approves it. `/dev-develop` implements it and may not introduce a layout or an interaction of its own. An invented layout looks exactly like a designed one, which is why the usual escape hatch, building on a stated assumption, is withdrawn for visual decisions: an assumption about a retry policy is visibly provisional and a made up screen is not.
+
+**The surfaces come from the flows, not the page list.** The screen that gets forgotten is almost never a page somebody listed. It is a failure branch of a step: the wrong code, the expired hold, the recovery path. Reading the flows is the only thing that finds those before somebody builds around the hole.
 
 **One word per thing, and the rejected words written down.** `glossary.md` gives each concept in the domain a single name, and lists the words it is not, because a definition alone stops nobody: the person about to type `client` is not wondering what `customer` means. Two words for one concept is how a later session builds a second thing, concludes the first must be different, and leaves both in the codebase.
 
