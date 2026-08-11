@@ -27,6 +27,8 @@ Owns no whole file. Chat output only, plus screenshots and logs saved to a scrat
 
 **That column is the only thing in `progress-tracker.md` you may touch.** Status is `/dev-develop`'s, the Assigned cell is a person's, and checkpoint rows are nobody's here. Never change one, however plainly wrong it looks. Report it instead.
 
+**`design-registry.md` and the prototypes in `.konteksto/designs/` are read only to you, and completely.** Not a status, not a row, and never a line of a prototype, however plainly it needs fixing. That whole folder is `/dev-architect`'s, `APPROVED` is a person's word alone, and a design you corrected to match the build is a design nobody approved.
+
 **BLOCKED writes nothing.** A behavior you could not exercise is not a verdict about the task, and a cell left at `—` says truthfully that nobody has checked yet.
 
 **Write two: the note row.** On a PASS, append a row to the Entries table in `note-registry.md` recording what you exercised and that it passed. That is how a later session tells an exercised task from an assumed one.
@@ -69,12 +71,27 @@ The contract is spread across three documents. Load all of them before scoping.
 - **`project-overview.md`**, the Core User Flow section for every page this task touches. Those steps are the real acceptance criteria, because they describe what a person actually does. Give each one a number as you list it, so the verdict can refer to it.
 - **`build-plan.md`**, this task's entry with its UI and Logic bullets. Every bullet names a surface that is supposed to exist now.
 - **`architecture.md`**, the Value Sourcing table, for every value this task produces.
+- **`design-registry.md` and the approved prototype**, for every surface a UI task touches. The prototype is the visual and interaction specification a person approved, and it is as much a contract as the flow steps are. Skip this on a backend, and on a task with no UI.
 
 **Add one behavior per Value Sourcing row**, and exercise the edge that breaks when the source is wrong. Vary the input the source depends on and check the output changes correctly: a different timezone, a different locale or currency, a different tenant.
 
 This is the layer that catches a mis sourced value, and nothing else does. A value derived from the wrong source produces a perfectly plausible result for the common case, passes every type check, and is only wrong for the user in another timezone or another tenant. `/dev-develop` checks at design time that a source is named. This checks that the named source is the right one.
 
-You now hold three lists: the flow steps to confirm, the surfaces to confirm exist, and the values to confirm are sourced correctly. Carry all three into every later step.
+You now hold four lists: the flow steps to confirm, the surfaces to confirm exist, the values to confirm are sourced correctly, and on a UI task the design conformance list below. Carry all of them into every later step.
+
+**The design conformance list**, built by reading the approved prototype:
+
+- every region present, in the same order and grouping
+- the hierarchy reading the same way, meaning what draws the eye first
+- every state the prototype demonstrates, reachable in the built page
+- every interaction it demonstrates, behaving the same way
+- every breakpoint `design.md` defines, composed as designed rather than merely reflowed
+
+**Exact pixel equality is not the bar and you must not report against it.** A component library injects its own spacing and fonts rasterize differently on every machine, so a pixel comparison fails on a correct build and tells you nothing. The list above is what a person could actually check, which is why it is the list.
+
+**Accessibility outranks reproduction.** Where the built page departs from the prototype to fix a contrast or touch target problem, that is a pass with a note, never a fail. `/dev-develop` was told to report those departures, and a departure it reported and you confirmed is the system working.
+
+**Route every confirmed departure to `/dev-architect`, because it makes the prototype stale.** The implementation is right and the approved design is now wrong, so that row has to reach `CHANGE REQUIRED` and the prototype has to be fixed. Neither you nor `/dev-develop` may write that, which is exactly why saying it in your report is the only thing that moves it. A departure nobody routed leaves an inaccessible pattern sitting under the word `APPROVED`, where the next surface copies it.
 
 No task and no matching flow, for example a small fix outside the plan? Verify against observed behavior alone, and say in the report that there was no contract to check against.
 
@@ -140,8 +157,17 @@ Roll the observations into a verdict per flow step and per promised surface. Ass
 - **promised but missing**: named in the task's bullets, with no implementation at all. Never built, nothing to exercise. Name the exact item and the fix, for example "the plan promises a password reset route, and there is no route and no file. Build it before this is done."
 - **built but not live**: the code exists, but its runtime check fails. The classic case is a migration that is committed but never applied, for example "the migration adding `verified_at` is committed, and the column is absent from the live database. Run the migration."
 - **blocked**: could not be exercised, for missing data, credentials, or environment.
+- **built but off design**: it exists and works, and it does not match the approved prototype. Name the item from the conformance list, the breakpoint, and what differs, for example "the phone layout keeps the desktop table where the prototype recomposes it as cards".
 
 **Missing and not live are different failures.** Missing is a build gap, and not live is a wiring gap. Both stop a task being done, and reporting them separately makes the fix obvious.
+
+**Off design is a third kind, and it goes to a different place.** Missing and not live go to `/dev-develop`. Off design goes to `/dev-develop` when the build diverged from an approved design, and to `/dev-architect` when the prototype itself turns out to be wrong or silent on what was needed. Say which you think it is, and why.
+
+**A design conformance check needs the same evidence as everything else.** A screenshot at that breakpoint, or the item is `blocked`, not met. Reading the code and judging it to match is exactly what this mode exists to prevent, and it is easier to slip into on visual work than on any other kind.
+
+**Use the mechanism `tooling.md` records**, in its Visual verification section: the tool, the browser, and the exact command. That section exists because this skill has no browser of its own and the environment may not have one either.
+
+**Where it is missing or says the project has none, report every conformance item as `blocked` and say why in one line.** Do not improvise a tool, and do not fall back to reading the markup and calling it a match. A block that keeps appearing is a prompt to install something, and it is honest. A silent downgrade turns the design contract into decoration while still reporting a pass.
 
 Conformance is a PASS only when every flow step is met and every promised surface exists. One missing or not live item makes the whole verdict a FAIL.
 
@@ -183,6 +209,11 @@ Write the verdict where it belongs before reporting:
 **Conformance**: PASS | FAIL | BLOCKED
 - <flow step 1> met: <the observation that confirmed it, with its evidence>
 - <flow step 2> promised but missing: <named in the plan, no implementation> → build it before done
+
+**Design conformance** (UI tasks only, drop this section entirely otherwise):
+- <conformance item>: met at desktop, tablet, phone, evidence: <screenshot path per breakpoint>
+- <conformance item>: built but off design at <breakpoint>: <what differs> → /dev-develop, or /dev-architect if the prototype is the thing that is wrong
+- <departure>: accepted, <the accessibility reason /dev-develop gave> → /dev-architect, to absorb it into the prototype
 
 **Missing surfaces** (in the task's bullets, never built):
 - <page, route, or table>: <where it was expected> → build before done

@@ -34,6 +34,8 @@ These keep the skill from sprawling, which is the failure mode for anything that
 | Register a component in `ui-registry.md` that exists in code but is missing | ✅ adds | `/dev-sync` |
 | Correct a registry entry whose props no longer match the code | ✅ corrects | `/dev-sync` |
 | Add a dependency to `library-docs.md` that the manifest gained | ✅ adds a stub, flags it for detail | `/dev-sync` |
+| Add or change a term in `glossary.md`, including one the code plainly uses | ❌ reports it, as a rejected word or a missing one | `/dev-scope` or `/dev-architect` |
+| Add a row or change a status in `design-registry.md`, or edit anything in `designs/` | ❌ reports the mismatch | `/dev-architect`, and a person for `APPROVED` |
 | Add a task or reorder `build-plan.md` | ❌ leaves alone | `/dev-architect` |
 | Edit `architecture.md`, `code-standards.md`, `design.md`, or `tooling.md` | ❌ flags as stale | `/dev-architect` |
 | Edit `project-overview.md` | ❌ flags as stale | `/dev-scope` |
@@ -118,6 +120,12 @@ For each task in `progress-tracker.md` whose Status is not `DONE`, ask whether t
 
 **Be conservative.** Stamp on clearly present evidence, and when unsure, leave it. A finished task still reading `PENDING` is a small annoyance. An unfinished one stamped `DONE` sends the next session past work that was never done.
 
+**You cannot confirm the Definition of Done, so say so rather than implying you did.** That table in `code-standards.md` is the bar `/dev-develop` clears before stamping, and clearing it means running its commands. You run nothing, for the same reason you write no note row: a check you did not run and an observation you did not make are the two things this skill must never fabricate.
+
+So the stamp you write here is a narrower claim than the one `/dev-develop` writes, and your report says which tasks carry it: the code the task promised is plainly in the repo, and nobody has confirmed it meets the project's bar. Point those at `/dev-develop` to finish the check, alongside `/dev-check verify` for the ones with an empty Verify Check.
+
+**Do not run the commands yourself to close the gap.** Running a build is not reconciliation, it changes the working tree, and it turns a maintenance pass into a build session nobody asked for.
+
 **A document you cannot parse does not get edited.** A tracker with broken headings or a hand edit that broke its shape is reported as needing a person, never repaired by guessing. Never act on a misread.
 
 ### Step 3: Reconcile
@@ -151,11 +159,35 @@ Fix any pointer in a document that now targets a deleted or moved path. **If you
 
 **Dependencies.** A new package in the manifest gets a stub entry in `library-docs.md` naming what it is and where it is used, then flag it so `/dev-architect` can add the version specific notes. **Do not invent gotchas you have not verified.**
 
+Give the stub the Source line the template defines for exactly this case:
+
+```
+**Source**: none yet, stub added from the manifest, needs `/dev-architect`
+```
+
+**Write that line even though it looks like filler.** A section with no Source reads as an oversight, and the next skill along cannot tell whether somebody checked the docs and forgot the line or never checked at all. This says which, in one line, and it is the only reason the stub is safe to leave behind.
+
+**Surfaces.** On a project with an `app/`, read `design-registry.md` and check it against the routes and pages the code actually has. Report a page in the code with no row, and a row whose prototype file is gone. **Write nothing there and never touch a prototype**, for the reason directly below: the code proves a page exists and never proves it was designed, still less that a person approved it. A row invented from a route would quietly assert both.
+
+**Vocabulary.** Read `glossary.md`, then check the words the code actually uses for the concepts in it: type names, table names, routes, user facing strings. Report every place the code uses a word the glossary rejects on an Avoid line, and every domain concept in the code with no entry at all.
+
+**Write nothing into that file, in either case, and this is the rule most likely to look wrong.** Sort the two findings anyway, because the report reads differently for each and step 4 below is the general form of the split.
+
+- **A word the glossary rejects** is a **contradiction**. Two things disagree, and which one is wrong is invisible from here: either somebody named a thing carelessly, or the term was deliberately changed and the document is behind. Name both words and where each appears.
+- **A concept with no entry at all** looks like a **gap**, and by the letter of step 4 it is one: nothing disagrees, something is simply absent. **You still do not fill it**, and the reason is not the gap and contradiction rule. It is that the repo cannot prove the fact this file holds.
+
+**The code proves a word is in use. The glossary claims that word is the one this project chose.** Those are different facts, and only the first is in the repository. Naming is a decision, and this skill records nothing it did not observe, which is the same reason it writes no note row and no decision row.
+
+That is also what separates this from the two registries above, which otherwise look like the same job. `ui-registry.md` records what exists, so the code proves it end to end and you add the missing entry. A `library-docs.md` stub records that a package is present, which the manifest proves, and its Source line says plainly that nobody has verified anything further. A glossary records what was chosen, and no amount of reading the code will ever prove that.
+
+So name the term, the file, and the entry it disagrees with if there is one, then stop. `/dev-scope` or `/dev-architect` resolves it, and the fix is often a rename in the code rather than an edit to the document.
+
 ### Step 4: Separate a gap from a contradiction
 
 These are different problems and they get handled differently. Conflating them is how a maintenance pass quietly overwrites something deliberate.
 
 - **A gap** is a fact missing from a document that the repo can prove. Nothing disagrees, something is simply absent. **Apply it**, within the boundaries above.
+  - **"That the repo can prove" is doing real work in that sentence**, and the glossary in step 3 is the case that shows why. The code proves which word is in use, and never that it is the word this project chose, so a missing term reads as a gap and is not one you may fill. Before applying anything, check that the repo proves the fact the document actually claims, rather than a neighbouring one.
 - **A contradiction** is a document saying one thing while the code shows another. **Never resolve one yourself.** Say what the document claims, what the repo actually shows, and let the user decide which is wrong. Either the code drifted, or the document was deliberate and the code broke it, and **you cannot tell which from the outside**.
 
 Report a contradiction in that shape: this file says X, the code shows Y.

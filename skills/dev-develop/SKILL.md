@@ -1,7 +1,7 @@
 ---
 name: dev-develop
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion
-description: "Run /dev-develop to build the next task from .konteksto/build-plan.md, or a named one. Reads the architecture and code standards, builds, then stamps the task DONE in the progress tracker. If a load bearing decision is owed and no document records it, it stops and routes you to /dev-architect instead of inventing one."
+description: "Run /dev-develop to build the next task from .konteksto/build-plan.md, or a named one. Reads the architecture and code standards, implements UI from the approved design prototype rather than composing one, builds, then stamps the task DONE in the progress tracker. If a load bearing decision is owed and no document records it, or a surface has no approved design, it stops and routes you to /dev-architect instead of inventing one."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -50,7 +50,8 @@ The whole chain, once per project then once per task:
 
 **Never writes:**
 
-- `project-overview.md`, `architecture.md`, `code-standards.md`, `library-docs.md`, `tooling.md`, `design.md`, `build-plan.md`. If the build proves one of them wrong, stop and say so. Changing the design mid build is `/dev-architect`'s call, not something to fix quietly in passing.
+- `project-overview.md`, `architecture.md`, `code-standards.md`, `glossary.md`, `library-docs.md`, `tooling.md`, `design.md`, `build-plan.md`. If the build proves one of them wrong, stop and say so. Changing the design mid build is `/dev-architect`'s call, not something to fix quietly in passing.
+- **`glossary.md` in particular is read every task and written never.** It has two writers, `/dev-scope` and `/dev-architect`, and adding a term here would make a third. Name what you build from it, and report a term it is missing rather than coining one in code, because a word that reaches the codebase first becomes the real name whatever the document says.
 - `docker-compose.yml`. `/dev-architect` owns it. A missing service is a reason to stop and report, not to add one.
 
 ## Guardrails
@@ -65,7 +66,16 @@ The whole chain, once per project then once per task:
 
 **Never reset the local database on your own initiative.** `tooling.md`'s Local Data Lifecycle section decides that, and someone else's work in progress may be sitting in it.
 
-**Never verify your own work.** Running the app and confirming it matches the flow belongs to `/dev-check verify`, deliberately, because the thing that wrote the code is the worst judge of whether it does what the product needed.
+**Never perform acceptance verification on your own work, and always run your implementation checks.** These are two different jobs and the words matter, because told loosely the first rule reads as permission to skip the second.
+
+| | Yours | `/dev-check verify`'s |
+| --- | --- | --- |
+| **Implementation checks** | build, type check, lint, the Definition of Done, rendering a page and looking at it | no |
+| **Acceptance verification** | no | running the app and judging it against the flow and the approved design |
+
+You confirm **what you built is sound**. It confirms **what was built is what the product needed**, and that claim belongs elsewhere because the thing that wrote the code is the worst judge of it.
+
+**Skipping your own checks is not deference, it is an unverified build.** A `DONE` stamp on something you never ran is exactly what the Definition of Done exists to prevent.
 
 ## Asks vs acts
 
@@ -126,7 +136,7 @@ A decision is also owed when you would otherwise invent:
 
 - A library, provider, or integration `code-standards.md` does not list.
 - A data model or a column `architecture.md`'s schema does not have.
-- A whole page's composition, when `project-overview.md` gives the flow and `design.md` does not settle the pattern.
+- A whole page's composition, or any part of one, that no approved prototype settles. On a project with an `app/`, composition is `/dev-architect`'s decision and arrives as an approved file in `.konteksto/designs/`.
 - A behavior a flow step constrains but no document defines.
 
 **What counts as a local detail instead.** Only a choice among options the documents already permit: a variable name, a loop shape, which existing helper to call. **The moment a choice fixes where a value comes from, or changes a behavior the flows constrain, it is load bearing however small it looks.**
@@ -138,10 +148,11 @@ When unsure, treat it as owed. Building an unnoticed decision is the expensive f
 1. This task's entry in `build-plan.md`.
 2. `architecture.md`, for the stack, boundaries, schema, invariants, and the Value Sourcing table.
 3. `code-standards.md`.
-4. `library-docs.md`, only for a library this task uses.
-5. `tooling.md`, the Local Data Lifecycle section, when the task touches the database.
-6. `design.md` and `ui-registry.md`, only when the task has UI bullets.
-7. `decision-log.md`, for anything an earlier task already settled.
+4. `glossary.md`, for the name of anything this task creates.
+5. `library-docs.md`, only for a library this task uses.
+6. `tooling.md`, the Local Data Lifecycle section, when the task touches the database.
+7. `design-registry.md`, `design.md`, the approved prototype, and `ui-registry.md`, only when the task has UI bullets. Check the registry row first: a surface that is not `APPROVED` is a visual gap, and the gate below handles it.
+8. `decision-log.md`, for anything an earlier task already settled.
 
 **Nothing owed.** Read `flow/build.md` and follow it.
 
@@ -158,6 +169,14 @@ On **Design it first**, end with:
 > /dev-architect
 > ```
 > Settle this first: <the specific choice>. Then run `/dev-develop` again and I will build to it.
+
+**The third option is not available for a visual gap.** When what is owed is how a surface looks or behaves, meaning no approved prototype, a state or interaction the prototype does not cover, or a change that made an approved one wrong, only options 1 and 2 exist. The task goes `BLOCKED` with the surface named in its Note.
+
+**A visual gap means a surface, and only a surface.** This applies on a project that has an `app/` and a `design.md`, to a task with UI bullets. **A backend only project can never have one**, since it has no prototypes to be missing, and neither can a task with only Logic bullets. Nothing about a missing design blocks an endpoint, a migration, a job, or a service. Read this rule as narrowly as it is written, because read widely it would stop work that displays nothing to anybody.
+
+**On a task with both kinds of bullet, the logic half still gets built.** Only the surface stops. The task goes `BLOCKED` because it is unfinished, and its Note says what landed as well as what is waiting. `ui-guide.md` has the detail.
+
+The reason is that a recorded assumption works for a logic decision and does not work for a visual one. A stated assumption about a retry policy is visible, reviewable, and obviously provisional. An invented layout looks exactly like a designed one, so nobody reviews it, nothing records it, and the next surface invents a different answer to the same question. `ui-guide.md` holds the full rule.
 
 The third option exists so an assumption becomes durable. Written in the tracker it survives a cleared session, a teammate reads it, and the next task builds against it rather than inventing a second, different assumption.
 

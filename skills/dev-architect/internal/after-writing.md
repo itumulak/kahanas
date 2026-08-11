@@ -17,7 +17,7 @@ Read back what you just wrote. Confirm every section the template requires is pr
 The ones most often left blank, because they are the ones that take real thought:
 
 - **`architecture.md`**: the Value Sourcing table, the Invariants, the Security model, and the System Boundaries. A boundary table with one example row in it is not filled.
-- **`code-standards.md`**: the environment variable table, and the error handling rules.
+- **`code-standards.md`**: the environment variable table, the error handling rules, and the Definition of Done. A Definition of Done whose rows name no real command is the worst of the three, because every later skill treats it as a bar that was set.
 - **`build-plan.md`**: whether the Feature Count actually matches the number of tasks written.
 - **`design.md`**: the States section, meaning empty, loading, and error.
 

@@ -38,7 +38,7 @@ Sort every dependency into one of four groups, and handle each differently:
 | **Archived or unmaintained, with a security fix available** | Update to the fixed version now, and plan the replacement separately. |
 | **Archived or unmaintained, with no fix coming** | Propose a replacement. |
 
-**On vulnerabilities.** Run the ecosystem's own audit command and read what it reports. Present each finding with its severity, what the package is used for in this project, and the fixed version. **A vulnerable dependency is not a matter of taste**, so recommend the update plainly rather than offering it as one option among equals. The user can still decline, and if they do, record the decision and the reason in `library-docs.md` so it is a known accepted risk rather than an oversight.
+**On vulnerabilities.** Run the ecosystem's own audit command and read what it reports. Present each finding with its severity, what the package is used for in this project, and the fixed version. **A vulnerable dependency is not a matter of taste**, so recommend the update plainly rather than offering it as one option among equals. The user can still decline, and if they do, record the decision and the reason in the Accepted risks section of `library-docs.md` so it is a known accepted risk rather than an oversight.
 
 **On proposing a replacement**, it must clear the same bar as any other tool in step 2, and you say which checks it passed:
 

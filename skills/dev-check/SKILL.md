@@ -2,7 +2,7 @@
 name: dev-check
 allowed-tools: Bash, Read, Grep, Glob, Write, Agent, AskUserQuestion
 argument-hint: [verify | review]
-description: "Run /dev-check to confirm a task is sound before moving on. Two modes: verify runs the real app and proves the behavior against the flows in project-overview.md; review runs a senior code read on a different model than wrote the code. Verify after /dev-develop, review before a merge. Never edits your code."
+description: "Run /dev-check to confirm a task is sound before moving on. Two modes: verify runs the real app and proves the behavior against the flows in project-overview.md, and on a UI task checks it against the approved design at every breakpoint the project defines; review runs a senior code read on a different model than wrote the code. Verify after /dev-develop, review before a merge. Never edits your code, and never edits a design."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -41,7 +41,7 @@ The whole chain, once per project then once per task:
 
 **Review** owns `.konteksto/reviews/<date>-<task-slug>.md`, one file per run. Dated records, never edited afterwards. A later run writes a new file.
 
-Neither writes application code, any of the eight documents, or a fix of any kind.
+Neither writes application code, any of the design documents, or a fix of any kind. `glossary.md` is included in that: read it, hold the code and the flows against its words, and **report a name that disagrees with it rather than correcting either side**. A drifted name is a contradiction, and which of the two is wrong is not visible from here.
 
 ## Guardrails
 

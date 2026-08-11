@@ -67,6 +67,45 @@ Whoever builds a task follows this and nothing else. A build never drops a local
 
 ---
 
+## Visual verification (Optional)
+
+*Purpose: how a person or a skill renders a page and captures it at each breakpoint. Required on any project with an `app/`, and deleted entirely on a backend. Recorded because `/dev-check verify` must produce a screenshot per breakpoint or report the item as blocked, and a project with no way to take one would block every UI task forever.*
+
+| What | Value |
+| --- | --- |
+| Tool | <BROWSER_AUTOMATION_OR_SCREENSHOT_TOOL> |
+| Browser | <BROWSER_AND_HOW_IT_IS_INSTALLED> |
+| Command | `<COMMAND_THAT_RENDERS_A_ROUTE_AND_WRITES_AN_IMAGE>` |
+| Output | <WHERE_THE_IMAGES_LAND> |
+
+**Settle this while settling the stack, not when the first verify blocks.** `/dev-check` has no browser of its own and no guarantee one exists in the environment, so this is the line that lets it meet its contract.
+
+**Where the project genuinely has none**, say so here in one line rather than leaving the section empty. `/dev-check verify` then reports UI conformance as blocked, honestly and every time, instead of quietly degrading into reading the markup and calling it a match. An honest and repeated block is a prompt to install something. A silent downgrade is how a design contract stops meaning anything.
+
+### Previewing a prototype
+
+*Purpose: how anybody opens a file in `.konteksto/designs/` to look at it. Needed by the person approving it as much as by any skill.*
+
+**Command:** `<COMMAND_THAT_SERVES_THE_DESIGNS_FOLDER, FOR_EXAMPLE_A_STATIC_FILE_SERVER>`
+
+**No application infrastructure may be required to view a prototype.** No install, no build step, no dev server for the product itself. A prototype that needs the app running to be looked at cannot be reviewed before the app exists, which is precisely when it needs reviewing.
+
+---
+
+## Doubt pass rounds
+
+*Purpose: how many adversarial review rounds `/dev-architect` may run on one load bearing decision before it stops and brings the question to a person. Recorded here because it is a fact about how the agent works on this project, not about the product, and because a preference asked once should not be asked again every session.*
+
+**Rounds:** <1_2_OR_3>
+
+Each round spawns a read only subagent on a different model, so this is the main cost lever on the doubt pass. `/dev-architect` asks once, on the first decision that triggers a pass, and reads this line on every run after that. Change the number by hand at any time.
+
+**This is a ceiling, not a quota.** The pass stops the moment the findings go trivial, which is usually after one round whatever this says. A higher number does not mean more rounds get run, it means more are available on a decision that keeps producing real objections.
+
+**At the cap with something substantive unresolved, it stops and asks.** A decision that survives its allowed rounds still contested is not one more round away from settled, it needs a fact only a person has.
+
+---
+
 ## Considered and Rejected
 
 *Purpose: tools that came up during discovery and were deliberately not installed, with the reason. Stops a later session from re proposing the same thing.*

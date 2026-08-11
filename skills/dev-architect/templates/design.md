@@ -1,6 +1,24 @@
 # Design
 
-*Purpose: the art direction every UI build follows, so pages built in different sessions look like one product. Holds the character, the build mandate, and the composition rules. The token values themselves live in the project's own CSS or styling config, never duplicated here, because two copies of a colour drift. Optional: only present when the project has a frontend.*
+*Purpose: the art direction every UI build follows, so pages built in different sessions look like one product. Holds the character, the build mandate, and the composition rules. The token values themselves live wherever the Where the tokens live table points, never duplicated here, because two copies of a colour drift. Optional: only present when the project has a frontend.*
+
+---
+
+## What this file decides, and what it does not
+
+*Purpose: the precedence rule. Keep this section. Three artifacts describe how this product looks, and without a stated order a builder facing a disagreement picks one silently, which is how half a product ends up matching a document nobody reads.*
+
+| Artifact | Decides |
+| --- | --- |
+| `project-overview.md` | what the product does. **Always wins.** |
+| this file | the design system: character, tokens, states, breakpoints, component rules. Governs every prototype and every built page. |
+| `.konteksto/designs/<surface>.html` | how one surface looks and behaves. Governs the implementation of that surface. |
+
+**A prototype never overrides a flow.** Where an approved prototype contradicts `project-overview.md`, that is a defect in one of them, and it goes back to `/dev-architect` rather than being resolved at build time.
+
+**This file wins over a prototype on anything cross page**, meaning tokens, breakpoints, and the meaning of a state. A prototype wins on the layout, hierarchy, spacing, and composition of its own surface, which is exactly what this file does not describe.
+
+**A genuine conflict between the two is a design bug, not a judgment call.** Stop and route it back. One of them is wrong, and a builder choosing quietly picks wrong roughly half the time and leaves no trace either way.
 
 ---
 
@@ -36,9 +54,11 @@ Reference points: <PRODUCTS_OR_SITES_WHOSE_FEEL_IS_CLOSE>
 
 ## Where the tokens live
 
-*Purpose: a pointer, never a copy. Values live in one place so they cannot drift.*
+*Purpose: names the one file that decides each token value, and the one file the prototypes read. They are usually not the same file, and saying which is authoritative is what stops them drifting.*
 
-| Kind | Where it is defined |
+**Production source**, the authority once it exists: <PATH_TO_THE_STYLING_CONFIG>
+
+| Kind | Defined in |
 | --- | --- |
 | Colour | <FILE_PATH> |
 | Typography | <FILE_PATH> |
@@ -48,6 +68,25 @@ Reference points: <PRODUCTS_OR_SITES_WHOSE_FEEL_IS_CLOSE>
 **Dark mode:** <HOW_IT_IS_SWITCHED_AND_WHERE_THE_DARK_VALUES_LIVE | NONE>
 
 **Font:** <FONT_NAME_AND_HOW_IT_IS_LOADED>
+
+**Prototype mirror:** `.konteksto/designs/shared/tokens.css`
+
+### Which one is authoritative
+
+**Exactly one file decides a value, and the other copies it.** Which one depends only on whether the production config exists yet.
+
+| When | The authority | The mirror |
+| --- | --- | --- |
+| No app code yet | `shared/tokens.css`, since nothing else exists | none |
+| Production config exists | the production source above | `shared/tokens.css`, **derived from it, never authored** |
+
+**Write the production path in from the start, even before the file exists**, taking it from the folder structure in `architecture.md` and marking it not created yet. That way nothing has to be repointed later: the path was always right, and the file simply becomes real when `/dev-develop` writes it on the first UI task. **A pointer that has to be updated later is a pointer nobody updates**, because the skill that owns this file may not run again at that moment.
+
+**The mirror exists on every project, including one with a real config already.** Prototypes must render on their own with no application infrastructure, and a production config is often a `tailwind.config.js`, a `theme.ts`, or something else a plain HTML file cannot read at all. Pointing a prototype at it would break the prototype for no gain.
+
+**The mirror is a derived artifact, and this is what stops it becoming a second source of truth.** Nobody edits a value in it to change the product. When the production source changes, the mirror is regenerated from it, exactly as a lockfile is regenerated rather than hand corrected. Where the two disagree, the production source is right and the mirror is stale, always, with no case where it goes the other way.
+
+**Both files existing is normal, and only one of them ever decides anything.**
 
 ---
 
@@ -88,7 +127,9 @@ Reference points: <PRODUCTS_OR_SITES_WHOSE_FEEL_IS_CLOSE>
 
 *Purpose: the decisions a single mockup cannot show, settled once rather than per page.*
 
-- **Breakpoints:** <THE_BREAKPOINTS_THIS_PROJECT_USES>
+- **Breakpoints:** <THE_BREAKPOINTS_THIS_PROJECT_USES, NAMED_AND_WITH_THEIR_WIDTHS>
+
+  **This list is the authority, and everything downstream counts from it.** Prototypes compose one layout per breakpoint, `/dev-develop` builds them all, and `/dev-check verify` needs a screenshot of each. The default is three, meaning desktop, tablet, and phone. A project needing two, or four with a wide desktop, changes this line only, and every rule follows without being edited.
 - **Mobile approach:** <WHAT_CHANGES_AT_THE_SMALL_END: NAV_TABLES_DENSITY>
 - **Contrast target:** <THE_MINIMUM_THIS_PROJECT_HOLDS_TO>
 - <OTHER_ACCESSIBILITY_DIRECTION>
