@@ -4,6 +4,12 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
+## [Unreleased]
+
+### Added
+
+- **A copy and paste prompt in `UPGRADING.md`**, so the document migration can be handed to an agent rather than done by hand. It carries the honesty rules rather than pointing at them, since the prompt gets pasted into a session that has no access to this repository: never backfill, never stamp work whose model and minute nobody knows, and never write `APPROVED` for a design that does not exist. It ends by asking for the list of everything left as a placeholder, because the failure worth catching is a plausible migration rather than a broken one.
+
 ## [0.4.1] — 2026-08-11
 
 ### Added

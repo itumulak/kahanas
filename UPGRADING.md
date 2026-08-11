@@ -31,6 +31,70 @@ npx skills@latest add itumulak/kahanas
 
 ---
 
+## Let an agent do the documents
+
+Reinstalling the skills is the shell command above and takes a second. Migrating the documents is the part worth handing over.
+
+**Replace `<OLD VERSION>` with the version you are coming from, then paste this into a session in your own project.** Everything below it in this file is what the prompt encodes, so read on if you would rather do it yourself or want to check the result.
+
+```text
+I have just upgraded the Kahanas dev skills from <OLD VERSION> to the version
+now installed. Migrate my .konteksto/ documents to match the new templates.
+
+Read the templates that shipped with the upgrade before changing anything.
+They are in the installed skills folder, under dev-architect/templates/ and
+dev-scope/templates/, wherever the skills were installed (.claude/skills or
+.agents/skills). Compare each one against my existing document.
+
+Three rules matter more than completeness, and I would rather the migration
+be honest than tidy.
+
+1. Never backfill. A new file starts empty unless the content already exists
+   somewhere in my documents and you are moving it. Do not invent decisions,
+   notes, or approvals. An invented row reads exactly like a real one and I
+   will not be able to tell them apart later.
+2. Never stamp old work. Stamps name a model and a minute, and neither of us
+   knows which model built anything under the old version. Set values, leave
+   stamps off, and add a line under the table saying those rows predate
+   stamping.
+3. Do not create a document my project has no use for. The design ones are
+   frontend only and are skipped entirely for a backend with no app/ folder.
+
+Then do this:
+
+- Add any document the new templates have that I do not. Start it empty,
+  except glossary.md, where you should record the terms already used in
+  project-overview.md. You are recording settled terms, not inventing them,
+  so tell me which ones you took and which you were unsure about.
+- Add any section the new templates have that my existing documents lack.
+  Where a section needs a real value you cannot derive, leave the placeholder
+  and list it for me rather than guessing.
+- Convert progress-tracker.md if its Progress section is still a checkbox
+  list. One table per phase. A ticked task becomes DONE, an unticked one
+  PENDING, every Verify Check cell is an em dash, and Note is an em dash
+  unless the task is genuinely blocked right now. An em dash in every Verify
+  Check is the correct result: nothing was verified under a version that had
+  no such column.
+- If my project has an app/ folder and design-registry.md is new, add a row
+  per surface already built with its file left as an em dash and a Note
+  saying it predates the registry. Never write APPROVED for a design that
+  does not exist. That word is what every downstream rule depends on, and I
+  would rather a UI task block than have it mean nothing.
+- Mark every existing library-docs.md section unsourced, since nobody
+  verified them.
+
+Never delete or overwrite anything in .konteksto/ that holds real content.
+Moving a section between documents is fine. Discarding one is not.
+
+When you are done, report: the files you created, the sections you added,
+anything you left as a placeholder, and anything you were not confident
+about. Do not smooth over a gap. I want the list.
+```
+
+**Check the diff before committing it.** The prompt is written to make an agent stop and ask rather than guess, but the failure worth watching for is the opposite of a broken migration: a plausible one, with stamps and decisions that look real and are not.
+
+---
+
 ## Three rules for the documents
 
 **Never backfill.** A new file starts empty rather than reconstructed. Writing decisions nobody made, notes for commands nobody ran, or approvals nobody gave produces a document that reads exactly like a true one, and a later session cannot tell the difference. Empty is honest and costs nothing.
