@@ -41,7 +41,7 @@ The whole chain, once per project then once per task:
 
 **Review** owns `.konteksto/reviews/<date>-<task-slug>.md`, one file per run. Dated records, never edited afterwards. A later run writes a new file.
 
-Neither writes application code, any of the eight documents, or a fix of any kind.
+Neither writes application code, any of the design documents, or a fix of any kind. `glossary.md` is included in that: read it, hold the code and the flows against its words, and **report a name that disagrees with it rather than correcting either side**. A drifted name is a contradiction, and which of the two is wrong is not visible from here.
 
 ## Guardrails
 

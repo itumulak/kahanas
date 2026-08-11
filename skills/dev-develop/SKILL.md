@@ -50,7 +50,8 @@ The whole chain, once per project then once per task:
 
 **Never writes:**
 
-- `project-overview.md`, `architecture.md`, `code-standards.md`, `library-docs.md`, `tooling.md`, `design.md`, `build-plan.md`. If the build proves one of them wrong, stop and say so. Changing the design mid build is `/dev-architect`'s call, not something to fix quietly in passing.
+- `project-overview.md`, `architecture.md`, `code-standards.md`, `glossary.md`, `library-docs.md`, `tooling.md`, `design.md`, `build-plan.md`. If the build proves one of them wrong, stop and say so. Changing the design mid build is `/dev-architect`'s call, not something to fix quietly in passing.
+- **`glossary.md` in particular is read every task and written never.** It has two writers, `/dev-scope` and `/dev-architect`, and adding a term here would make a third. Name what you build from it, and report a term it is missing rather than coining one in code, because a word that reaches the codebase first becomes the real name whatever the document says.
 - `docker-compose.yml`. `/dev-architect` owns it. A missing service is a reason to stop and report, not to add one.
 
 ## Guardrails
@@ -138,10 +139,11 @@ When unsure, treat it as owed. Building an unnoticed decision is the expensive f
 1. This task's entry in `build-plan.md`.
 2. `architecture.md`, for the stack, boundaries, schema, invariants, and the Value Sourcing table.
 3. `code-standards.md`.
-4. `library-docs.md`, only for a library this task uses.
-5. `tooling.md`, the Local Data Lifecycle section, when the task touches the database.
-6. `design.md` and `ui-registry.md`, only when the task has UI bullets.
-7. `decision-log.md`, for anything an earlier task already settled.
+4. `glossary.md`, for the name of anything this task creates.
+5. `library-docs.md`, only for a library this task uses.
+6. `tooling.md`, the Local Data Lifecycle section, when the task touches the database.
+7. `design.md` and `ui-registry.md`, only when the task has UI bullets.
+8. `decision-log.md`, for anything an earlier task already settled.
 
 **Nothing owed.** Read `flow/build.md` and follow it.
 

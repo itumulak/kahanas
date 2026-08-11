@@ -6,8 +6,8 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 
 | Skill | Owns | Answers |
 | --- | --- | --- |
-| `/dev-scope` | `project-overview.md` | What the product is, and whether a team builds it |
-| `/dev-architect` | `architecture.md`, `tooling.md`, `design.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, plus the starting state of `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `ui-registry.md` | How it gets built |
+| `/dev-scope` | `project-overview.md`, and `glossary.md` | What the product is, what its parts are called, and whether a team builds it |
+| `/dev-architect` | `architecture.md`, `tooling.md`, `design.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, additions to `glossary.md`, plus the starting state of `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `ui-registry.md` | How it gets built |
 | `/dev-develop` | the code, every column of `progress-tracker.md` except Verify Check, all of `ui-registry.md`, a clean build row in `note-registry.md`, and a `decision-log.md` row when there was one | Builds it |
 | `/dev-check` | `.konteksto/reviews/`, the Verify Check column in `progress-tracker.md`, plus one `note-registry.md` row on a verify pass | Confirms it actually works |
 | `/dev-debug` | the minimal fix, a cause row in `decision-log.md`, and a fix confirmed row in `note-registry.md` | Finds out why it does not |
@@ -15,13 +15,17 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | `/dev-document` | `CHANGELOG.md`, `.konteksto/releases/`, `.konteksto/postmortems/` | Explains it to people |
 | `/dev-sync` | corrections to `progress-tracker.md` and `ui-registry.md` from repo evidence | Makes the documents true again |
 
-Eleven documents in all, and `design.md` is the only optional one: it is skipped entirely for a backend with no `app/`.
+Twelve documents in all, and `design.md` is the only optional one: it is skipped entirely for a backend with no `app/`.
 
 **The usual loop:** `/dev-scope` once, `/dev-architect` once, then per task `/dev-develop`, `/dev-check verify`, `/dev-test`. A verify failure goes to `/dev-debug`. Before a merge, `/dev-check review`, then `/dev-document pr`, then `/dev-sync`.
 
 **`test-preferences.json` is a cross skill contract.** `/dev-test` owns it, and `/dev-check review` reads it to decide whether missing coverage is a finding at all. A project that deliberately has no test runner records that there, and the review then stops asking for one.
 
 **Where a document has more than one writer, every side says so.** `note-registry.md` is created empty by `/dev-architect` and appended to by three skills: `/dev-develop` records the command that proved the build clean, `/dev-check verify` records what it exercised on a pass, and `/dev-debug` records the check that proved a fix. All four files state the rule from their own side, and so does the registry itself, in its Who writes what section. An unstated extra writer is how this system rots.
+
+**`glossary.md` is the second shared document, and it splits by stage rather than by row or column.** `/dev-scope` creates it and writes the words the user used. `/dev-architect` adds a term the design brought into being and sharpens a definition the schema proved imprecise, and **may never rename one**, because a rename is a decision about the product's own language and belongs to the person whose product it is. Everything else reads it, names what it builds from it, and reports drift.
+
+**`/dev-sync` writes nothing there either, and the reason is the gap and contradiction rule.** A term in the code that is missing from the glossary looks exactly like a gap it fills elsewhere. It is not one: either the document is behind or somebody named a thing wrongly, those are indistinguishable from the outside, and taking the code's word would make a careless name canonical.
 
 **Those three rows are three different claims, which is why they are not one row.** A clean build is not a working feature, and a passing verify is not a fixed bug. Collapsing them loses exactly the distinction a later session needs.
 

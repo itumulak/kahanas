@@ -25,10 +25,11 @@ Read, in this order, and no more than this:
 1. **This task's entry in `build-plan.md`**, with its UI and Logic bullets, and the **Core Principle** at the top of the file, which sets the bar for what "working" means here.
 2. **`architecture.md`**, the parts this task touches: the Stack table, the folder structure, the System Boundaries, the data flow, the schema, the Invariants, and **the Value Sourcing table**. That table names where every value comes from, and it is what the input coverage test checks against.
 3. **`code-standards.md`**, the whole file. It is the convention set, and it is short by design.
-4. **`project-overview.md`**, the Core User Flow steps for any page this task serves. That is the contract `/dev-check verify` will hold the result against.
-5. **`library-docs.md`**, only for a library this task actually uses. Skip the rest.
-6. **`tooling.md`**, the Local Data Lifecycle section, whenever this task touches the database. It says whether local data resets between tasks or persists, and the exact reset command.
-7. **`design.md`** and **`ui-registry.md`**, only on the UI track. `design.md` is the art direction, and it is not optional reading before building a surface.
+4. **`glossary.md`**, the whole file. It is short, and it is the project's own word for each thing in its domain. **Name what you write from it**: types, variables, functions, routes, and every user facing string. A word on an Avoid line does not appear in code you write. **Write nothing into that file**, even a term the build obviously needs, since it has two writers already and you are not one of them. Report the missing term instead, and `/dev-architect` adds it.
+5. **`project-overview.md`**, the Core User Flow steps for any page this task serves. That is the contract `/dev-check verify` will hold the result against.
+6. **`library-docs.md`**, only for a library this task actually uses. Skip the rest.
+7. **`tooling.md`**, the Local Data Lifecycle section, whenever this task touches the database. It says whether local data resets between tasks or persists, and the exact reset command.
+8. **`design.md`** and **`ui-registry.md`**, only on the UI track. `design.md` is the art direction, and it is not optional reading before building a surface.
 
 **Never reset the local database unless Local Data Lifecycle says to.** Someone else's work in progress may be sitting in it, and there is no undo. Where that section says data persists, work with what is there.
 

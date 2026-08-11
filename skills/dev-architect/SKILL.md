@@ -56,6 +56,15 @@ Eight documents, all created and updated by this skill only, filled from the mat
 
 Never touch `project-overview.md`. It is `/dev-scope`'s file. If the design work proves it wrong, say so and ask the user to run `/dev-scope` again rather than editing it yourself.
 
+**`glossary.md` is the one exception, and a narrow one.** `/dev-scope` creates it, and you are its second writer. Read it before the design conversation, name everything you write with its words, and add to it only in these two cases:
+
+- **A concept the design brought into existence** that the product conversation had no word for. A join table's row is not one. A thing a user would name in a sentence is.
+- **A definition the schema proved imprecise**, most often one word that turned out to be covering two concepts.
+
+**You may sharpen a definition and you may not rename a term.** A rename is a decision about the product's own language, and it belongs to the person whose product it is. Where a term is genuinely wrong, say so and ask.
+
+**No implementation words go in, ever.** Not a table, a type, a field, an endpoint, or a library. That file has to survive a rewrite that changes every one of them. Its What does not belong here and Who writes what sections state the rest, and they stay as they are.
+
 **Four of these are living files, created here and updated elsewhere.** `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `ui-registry.md` are written once by this skill, in their starting state, and every update after that belongs to another skill: a task's Status and a new component section to `/dev-develop`, a task's Verify Check to `/dev-check verify`, a decision row to `/dev-develop` or `/dev-debug`, and a note row to whichever of `/dev-develop`, `/dev-check`, or `/dev-debug` ran the thing. Do not stamp a task, register a component, log a decision, or write a note row for something that does not exist yet.
 
 Read a template from `templates/`, in this skill's folder, and write the filled copy to `.konteksto/<same-file-name>`. Never edit a template in place.
@@ -91,6 +100,7 @@ The full mechanics, including the free text slot, generating options fresh rathe
 ### Step 1: Pre flight
 
 - **Read `.konteksto/project-overview.md` in full.** If it does not exist, stop and tell the user to run `/dev-scope` first. Everything here depends on it.
+- **Read `.konteksto/glossary.md` in full, and use its words from here on.** Every table, boundary, component, and phase name you write comes out of it, because a schema that renames the product's concepts forces every later reader to translate, and eventually one of them translates wrongly. Where the file is missing on a project that has a `project-overview.md`, say so and write it from the terms already in that file rather than proceeding without one.
 - **Read what `/dev-scope` handed you**, if anything: whether a codebase exists, the stack it showed, and any tool or constraint the user named during scoping. Do not survey the same ground again.
 - **Work out whether the code is actually somebody else's.** A manifest and a source tree are not proof of an existing codebase, because `/dev-develop` scaffolds this project itself as the first task in the plan. Code whose stack matches what `.konteksto/architecture.md` already specifies is **our own scaffold**, and it is not brownfield. Only code with no matching documents, or code that diverges from them, is a real existing codebase.
 - **If a real codebase exists and you were not handed a survey**, read it now: the directory tree, every package manifest, the lint and build config, the entry points. The stack that is already there is a decision already made. Record it, do not re litigate it.

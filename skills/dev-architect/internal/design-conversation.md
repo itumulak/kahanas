@@ -114,6 +114,14 @@ Ask, assemble, show, confirm, iterate. In that order.
 
 This is the one artifact worth showing whole and confirming mid conversation, because a wrong data model cascades into every later decision and every build task.
 
+**Name every entity from `glossary.md`, and challenge a word the moment it disagrees.** The data model is where the product's language either becomes the code's language or quietly stops being it, and this stage is the last cheap moment to notice.
+
+Three things to say out loud when they happen:
+
+- **The user's word conflicts with their own glossary.** "Your glossary says a booking exists only after payment clears, and you just described an unpaid one. Is that a hold, or is the definition wrong?" Do not pick. Both readings are plausible and only they know which.
+- **One word is covering two entities.** The classic tell is a field that only applies half the time. That is a term to split, it goes back to the glossary, and the naming is the user's call.
+- **An entity has no term at all.** A join table does not need one. Anything a person would name in a sentence does, and building it unnamed means the next three documents each invent their own word for it.
+
 On sign off, the migration becomes the first task in `build-plan.md`.
 
 ### Stage C: The stack walk

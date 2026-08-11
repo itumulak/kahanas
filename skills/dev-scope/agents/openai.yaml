@@ -4,4 +4,4 @@
 interface:
   display_name: "Dev Scope"
   short_description: "Define what the product is, before anything is built"
-  default_prompt: "Run the dev-scope skill: read its SKILL.md, then survey the project root and turn the idea into .konteksto/project-overview.md. Stay tool agnostic; the dev-architect skill picks the stack."
+  default_prompt: "Run the dev-scope skill: read its SKILL.md, then survey the project root and turn the idea into .konteksto/project-overview.md plus .konteksto/glossary.md. Stay tool agnostic; the dev-architect skill picks the stack."
