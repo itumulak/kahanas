@@ -1,6 +1,6 @@
 # Design
 
-*Purpose: the art direction every UI build follows, so pages built in different sessions look like one product. Holds the character, the build mandate, and the composition rules. The token values themselves live in the project's own CSS or styling config, never duplicated here, because two copies of a colour drift. Optional: only present when the project has a frontend.*
+*Purpose: the art direction every UI build follows, so pages built in different sessions look like one product. Holds the character, the build mandate, and the composition rules. The token values themselves live wherever the Where the tokens live table points, never duplicated here, because two copies of a colour drift. Optional: only present when the project has a frontend.*
 
 ---
 

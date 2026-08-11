@@ -277,7 +277,14 @@ This exists so a later run, here or in `/dev-sync`, can tell what a tool wrote f
 
 **The stamp records provenance, not permission.** It never licenses overwriting a line someone edited. A stamped file still gets the same care as an unstamped one.
 
-Skip `design.md` when there is no `app/`. Write the token values into the project's own styling config and **point at them** from `design.md`, never copy them into it. Two copies of a colour drift, and the copy in the document is always the one that goes stale.
+Skip `design.md` when there is no `app/`. **Never copy token values into `design.md` itself**, which only ever points at where they live, because two copies of a colour drift and the copy in the document is always the one that goes stale.
+
+Where the values go depends on whether the project has code yet:
+
+- **An existing project with a styling config.** Point `design.md` at it. Change nothing, since those values are decisions already made.
+- **A greenfield project.** Write the starting values to `.konteksto/designs/shared/tokens.css` and point `design.md` there. `/dev-develop` moves them into the real styling config on the first UI task, and `design.md` is repointed then.
+
+**You may not write the project's styling config yourself**, on a greenfield project or any other. That is application code and the guardrail above covers it with no exception. `shared/tokens.css` is inside `.konteksto/designs/`, which is why it is allowed and why it is temporary.
 
 **Write the round cap into `tooling.md`'s Doubt pass rounds section**, using the answer step 6a got, or `3` where no doubt pass ran and nothing was asked. That section is what stops a later run asking the same question again.
 
