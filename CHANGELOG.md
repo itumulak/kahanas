@@ -4,7 +4,7 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
-## [0.3.1] — 2026-08-11
+## [0.4.0] — 2026-08-11
 
 Maintenance. Nothing a project using these skills will run differently, and the reason it exists is that every stale instruction found while reviewing 0.3.0 came from one cause.
 
