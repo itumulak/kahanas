@@ -4,6 +4,16 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
+## [0.3.1] — 2026-08-11
+
+Maintenance. Nothing a project using these skills will run differently, and the reason it exists is that every stale instruction found while reviewing 0.3.0 came from one cause.
+
+### Changed
+
+- **Each rule now has one canonical definition.** A rule was being written out in several files, correct when written and wrong the moment one copy changed. That produced a document count beside a list in three files, a breakpoint count in five, an approval condition in four, and a token instruction contradicting its own guardrail. Every other file now carries only the trigger, the action, and a pointer, never the definition or the reasoning.
+- **`CLAUDE.md` says which file owns which rule**, and states the test for what a non owner may still keep: the trigger and the action stay local, since a pointer followed on every task is a pointer nobody follows, while the definition and the why do not.
+- **`CLAUDE.md` is navigable again.** It had grown to forty paragraphs with no heading between the workflow table and the section on writing a skill, and the usual loop had drifted thirty lines from the table it explains.
+
 ## [0.3.0] — 2026-08-11
 
 Design moves upstream. `/dev-architect` now settles how the product looks, not only how it is built, and `/dev-develop` implements what a person approved rather than composing a surface itself. Three new documents, and one change of role.
