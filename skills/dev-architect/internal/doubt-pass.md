@@ -17,9 +17,31 @@ The idea is narrow: **a decision that is expensive to undo gets read by somethin
 | Brief | find what is wrong with this | is anything load bearing missing |
 | Who chooses | you, as part of forming your recommendation | the user, always asked |
 
-**You do not ask permission for this one, and that is deliberate.** The cross check is asked because it surfaces load bearing gaps that belong to the user, and a person has to decide what happens to those. The doubt pass is part of arriving at your own recommendation, which is what you were called here to do. Asking whether you may think harder about your own advice is not consent, it is delay.
+**You do not ask permission to run one, and that is deliberate.** The cross check is asked because it surfaces load bearing gaps that belong to the user, and a person has to decide what happens to those. The doubt pass is part of arriving at your own recommendation, which is what you were called here to do. Asking whether you may think harder about your own advice is not consent, it is delay.
 
-What you do owe the user is the result: say what the doubt pass found and what you changed because of it, before they accept anything.
+**You do ask how many rounds it may run**, once, because that is a cost the user pays. See the next section.
+
+What you also owe them is the result: say what the doubt pass found and what you changed because of it, before they accept anything.
+
+## Settle the round cap, once
+
+Read the **Doubt pass rounds** section of `tooling.md` first. Where it holds a number, use it and ask nothing. That is the case on a re run, and on any project whose documents already exist.
+
+**On a first run that file does not exist yet**, since step 7 writes it and this is step 6a. Ask, hold the answer for the rest of the session, and **carry it into step 7 so `tooling.md` is written with it**. Do not create the file early to store one number.
+
+Where it is empty or missing, ask **once**, on the first decision that triggers a pass, then record the answer in that section so no later run asks again:
+
+> Each round spawns a read only reviewer on another model, so this is the main cost of the doubt pass. How many rounds may I run on one decision before bringing it back to you?
+>
+> 1. **Three** (recommended): the most stubborn decisions get properly worked. Most passes still end after one, since the pass stops as soon as findings go trivial.
+> 2. **Two**: one round plus a follow up on whatever the first found.
+> 3. **One**: a single adversarial read, then it comes to you.
+
+**Ask once per project, never per decision.** A question repeated at every load bearing decision stops being a choice and becomes a toll, and the user starts answering it without reading.
+
+**The number is a ceiling, not a quota.** Whatever it says, stop when the findings go trivial. A cap of three does not license three rounds on a decision that was settled by the first.
+
+**Do not offer to raise it mid pass.** Hitting the cap with something unresolved is a signal that a person is needed, and asking for one more round instead is how the escalation gets postponed indefinitely.
 
 ## When to run it
 
@@ -33,6 +55,8 @@ Run it on a decision that meets any of these:
 **Do not run it** on a choice among options the documents already permit, on anything reversible in an afternoon, or when the user has said plainly they want speed. A doubt pass on a settled convention burns a subagent and buys nothing, and running one on everything is how a design pass turns into an afternoon.
 
 Expect a handful per project. If you are on the fifth, check that you are not doubting your way around a decision the user already made.
+
+**Each round costs a subagent on another model**, so the trigger list above is the real cost control and the round cap is the backstop. A pass you should not have started is more expensive than a cap set too high.
 
 ## Step 1: Name the decision
 
@@ -86,11 +110,11 @@ Put every finding in exactly one of four boxes, and say which for each. Sorting 
 
 Stop at the first of these:
 
-- **The findings have gone trivial.** One round is often enough. This is the normal ending.
-- **Three rounds have run.** Hard cap.
+- **The findings have gone trivial.** One round is often enough. This is the normal ending, whatever the cap says.
+- **The cap has been reached**, meaning the number in `tooling.md`'s Doubt pass rounds section. Hard, and never raised mid pass.
 - **The user says stop.**
 
-**At three rounds with something substantive still unresolved, take it to the user.** Say the decision, what the doubter keeps returning to, what you changed already, and the two options you are choosing between. A decision that survives three adversarial rounds unresolved is not a decision one more round settles, it is one that needs a fact only the user has.
+**At the cap with something substantive still unresolved, take it to the user.** Say the decision, what the doubter keeps returning to, what you changed already, and the two options you are choosing between. A decision that survives its allowed rounds unresolved is not one more round from being settled, it is one that needs a fact only the user has.
 
 ## What this writes
 

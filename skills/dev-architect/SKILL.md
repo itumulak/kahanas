@@ -251,7 +251,9 @@ Run this once the design conversation's completeness gate has passed and before 
 
 **Read `internal/doubt-pass.md` and follow it.** It holds the trigger list, the brief for the doubter, how to sort what comes back, and the cap.
 
-The two rules worth seeing from here. **Send the doubter the decision and what it must satisfy, and none of your reasoning**, because a reviewer given your argument reviews your argument and finds it coherent, which it is. And **it writes nothing anywhere**, including `decision-log.md`, which is not this skill's file to write rows in.
+Three rules worth seeing from here. **Send the doubter the decision and what it must satisfy, and none of your reasoning**, because a reviewer given your argument reviews your argument and finds it coherent, which it is. **It writes nothing anywhere**, including `decision-log.md`, which is not this skill's file to write rows in.
+
+And **each round spawns a subagent, so the user sets the cap.** Read the Doubt pass rounds section of `tooling.md`, and where it is empty ask once, recommending 3, then record the answer there so no later run asks again. Never ask per decision, and never raise the cap partway through a pass.
 
 Skip the file when nothing this pass settled meets the trigger list. That is a normal outcome on a small project, and doubting an easily reversed choice costs an afternoon and buys nothing.
 
@@ -274,6 +276,8 @@ This exists so a later run, here or in `/dev-sync`, can tell what a tool wrote f
 **The stamp records provenance, not permission.** It never licenses overwriting a line someone edited. A stamped file still gets the same care as an unstamped one.
 
 Skip `design.md` when there is no `app/`. Write the token values into the project's own styling config and **point at them** from `design.md`, never copy them into it. Two copies of a colour drift, and the copy in the document is always the one that goes stale.
+
+**Write the round cap into `tooling.md`'s Doubt pass rounds section**, using the answer step 6a got, or `3` where no doubt pass ran and nothing was asked. That section is what stops a later run asking the same question again.
 
 **Fill the Definition of Done in `code-standards.md` with this project's real commands**, not a generic list. It is the standing bar every later skill checks before stamping a task `DONE`, so a row reading "tests pass" on a project whose test command you never confirmed is worse than an empty table: it will be ticked from memory. Keep the section and its Not on this list subsection as the template has them, since the exclusions are what stop it growing into a gate that swallows `/dev-check` and `/dev-test`.
 

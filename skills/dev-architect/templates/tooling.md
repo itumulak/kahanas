@@ -67,6 +67,20 @@ Whoever builds a task follows this and nothing else. A build never drops a local
 
 ---
 
+## Doubt pass rounds
+
+*Purpose: how many adversarial review rounds `/dev-architect` may run on one load bearing decision before it stops and brings the question to a person. Recorded here because it is a fact about how the agent works on this project, not about the product, and because a preference asked once should not be asked again every session.*
+
+**Rounds:** <1_2_OR_3>
+
+Each round spawns a read only subagent on a different model, so this is the main cost lever on the doubt pass. `/dev-architect` asks once, on the first decision that triggers a pass, and reads this line on every run after that. Change the number by hand at any time.
+
+**This is a ceiling, not a quota.** The pass stops the moment the findings go trivial, which is usually after one round whatever this says. A higher number does not mean more rounds get run, it means more are available on a decision that keeps producing real objections.
+
+**At the cap with something substantive unresolved, it stops and asks.** A decision that survives its allowed rounds still contested is not one more round away from settled, it needs a fact only a person has.
+
+---
+
 ## Considered and Rejected
 
 *Purpose: tools that came up during discovery and were deliberately not installed, with the reason. Stops a later session from re proposing the same thing.*
