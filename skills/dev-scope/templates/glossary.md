@@ -57,7 +57,11 @@ Repeat one entry per term. Keep them in alphabetical order, so a reader checking
 
 **`/dev-architect` may sharpen a definition and may not rename a term.** A rename is a decision about the product's own language, and the person whose product it is owns it. Where a term is genuinely wrong, say so and ask, rather than quietly correcting it in a file everything else reads.
 
-**`/dev-sync` writes nothing here, and this is not an oversight.** A term in the code that is missing from this file looks exactly like a gap it is allowed to fill, and it is not one. It is a contradiction: either the glossary is behind, or somebody named a thing wrongly and the glossary is what proves it. From the outside those are identical, and picking the code's word would let a typo become canonical. So it reports, naming the term, the file, and the entry it disagrees with, and stops.
+**`/dev-sync` writes nothing here, and this is not an oversight.** A term in the code that is missing from this file looks exactly like a gap it is allowed to fill elsewhere, and it is not one.
+
+**The code proves a word is in use. This file claims that word is the one the project chose.** Those are different facts, and only the first is in the repository, so reading the code can never prove what belongs here. That is what separates this file from `ui-registry.md`, which records what exists and which `/dev-sync` does correct from the code.
+
+So it reports and stops: a word this file rejects on an Avoid line, named alongside the entry it disagrees with, or a concept in the code with no entry at all. Both go to a person, and the fix is often a rename in the code rather than an edit here.
 
 ---
 

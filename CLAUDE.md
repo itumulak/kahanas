@@ -25,7 +25,9 @@ Twelve documents in all, and `design.md` is the only optional one: it is skipped
 
 **`glossary.md` is the second shared document, and it splits by stage rather than by row or column.** `/dev-scope` creates it and writes the words the user used. `/dev-architect` adds a term the design brought into being and sharpens a definition the schema proved imprecise, and **may never rename one**, because a rename is a decision about the product's own language and belongs to the person whose product it is. Everything else reads it, names what it builds from it, and reports drift.
 
-**`/dev-sync` writes nothing there either, and the reason is the gap and contradiction rule.** A term in the code that is missing from the glossary looks exactly like a gap it fills elsewhere. It is not one: either the document is behind or somebody named a thing wrongly, those are indistinguishable from the outside, and taking the code's word would make a careless name canonical.
+**`/dev-sync` writes nothing there either, and the reason is not the gap and contradiction rule.** A term in the code that is missing from the glossary reads as a plain gap, and by that rule's own words it is one. It still may not be filled, because **the code proves a word is in use and never that it is the word this project chose.** Naming is a decision, and this skill records nothing it did not observe.
+
+**That is the sharper form of "a fact the repo can prove", and it is worth stating because the loose form misleads.** `ui-registry.md` records what exists, so the code proves it end to end and `/dev-sync` corrects it. A glossary records what was chosen, and no amount of reading the code will ever prove that. Before filling any gap, check the repo proves the fact the document actually claims rather than a neighbouring one.
 
 **Those three rows are three different claims, which is why they are not one row.** A clean build is not a working feature, and a passing verify is not a fixed bug. Collapsing them loses exactly the distinction a later session needs.
 

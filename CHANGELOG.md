@@ -22,7 +22,8 @@ Entries describe the effect on someone running the skills, not the edit that pro
 - **`/dev-sync` marks its dependency stubs unsourced** when a manifest gains a package, so a placeholder cannot be mistaken for a note somebody verified.
 - **`/dev-develop` runs every row of the Definition of Done before stamping `DONE`**, and reports each result. A row it skipped counts as a row that failed.
 - **`/dev-architect`'s data model stage challenges a term that disagrees with the glossary**, splits one word covering two entities, and names an entity that has none. The schema is the last cheap moment to notice that the code has quietly stopped using the product's language.
-- **`/dev-sync` reports a name in the code that the glossary rejects**, and writes nothing into that file. A missing term looks like a gap it would normally fill, and it is a contradiction: either the document is behind or something was named wrongly, and those are identical from the outside.
+- **`/dev-sync` reports a name in the code that the glossary rejects, and a domain concept with no entry**, writing nothing into that file either way. The first is a contradiction. The second reads as a plain gap and still may not be filled, because the code proves a word is in use and never that it is the word the project chose.
+- **`/dev-sync`'s gap rule now says what "a fact the repo can prove" excludes.** The loose reading let a fact in the neighbourhood of a document's claim pass for the claim itself, which is how a careless name would have become canonical.
 - **`/dev-sync` says plainly that its own `DONE` stamps are the narrower claim.** It runs nothing, so it cannot confirm the Definition of Done, and a task it stamped from repo evidence is now reported as needing that check rather than passing as finished.
 
 ## [0.2.0] — 2026-08-09
