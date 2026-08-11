@@ -94,24 +94,14 @@ APPROVED  →  CHANGE REQUIRED  →  DRAFT  →  READY FOR REVIEW  →  APPROVED
 
 ## Stamping
 
-Every Status value carries who set it and when, in the same shape `progress-tracker.md` uses:
+**`progress-tracker.md`'s Progress section defines stamping and superseding**, and this file follows it exactly: a value carries who set it and when, and a change is struck through with the new one appended rather than overwritten.
 
 ```
 DRAFT, claude-opus-5, 2026-08-11 14:02
-APPROVED, Ian Tumulak, 2026-08-11 16:30
+~~DRAFT, claude-opus-5, 2026-08-11 14:02~~ APPROVED, Ian Tumulak, 2026-08-11 16:30
 ```
 
-A model writes its **exact model identifier**, or `unknown-model` when it genuinely cannot tell, and says so in its report rather than guessing one.
-
-**An `APPROVED` stamp carries the approving person's name**, whether they wrote the row or a skill recorded their explicit yes. Never a model identifier, and never a name read out of `git config`. The evidence that matters is the approval interaction, not who owns the checkout, and a shared machine makes the git identity worth nothing.
-
-**A value that changes is superseded, never overwritten.** Strike the old one through and append the new one after it, leaving exactly one unstruck value, which is the current one:
-
-```
-~~DRAFT, claude-opus-5, 2026-08-11 14:02~~ ~~READY FOR REVIEW, claude-opus-5, 2026-08-11 15:40~~ APPROVED, Ian Tumulak, 2026-08-11 16:30
-```
-
-The history is the point. A surface that was approved, then required a change, then was approved again is telling a later session something a single final value hides.
+One thing here differs from the tracker and is easy to get wrong. **An `APPROVED` stamp carries the approving person's name**, whether they wrote the row or a skill recorded their explicit yes. Never a model identifier, and never a name read out of `git config`. The evidence that matters is the approval interaction, not who owns the checkout, and a shared machine makes the git identity worth nothing.
 
 **The Note column is narrow.** Only a `MISSING` or a `CHANGE REQUIRED` row carries one, both must, and every other row reads `—`. A `MISSING` note says what the flow needs and nobody has designed. A `CHANGE REQUIRED` note says what made it wrong. It is overwritten rather than superseded, because the struck stamps beside it already hold the history.
 

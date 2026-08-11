@@ -87,7 +87,7 @@ You now hold four lists: the flow steps to confirm, the surfaces to confirm exis
 - every interaction it demonstrates, behaving the same way
 - every breakpoint `design.md` defines, composed as designed rather than merely reflowed
 
-**Exact pixel equality is not the bar and you must not report against it.** A component library injects its own spacing and fonts rasterize differently on every machine, so a pixel comparison fails on a correct build and tells you nothing. The list above is what a person could actually check, which is why it is the list.
+**Exact pixel equality is not the bar and you must not report against it.** `/dev-develop`'s `ui-guide.md` defines fidelity and the order in which it yields. The list above is the checkable form of it, which is why it is the list.
 
 **Accessibility outranks reproduction.** Where the built page departs from the prototype to fix a contrast or touch target problem, that is a pass with a note, never a fail. `/dev-develop` was told to report those departures, and a departure it reported and you confirmed is the system working.
 

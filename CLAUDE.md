@@ -36,23 +36,53 @@ Most of the individual rules below are this one rule applied to a particular fil
 
 **When a new rule is needed, check whether this already covers it.** A rule derived from the invariant needs no separate justification and will not drift out of step with the others.
 
+## A rule has one canonical definition
+
+**One file defines a rule. Every other file states only its own consequence, and points.**
+
+A non owner carries three things and never a fourth:
+
+1. **The trigger.** When the rule fires here.
+2. **The action.** What this skill does about it.
+3. **A pointer.** Where the rule is actually defined.
+
+It does not carry the definition, the boundary cases, or the reasoning. **Those are what drift**, because a definition written in five places gets edited in one.
+
+**This is not theoretical.** Every stale string found in review so far came from exactly this: a document count written beside a list in three places, a breakpoint count in five, an approval condition in four. Each was correct when written and wrong the moment its neighbour changed.
+
+**The test for what stays local: could this skill act correctly reading only this file?** The trigger and the action must be here, since a pointer followed on every task is a pointer nobody follows. The definition and the why do not, since a skill that already knows to stop does not need to be re convinced.
+
+| Rule | Defined in |
+| --- | --- |
+| Stamping a value, and superseding it | `progress-tracker.md` |
+| What a visual gap is, and what it stops | `dev-develop/ui-guide.md` |
+| Who may approve a design, and how it is recorded | `design-registry.md` |
+| Surface, state, and interaction | `design-registry.md` |
+| Which token file is authoritative | `design.md` |
+| Fidelity, and what outranks it | `dev-develop/ui-guide.md` |
+| The bar for `DONE` | `code-standards.md` |
+
+**This overview and `README.md` are the exception, and they still may not carry specifics.** Their job is orientation for somebody maintaining the skills, so they say what a rule is for and why it exists. They do not restate its exact conditions, values, or counts, because a summary that carries operational detail is just another copy waiting to go stale.
+
 **A new artifact needs a fundamentally different owner, lifecycle, or truth source.** There are already six state and knowledge files: `progress-tracker.md`, `decision-log.md`, `note-registry.md`, `ui-registry.md`, `design-registry.md`, and `glossary.md`. Each earns its place on that test. New information goes into an existing artifact unless it can pass the same one, because the cost of another file is paid by every session that has to know it exists.
 
 **Design is decided upstream and never invented during a build.** `/dev-architect` produces interactive HTML prototypes in `.konteksto/designs/` covering every surface, a person approves them, and `/dev-develop` implements them. **Coverage is the rule, not one file per surface**: several steps of a checkout may share one prototype, and one complicated screen may need several, with `design-registry.md` holding the mapping either way.
 
-**A surface is a distinct user context needing its own composition.** Loading, empty, and error are states of one surface rather than three more surfaces, and they are listed in the registry's Required states column. Without that distinction a six entity product produces eighty rows nobody reads. Where the user supplied designs, their originals are copied to `designs/sources/` and never overwritten, because that artifact is the only thing in the project they actually authored.
+**A surface is a distinct user context, and its states are not more surfaces.** `design-registry.md` draws the line, and it exists because without it a six entity product produces eighty rows nobody reads.
+
+**A design the user supplied is never overwritten.** Their originals are copied to `designs/sources/` and stay there untouched, because that artifact is the only thing in the project they actually authored, and it is what settles a later disagreement about what they asked for.
 
 **The surfaces come from the flows, not from the page list.** The Pages section of `project-overview.md` holds the screens somebody thought of. The Core User Flow holds what actually happens, and the surface that gets missed is nearly always a failure branch of a step. A product that mocks its dashboard and forgets the verification screen, the recovery codes, and the wrong code path has designed one surface out of eight, and only reading the flows finds that.
 
 **A missing design blocks its own surface and nothing else.** The plan is written in full regardless. This is the same shape as an unratified assumption keeping one task off `DONE` without holding up the project, and it is deliberately not a project wide gate, because a gate nobody can work around is a gate everybody works around.
 
-**Read that as narrowly as it sounds.** A backend only project can never have a visual gap, having no prototypes to be missing, and neither can a task with only Logic bullets. On a task with both, the logic half is still built and only the surface stops. A missing design never blocks an endpoint, a migration, or a job, because none of them shows anybody anything.
+**Read that as narrowly as it sounds.** A missing design never blocks an endpoint, a migration, or a job, because none of them shows anybody anything. `ui-guide.md` draws the exact edges, including what happens to a task that is half logic.
 
 **`/dev-develop` is not the designer on a project with an `app/`.** It implements an approved prototype at high fidelity and may not introduce a layout, an interaction, or a product decision. **The stated assumption option is withdrawn for a visual gap**: a recorded assumption about a retry policy is visible and obviously provisional, while an invented layout looks exactly like a designed one, so nobody reviews it and the next surface invents a different answer.
 
-**Exact pixel equality is not the bar, because nothing can check it.** A component library injects its own spacing and fonts rasterize differently on every machine. What is checkable is every region present in the same order, the same hierarchy, every designed state reachable, every interaction behaving, at every breakpoint `design.md` defines. Accessibility outranks reproduction: a prototype with an unreachable touch target is fixed in the build and reported, not copied faithfully.
+**Exact pixel equality is not the bar, because nothing can check it.** A component library injects its own spacing and fonts rasterize differently on every machine, so a pixel comparison fails on a correct build. `ui-guide.md` defines the checkable form and the order in which fidelity yields, with accessibility above reproduction.
 
-**No skill may originate an approval, and a skill may record one a person actually gave.** Deciding and writing down are different acts, and making somebody hand edit markdown after saying yes is ceremony rather than safety. The conditions are strict: an explicit yes to that specific artifact, never a vague one, and the name recorded is the person's rather than whatever `git config` holds. A skill writes every other status including `CHANGE REQUIRED`, because noticing a design has gone stale is an observation while deciding it is fixed is not.
+**No skill may originate an approval, and a skill may record one a person actually gave.** Deciding and writing down are different acts, and making somebody hand edit markdown after saying yes is ceremony rather than safety. `design-registry.md` sets the conditions a yes has to meet. A skill writes every other status including `CHANGE REQUIRED`, because noticing a design has gone stale is an observation while deciding it is fixed is not.
 
 **An accessibility departure makes the prototype stale, not the implementation wrong.** When a built page has to depart from an approved design to meet the contrast or touch target target, the build is correct and the design is now what disagrees with reality. `/dev-develop` reports it, `/dev-check verify` routes it, `/dev-architect` moves the row to `CHANGE REQUIRED` and fixes the prototype. Unrouted, the next surface inherits the same inaccessible pattern from a document still claiming somebody blessed it.
 

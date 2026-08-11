@@ -70,7 +70,7 @@ Never touch `project-overview.md`. It is `/dev-scope`'s file. If the design work
 
 **`.konteksto/designs/` is yours and nobody else's.** Every prototype in it, and the `sources/` folder holding what the user supplied. `/dev-develop` builds from a prototype and never edits one. `/dev-check` compares against one and never edits one. A design that turns out to be wrong comes back here.
 
-**One value in `design-registry.md` is not yours to decide: `APPROVED`.** You may **record** an approval a person actually gave, on the strict conditions the registry template sets out, and you may never originate one. An explicit yes to that specific artifact counts; "looks good" does not, and the name you write is theirs rather than whatever `git config` holds. You write every other status, including moving an approved design to `CHANGE REQUIRED` when something invalidated it, because noticing that is an observation and deciding it is fixed is not.
+**One value in `design-registry.md` is not yours to decide: `APPROVED`.** You write every other status, including moving an approved design to `CHANGE REQUIRED`. **The registry's Status values section defines who may approve and the conditions for recording one**, and it is short. Read it before writing that cell.
 
 **Four of these are living files, created here and updated elsewhere.** `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `ui-registry.md` are written once by this skill, in their starting state, and every update after that belongs to another skill: a task's Status and a new component section to `/dev-develop`, a task's Verify Check to `/dev-check verify`, a decision row to `/dev-develop` or `/dev-debug`, and a note row to whichever of `/dev-develop`, `/dev-check`, or `/dev-debug` ran the thing. Do not stamp a task, register a component, log a decision, or write a note row for something that does not exist yet.
 
@@ -180,7 +180,7 @@ Four rules worth seeing from here, because they are the ones that change what th
 
 **A missing design blocks its own task and nothing else.** Write the whole plan regardless. `/dev-develop` stops on the task whose surface has no approved design, exactly like an unratified assumption keeps one task off `DONE` without holding up the project.
 
-**You may never decide an `APPROVED`.** Present, set the row to `READY FOR REVIEW`, and ask. Once they say yes to that specific prototype, you may record it in their name.
+**You may never decide an `APPROVED`.** Present, set the row to `READY FOR REVIEW`, and ask. The registry defines what a yes has to look like before you may record one.
 
 ### Step 4: Audit an existing codebase
 
@@ -279,12 +279,9 @@ This exists so a later run, here or in `/dev-sync`, can tell what a tool wrote f
 
 Skip `design.md` when there is no `app/`. **Never copy token values into `design.md` itself**, which only ever points at where they live, because two copies of a colour drift and the copy in the document is always the one that goes stale.
 
-`design.md` names two files and says which one decides. The prototypes always read `.konteksto/designs/shared/tokens.css`, on every project, because a prototype must render on its own and a production config is often a `tailwind.config.js` or a `theme.ts` no plain HTML file can consume.
+Fill in its **Where the tokens live** section, which defines the whole token model: the production source, the prototype mirror, and which of them is authoritative when. Follow it as written.
 
-- **An existing project with a styling config.** That config is the authority. Generate the mirror from it and change no value in it.
-- **A greenfield project.** Write the starting values into the mirror, which is the authority until real code exists. **Fill in the Production source line anyway**, using the path `architecture.md`'s folder structure implies, marked as not created yet, so nothing has to be repointed once `/dev-develop` creates it. A pointer left to be fixed later is one that stays wrong, since this skill may not run again at that moment.
-
-**You may not write the project's styling config yourself**, greenfield or otherwise. That is application code and the guardrail above covers it with no exception. `shared/tokens.css` is inside `.konteksto/designs/`, which is the only reason it is allowed.
+Two things it requires of you here. **Fill in the Production source line even on a greenfield project**, using the path `architecture.md`'s folder structure implies, marked as not created yet, so nothing needs repointing later. And **you may not write that file yourself**, greenfield or otherwise, since it is application code and the guardrail above has no exception for it.
 
 **Write the round cap into `tooling.md`'s Doubt pass rounds section**, using the answer step 6a got, or `3` where no doubt pass ran and nothing was asked. That section is what stops a later run asking the same question again.
 
