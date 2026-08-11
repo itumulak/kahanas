@@ -113,6 +113,10 @@ Plus `docker-compose.yml` and `.env.example` at the root, and a project laid out
 
 **Generated is not applied.** A migration that exists is not a migration that ran, and no type check will tell you the difference.
 
+**A note without a source is a guess in a trusted place.** Every section of `library-docs.md` says where it came from: a documentation URL and the date it was read, or a plain admission that nobody checked. Both are useful. What is not useful is a note that could be either.
+
+Two of these were sharpened by reading [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), MIT licensed, which is worth a look on its own: the interviewing technique in `/dev-scope` and the sourcing rule above.
+
 ## Requirements
 
 Docker for the local stack. Git. Node 18 or later for the installer.

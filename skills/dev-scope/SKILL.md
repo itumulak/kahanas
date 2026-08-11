@@ -67,6 +67,8 @@ Every user facing choice is an options panel: 2 to 4 concrete options real to th
 
 Ask in small rounds, up to 4 related questions per round. Do not fire one question at a time when four related ones could be answered together, and do not dump twenty at once.
 
+**One exception, and it is narrow.** Rounds work because you can already name the options, so the answer to one question does not change what the others are. When the idea is still vague enough that you cannot name them, read `interview.md` in this skill's folder and follow it: one question per turn, each carrying your guess, until you can build a real panel again. Then come back here.
+
 ## Execution
 
 ### Step 1: Survey the project root
@@ -92,6 +94,13 @@ If no idea was given and no argument was passed, stop and ask before anything el
 "What are you building? Describe the product in one or two sentences: what it does, and who it is for."
 
 Wait for the answer.
+
+**Then judge whether it is enough to work from.** State your understanding in one sentence with a confidence number from 0 to 100, so the user sees what you took from what they said.
+
+- **Confident, and the answer named a real problem and a real user.** Go to step 3.
+- **Not confident, or the answer leaned on convention rather than specifics**, meaning phrases like "the usual dashboard" or "standard auth" that mean something different to everybody. Read `interview.md` in this skill's folder and follow it before step 3.
+
+Do not interview a clear request. It reads as stalling, and `interview.md` says when to skip.
 
 ### Step 3: Work through the template, section by section
 
@@ -196,6 +205,7 @@ Report:
 - The project shape: which halves exist, and whether the layout is the recommended one or a custom one. `/dev-architect` needs both to write the compose file and the folder tree.
 - Any tool, provider, or constraint the user named during the conversation. This is the only place those belong.
 - Any question that came up which is a how question, not a what question, so `/dev-architect` starts with it.
+- Whether you ran the interview in `interview.md`, and if you did, which assumption it overturned. A first answer the user later corrected is worth passing on, since `/dev-architect` will otherwise rediscover the same wrong idea from the same starting point.
 - That you wrote nothing else.
 
 Then name the next step: run `/dev-architect` to design the stack and the build.

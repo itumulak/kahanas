@@ -4,6 +4,20 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
+## [Unreleased]
+
+### Added
+
+- **An interviewing technique for `/dev-scope`**, in `interview.md`, for the case where an idea is too vague to build options from. One question per turn, each carrying a guess at the answer, until the answers stop surprising you. It runs only when the idea is genuinely unclear, since interviewing a clear request reads as stalling.
+- **A Source line on every section of `library-docs.md`**, holding the documentation URL and the date it was read, or a plain statement that nobody checked. A remembered gotcha and a verified one used to look identical on the page, and only one of them was safe to build against.
+- **An Accepted risks section in `library-docs.md`**, where a knowingly kept vulnerable dependency lands. `/dev-architect` was already told to record one there and the template had nowhere to put it.
+
+### Changed
+
+- **`/dev-architect` reads the version from the manifest before writing a library note**, then fetches the docs page for that version rather than writing from memory.
+- **`/dev-develop` reports the documentation it had to go and read**, with the URL and the version, instead of quietly using it and moving on. It still writes nothing to `library-docs.md`, which stays `/dev-architect`'s file.
+- **`/dev-sync` marks its dependency stubs unsourced** when a manifest gains a package, so a placeholder cannot be mistaken for a note somebody verified.
+
 ## [0.2.0] — 2026-08-09
 
 ### Added

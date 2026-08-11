@@ -62,7 +62,11 @@ Most builds do not need this. For a stable and well known stack, build from know
 
 **Never to choose or reconsider a tool.** That is `/dev-architect`'s job. Look up how to use the decided tool, never whether to use it. If the documentation reveals it genuinely cannot work, that is the "the design is wrong" path in step 5, not a quiet swap for something else.
 
-Where you do need it, spawn a read only subagent with web access on a cheap model, briefed with the exact tool and version. It returns a compact usage summary, never raw pages.
+Where you do need it, spawn a read only subagent with web access on a cheap model, briefed with the exact tool and version. It returns a compact usage summary **and the URL it read**, never raw pages.
+
+**Keep that URL and report it in step 6. Do not write it into `library-docs.md` yourself**, even though that is plainly where it belongs. The file is `/dev-architect`'s, and a second writer on it is how the whole document set rots. You looked something up that the notes did not cover, which is a gap in that file, and naming it in your report is what gets it filled by the skill that owns it.
+
+**Match the version before you trust the page.** Docs sites default to the current release, and the project may be two behind. A page for the wrong version is a confident wrong answer, which is worse than the guess you were trying to avoid.
 
 ## Step 5: Resume, then build
 
@@ -111,6 +115,7 @@ The design proves wrong or incomplete partway through: the schema cannot hold th
 - Append one row to `decision-log.md` only when this task produced a real decision, a cause worth knowing, or a stated assumption. A task that went to plan writes nothing there.
 - Both rows carry the Timestamp, the Author as your exact model identifier, the Skill, and the Actor on a team project. `SKILL.md` step 3 has the exact fields.
 - **A task built on a stated assumption stays off `DONE`** until `/dev-architect` ratifies it. The assumption goes in `decision-log.md`, marked `assumed, not yet ratified`, and you say so in the report rather than leaving a `PENDING` row nobody can explain.
+- **Name any documentation you had to go and read in step 4**, with the URL, the version it covered, and the one sentence it settled. That is a gap in `library-docs.md`, and `/dev-architect` owns filling it. Say it plainly rather than burying it, since the next task on the same library will otherwise pay for the same lookup.
 - Relay the track's report block from `ui-guide.md`, `logical-guide.md`, or both.
 - Point at `/dev-check verify` next, and name the next task after that.
 

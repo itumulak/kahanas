@@ -151,6 +151,14 @@ Fix any pointer in a document that now targets a deleted or moved path. **If you
 
 **Dependencies.** A new package in the manifest gets a stub entry in `library-docs.md` naming what it is and where it is used, then flag it so `/dev-architect` can add the version specific notes. **Do not invent gotchas you have not verified.**
 
+Give the stub the Source line the template defines for exactly this case:
+
+```
+**Source**: none yet, stub added from the manifest, needs `/dev-architect`
+```
+
+**Write that line even though it looks like filler.** A section with no Source reads as an oversight, and the next skill along cannot tell whether somebody checked the docs and forgot the line or never checked at all. This says which, in one line, and it is the only reason the stub is safe to leave behind.
+
 ### Step 4: Separate a gap from a contradiction
 
 These are different problems and they get handled differently. Conflating them is how a maintenance pass quietly overwrites something deliberate.

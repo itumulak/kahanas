@@ -236,6 +236,8 @@ This exists so a later run, here or in `/dev-sync`, can tell what a tool wrote f
 
 Skip `design.md` when there is no `app/`. Write the token values into the project's own styling config and **point at them** from `design.md`, never copy them into it. Two copies of a colour drift, and the copy in the document is always the one that goes stale.
 
+**`library-docs.md` is sourced, not recalled.** Read the version out of the project's manifest, fetch the docs page for that version, and put its URL and the date you read it on the section's Source line. Where you keep a note you could not verify, write the unverified shape the template gives rather than softening the note itself, since a hedge inside prose gets skimmed and a Source line does not. Keep the Where a note comes from section exactly as the template has it: `/dev-sync` and `/dev-develop` both read it, and a sourcing rule only holds while it is written down.
+
 For each:
 
 1. Read the template in full before writing.
