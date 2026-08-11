@@ -17,6 +17,8 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 
 Thirteen documents in all, plus the design prototypes. `design.md` and `design-registry.md` are the optional ones, skipped together with `.konteksto/designs/` for a backend with no `app/`.
 
+**The usual loop:** `/dev-scope` once, `/dev-architect` once, then per task `/dev-develop`, `/dev-check verify`, `/dev-test`. A verify failure goes to `/dev-debug`. Before a merge, `/dev-check review`, then `/dev-document pr`, then `/dev-sync`.
+
 **Do not write a document count into a skill's instructions.** The number above is here, in the overview, where a person maintaining the set will see it. A count written beside a list inside a procedure is wrong the first time anybody extends the list, and this project has already shipped that bug twice.
 
 ## The one invariant behind most of the ownership rules
@@ -66,6 +68,8 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 
 **A new artifact needs a fundamentally different owner, lifecycle, or truth source.** There are already six state and knowledge files: `progress-tracker.md`, `decision-log.md`, `note-registry.md`, `ui-registry.md`, `design-registry.md`, and `glossary.md`. Each earns its place on that test. New information goes into an existing artifact unless it can pass the same one, because the cost of another file is paid by every session that has to know it exists.
 
+## Design
+
 **Design is decided upstream and never invented during a build.** `/dev-architect` produces interactive HTML prototypes in `.konteksto/designs/` covering every surface, a person approves them, and `/dev-develop` implements them. **Coverage is the rule, not one file per surface**: several steps of a checkout may share one prototype, and one complicated screen may need several, with `design-registry.md` holding the mapping either way.
 
 **A surface is a distinct user context, and its states are not more surfaces.** `design-registry.md` draws the line, and it exists because without it a six entity product produces eighty rows nobody reads.
@@ -74,9 +78,7 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 
 **The surfaces come from the flows, not from the page list.** The Pages section of `project-overview.md` holds the screens somebody thought of. The Core User Flow holds what actually happens, and the surface that gets missed is nearly always a failure branch of a step. A product that mocks its dashboard and forgets the verification screen, the recovery codes, and the wrong code path has designed one surface out of eight, and only reading the flows finds that.
 
-**A missing design blocks its own surface and nothing else.** The plan is written in full regardless. This is the same shape as an unratified assumption keeping one task off `DONE` without holding up the project, and it is deliberately not a project wide gate, because a gate nobody can work around is a gate everybody works around.
-
-**Read that as narrowly as it sounds.** A missing design never blocks an endpoint, a migration, or a job, because none of them shows anybody anything. `ui-guide.md` draws the exact edges, including what happens to a task that is half logic.
+**A missing design blocks its own surface and nothing else.** The plan is written in full regardless, and it never blocks an endpoint, a migration, or a job, because none of those shows anybody anything. This is the same shape as an unratified assumption keeping one task off `DONE` without holding up the project, and it is deliberately not a project wide gate, because a gate nobody can work around is a gate everybody works around. `ui-guide.md` draws the exact edges.
 
 **`/dev-develop` is not the designer on a project with an `app/`.** It implements an approved prototype at high fidelity and may not introduce a layout, an interaction, or a product decision. **The stated assumption option is withdrawn for a visual gap**: a recorded assumption about a retry policy is visible and obviously provisional, while an invented layout looks exactly like a designed one, so nobody reviews it and the next surface invents a different answer.
 
@@ -84,9 +86,9 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 
 **No skill may originate an approval, and a skill may record one a person actually gave.** Deciding and writing down are different acts, and making somebody hand edit markdown after saying yes is ceremony rather than safety. `design-registry.md` sets the conditions a yes has to meet. A skill writes every other status including `CHANGE REQUIRED`, because noticing a design has gone stale is an observation while deciding it is fixed is not.
 
-**An accessibility departure makes the prototype stale, not the implementation wrong.** When a built page has to depart from an approved design to meet the contrast or touch target target, the build is correct and the design is now what disagrees with reality. `/dev-develop` reports it, `/dev-check verify` routes it, `/dev-architect` moves the row to `CHANGE REQUIRED` and fixes the prototype. Unrouted, the next surface inherits the same inaccessible pattern from a document still claiming somebody blessed it.
+**An accessibility departure makes the prototype stale, not the implementation wrong.** The build is correct and the approved design is what now disagrees with reality, so it is the design that gets fixed. Unrouted, the next surface inherits the same inaccessible pattern from a document still claiming somebody blessed it. `design-registry.md` holds the routing.
 
-**The usual loop:** `/dev-scope` once, `/dev-architect` once, then per task `/dev-develop`, `/dev-check verify`, `/dev-test`. A verify failure goes to `/dev-debug`. Before a merge, `/dev-check review`, then `/dev-document pr`, then `/dev-sync`.
+## The documents, and who writes them
 
 **`test-preferences.json` is a cross skill contract.** `/dev-test` owns it, and `/dev-check review` reads it to decide whether missing coverage is a finding at all. A project that deliberately has no test runner records that there, and the review then stops asking for one.
 
@@ -121,6 +123,8 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 The stamp records provenance, not permission. It never licenses overwriting something someone edited.
 
 **A gap and a contradiction are different problems.** A gap is a fact missing that the repo can prove, and it gets filled. A contradiction is a document disagreeing with the code, and it never gets resolved automatically, because from the outside you cannot tell whether the code drifted or the document was deliberate and the code broke it.
+
+## Team shape and checkpoints
 
 **Team Shape is asked in scope and applied in architect.** `/dev-scope` asks two questions, personal or team, and phase checkpoints on or off, and records the answers in `project-overview.md`. It touches nothing else, because both answers are facts about the work rather than tool choices. `/dev-architect` reads them and shapes three documents: an Assigned column in `progress-tracker.md`, an Actor column in `note-registry.md`, and a Checkpoint block per phase in `build-plan.md` with a Checkpoints table tracking their state. Personal projects get none of it, since a column with one value in it is noise.
 
