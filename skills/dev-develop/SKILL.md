@@ -151,7 +151,7 @@ When unsure, treat it as owed. Building an unnoticed decision is the expensive f
 4. `glossary.md`, for the name of anything this task creates.
 5. `library-docs.md`, only for a library this task uses.
 6. `tooling.md`, the Local Data Lifecycle section, when the task touches the database.
-7. `design-registry.md`, `design.md`, the approved prototype, and `ui-registry.md`, only when the task has UI bullets. Check the registry row first: a surface that is not `APPROVED` is a visual gap, and the gate below handles it.
+7. `design-registry.md`, `design.md`, the approved prototype, and `ui-registry.md`, only when the task has UI bullets. Check the registry row first: a surface that is not `APPROVED` is a visual gap, and the gate below handles it. `BASELINE` is the one exception, meaning a surface that shipped before this workflow, and `ui-guide.md` states what it exempts and what ends the exemption.
 8. `decision-log.md`, for anything an earlier task already settled.
 
 **Nothing owed.** Read `flow/build.md` and follow it.

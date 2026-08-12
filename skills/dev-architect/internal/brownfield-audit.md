@@ -14,6 +14,8 @@ Existing code is a set of decisions already made, most of them by someone with c
 
 If they change their mind, that section belongs to `/dev-scope`. Say so and route them back rather than editing it here. Do not move any file yourself: `/dev-develop` does that, as a task in the plan.
 
+**The adoption baseline is already settled by the time you get here**, in step 2a, and `internal/adoption-baseline.md` defines it. Do not ask either of its questions again. If the user reopens one, that file holds the answer and the wording.
+
 #### Decide what happens to existing components
 
 Ask directly, because both answers are defensible and the wrong assumption is expensive:

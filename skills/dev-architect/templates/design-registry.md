@@ -61,6 +61,7 @@ And one complex surface may warrant several files. The registry is the mapping, 
 | `READY FOR REVIEW` | finished, self critiqued, waiting on a person | `/dev-architect` |
 | `CHANGE REQUIRED` | was approved, and something has since made it wrong | `/dev-architect` |
 | `APPROVED` | a person looked at it and accepted it | **only a person decides**, see below |
+| `BASELINE` | the surface existed and was finished before this workflow was adopted, and owes no prototype | `/dev-architect`, on an existing codebase only |
 
 **No skill may ever originate an approval.** An approval asserts that a human reviewed something. A tool deciding its own would empty the word, and every rule downstream that depends on approval would then depend on nothing. This is the same rule that governs phase checkpoints, for the same reason.
 
@@ -88,6 +89,31 @@ APPROVED  →  CHANGE REQUIRED  →  DRAFT  →  READY FOR REVIEW  →  APPROVED
 
 **An approved design is never silently changed.** Editing the file without moving the row back through the lifecycle means the word `APPROVED` is describing something nobody approved.
 
+### The adoption baseline
+
+*Keep this section only on a project that adopted this workflow with a codebase already shipped. Delete it on a fresh project, where nothing can be baseline.*
+
+`BASELINE` sits outside that lifecycle. It says one thing: **this surface existed and was finished before this workflow arrived, so nobody owes a prototype for it.** It is not a design status at all, it is a record of when the line was drawn, which is why it has no arrow into or out of the diagram above.
+
+**Finished is part of the definition, not a detail of it.** A half built page, a route behind a flag nobody turned on, a stubbed screen: those existed before the line too, and none of them is baseline. Each is an ordinary `MISSING` row owing an ordinary design, because the one thing that would have made somebody finish it is the row saying it is not finished.
+
+**What it does.** `/dev-develop` does not treat a `BASELINE` row as a visual gap and never blocks a task on one. `/dev-check verify` does not compare a build against a prototype that was never meant to exist.
+
+**What it does not do**, and this is the part that gets read too generously. `BASELINE` is not a claim that the surface is good, accessible, consistent with `design.md`, or reviewed by anybody. It is a claim about a date. No skill may read it as approval, and it never satisfies a rule that asks for `APPROVED`.
+
+**A baseline surface re enters the lifecycle when a task recomposes it**, and only then:
+
+| The task changes | Status becomes |
+| --- | --- |
+| layout, hierarchy, or the interactions on the surface | `MISSING`, and the surface owes a prototype like any other |
+| copy, content, the data behind it, or a bug in it | stays `BASELINE` |
+
+That is the same test as surface versus state above: would a designer compose this from scratch, or is it the same composition holding different content. **A one word copy fix must not need an approved prototype**, because a gate that expensive is a gate people route around, and a routed around gate protects nothing anywhere.
+
+**A brand new surface is never `BASELINE`**, whatever else on the project is. The baseline is a date, and a surface that did not exist on that date is on the far side of it.
+
+**`/dev-architect` writes this value, and only while settling the baseline.** Nothing later promotes a row into it, since a surface cannot become older than it is.
+
 **An accessibility departure makes the prototype stale, not the implementation wrong.** When `/dev-develop` has to depart from an approved prototype to meet the contrast or touch target target in `design.md`, the built page is correct and the prototype is now the thing that disagrees with reality. That row moves to `CHANGE REQUIRED`, and `/dev-architect` fixes the prototype to match what shipped. Leaving it at `APPROVED` would mean the next surface inherits the same inaccessible pattern from a document that says somebody blessed it.
 
 ---
@@ -112,6 +138,8 @@ One thing here differs from the tracker and is easy to get wrong. **An `APPROVED
 *Purpose: the boundary. Keep this section, since a registry with no stated edge grows into a second progress tracker.*
 
 **No implementation status.** Whether a surface was built, and whether anybody watched it work, are the Status and Verify Check columns of `progress-tracker.md`. This file stops at whether the design is settled. Adding a built or implemented value here would put one fact in two places and make `/dev-develop` a writer on an `/dev-architect` file to record something already recorded.
+
+**`BASELINE` is not the exception it looks like.** It records that no prototype is owed for this surface, which is a fact about the design and belongs here. That it happens to correlate with the surface having been built is a consequence, not the claim, and it is why the value is written once when the line is drawn and never updated as the code changes.
 
 **No design rationale.** Why a layout is the way it is belongs in `design.md` or in the prototype itself. This is an index.
 

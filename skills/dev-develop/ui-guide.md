@@ -53,7 +53,7 @@ Where two of those pull against each other, this order settles it:
 
 Five documents, and they decide different things:
 
-1. **`design-registry.md`**, first, to find this surface's row. It names the prototype file and says whether it is approved. **Nothing else on this list matters until that row reads `APPROVED`.**
+1. **`design-registry.md`**, first, to find this surface's row. It names the prototype file and says whether it is approved. **Nothing else on this list matters until that row reads `APPROVED`**, or reads `BASELINE`, which the visual gap rule below exempts and which has no prototype to read.
 2. **The approved prototype** at `.konteksto/designs/<surface>.html`. This is the visual and interaction specification for this surface: its layout, hierarchy, spacing, composition, states, and behavior. Open it, and where a browser is available, render it and look at it rather than reading the markup alone.
 3. **`design.md`**, the design system. Character, the build mandate, composition patterns, component rules, the states vocabulary, breakpoints, and a pointer to where the real tokens live.
 4. **`code-standards.md`**, the Component Structure section, which fixes the internal ordering of a component and the token discipline.
@@ -83,6 +83,10 @@ Five documents, and they decide different things:
 - building it faithfully would require a product decision the prototype does not settle
 
 Use the machinery that already exists, in `SKILL.md` step 1: the task goes `BLOCKED` with its reason in the Note, and you name the exact surface and what is missing.
+
+**One row is exempt from the first bullet: a surface at `BASELINE`.** That means it shipped before this workflow arrived, so no prototype was ever owed and there is nothing to be missing. Build the task against the surface as it already exists in the code. **`design-registry.md`'s Status values section defines the value and the one thing that ends the exemption**, which is a task recomposing the surface, meaning a change to layout, hierarchy, or interaction rather than to copy, content, or data. When your task does that, the surface owes a design and the other three bullets apply as written, so stop and route it back.
+
+**`BASELINE` is not `APPROVED`, and never stands in for it.** It says nobody owes a prototype, not that anybody reviewed anything. On a baseline surface you have no approved composition to be faithful to, so you match what is already there rather than inventing a better version of it, and the rest of this file, meaning `design.md`, the tokens, and `code-standards.md`, still binds every line you write.
 
 **On a task that is both UI and Logic, only the UI half stops.** Build the logic, which `flow/build.md` step 5 has you doing first anyway, then stop at the surface. The task still goes `BLOCKED`, since it is not finished and `DONE` would be a lie, and **its Note says both things**: what landed and which surface is waiting on a design.
 
@@ -168,7 +172,7 @@ Fix what you find. **Where you deliberately departed from the prototype**, meani
 ## /dev-develop complete (UI)
 
 **Task**: <number and name from build-plan.md>
-**Design**: <the prototype file, and its registry status. Must read APPROVED>
+**Design**: <the prototype file, and its registry status. Must read APPROVED, or BASELINE with no prototype file>
 **Built**: <pages and components, with paths>
 **Registered**: <components added to ui-registry.md> | none
 **Reused**: <existing registered components used> | none

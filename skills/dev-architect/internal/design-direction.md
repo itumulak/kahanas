@@ -72,6 +72,8 @@ For every flow, enumerate every surface it requires:
 
 Then write one row per surface into `design-registry.md`, with the flow and step in the Required by column, the states that surface needs in the Required states column, and a status of `MISSING` where nothing exists.
 
+**On a codebase that was already shipped, step 2a settled which of those rows are `MISSING` and which are `BASELINE`.** Apply that answer here, and write its one line note above the Entries table, using the wording `internal/adoption-baseline.md` gives for the option the user picked. **Map every surface either way**, since that file's Still map the flows to surfaces rule holds whatever the answer was. The registry's Status values section defines what `BASELINE` means and what puts a surface back into the lifecycle.
+
 **States do not get their own rows.** An orders page that is loading, empty, populated, or failing is one surface with four states, and listing them in the Required states column keeps completeness strong without turning a six entity product into eighty rows. Read the Surface, state, and interaction section of the registry template before the first row: the test is whether a designer would compose it from scratch, or whether it is the same composition holding different content.
 
 **A worked example, because this is the part most often done shallowly.** A product adding two factor authentication has a mockup for the dashboard and nothing else. The flow says: the user opens security settings, enables two factor, scans a code, enters a verification code, and saves recovery codes. That is five surfaces, and the failure branches add more: a wrong verification code, a lost authenticator, and turning it off again. Seven of eight surfaces were missing, and the one that existed was the one nobody needed designed.
@@ -135,3 +137,5 @@ Where the user asks for changes, revise and present again.
 `design-registry.md` gets a row per surface, stamped.
 
 **Report every surface still at `MISSING`**, with the flow that needs it, and say plainly that a task cannot be built against a surface with no approved design. It does not stop the plan being written, and it does stop that one task.
+
+**Report the `BASELINE` count separately**, as a count rather than a list, and say what it does not mean: not reviewed, not accessible, not approved. Folding baseline rows into the missing list overstates the work owed, and folding them into the approved list understates what nobody has ever looked at.

@@ -1,7 +1,7 @@
 ---
 name: dev-architect
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion, WebSearch, WebFetch
-description: "Run /dev-architect after /dev-scope to design how the product gets built and how it looks. Weighs options, settles the stack, and on a frontend project designs every surface the flows require as an interactive HTML prototype in .konteksto/designs/ for a person to approve. Audits an existing codebase for outdated or vulnerable packages, finds the MCP servers and skills that fit, then writes architecture, tooling, design, design registry, code standards, library docs, build plan, progress tracker, and ui registry into .konteksto/."
+description: "Run /dev-architect after /dev-scope to design how the product gets built and how it looks. Weighs options, settles the stack, and on a frontend project designs every surface the flows require as an interactive HTML prototype in .konteksto/designs/ for a person to approve. On a codebase that already exists, settles the adoption baseline, meaning whether shipped surfaces owe prototypes and whether shipped features appear in the plan, then audits it for outdated or vulnerable packages, finds the MCP servers and skills that fit, then writes architecture, tooling, design, design registry, code standards, library docs, build plan, progress tracker, and ui registry into .konteksto/."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -20,7 +20,7 @@ Answers **how the product gets built**, given a `project-overview.md` that alrea
 
 **Before this:** `/dev-scope`, which settled what the product is.
 
-**After this:** `/dev-develop`, which builds the first task in the plan.
+**After this:** `/dev-develop`, which builds the first real task in the plan, meaning the first one outside a Phase 0 of baseline rows where the plan has one.
 
 The whole chain, once per project then once per task:
 
@@ -135,6 +135,7 @@ Steps 2 through 6 here are the outline. That file is the protocol.
 | Stage A, requirements | `internal/design-conversation.md` |
 | Stage B, the data model | `internal/design-conversation.md` |
 | Stage C, the stack walk | step 2 below |
+| The adoption baseline | step 2a below, existing codebases only |
 | The page design stage | step 3 below |
 | Stage D, interfaces and value sourcing | `internal/design-conversation.md` |
 | Stages E and F, security and edge cases | `internal/design-conversation.md` |
@@ -166,17 +167,31 @@ The stack is settled when every layer of every existing half has a named tool. D
 
 Stages A, B, D, E, and F of the design conversation happen here too, not only the stack walk. The data model is elicited and confirmed, and the value sourcing loop is closed. Both are in `internal/design-conversation.md`, and skipping either produces a document set `/dev-develop` cannot build from.
 
+### Step 2a: Settle the adoption baseline
+
+**Skip this step entirely on a fresh project, and on our own scaffold.** It applies only when step 1 found a real existing codebase.
+
+Otherwise **read `internal/adoption-baseline.md` and follow it.** It asks two questions and nothing else: whether the surfaces that already exist owe prototypes, and whether the features that are already built appear in the plan.
+
+**It runs before step 3, and that ordering is the point.** Step 3 is what maps flows to surfaces and stamps a status on each one, so a baseline settled after it has already produced the rows it was meant to prevent.
+
+**The flow to surface mapping in step 3 still runs in full**, whatever the answers are. That file says why.
+
+Both answers are written later, in steps 3 and 8. Carry them forward with the step 4 findings rather than writing early.
+
 ### Step 3: The design direction
 
 **Skip this whole step when there is no `app/`.** A backend has no art direction. `design.md`, `design-registry.md`, and `.konteksto/designs/` are all skipped together.
 
 Otherwise **read `internal/design-judgment.md` and `internal/design-direction.md`, and follow both.** The first is the designer posture and its rules. The second is the procedure: taking in what the user supplied, mapping flows to required surfaces, settling the system, building the prototypes, critiquing them, and asking for approval.
 
-Four rules worth seeing from here, because they are the ones that change what this step is.
+The rules worth seeing from here, because they are the ones that change what this step is.
 
 **You produce the designs.** Where the user has none, you design them from the scope. Where they supplied images, you build the HTML equivalent. Their originals are copied to `.konteksto/designs/sources/` first and **never overwritten**, since that artifact is the only thing in the project they actually authored.
 
 **Map flows to surfaces, not pages to mockups.** The Pages list holds the screens somebody thought of. The Core User Flow holds what actually happens, and the surface that gets missed is nearly always a failure branch of a step rather than a page. A product designing a dashboard and forgetting the verification screen, the recovery codes, and the wrong code path has designed one surface out of eight.
+
+**On an existing codebase, step 2a already settled which surfaces owe a prototype.** Apply its answer when you stamp the rows, rather than sending a shipped product's entire screen list to `MISSING`.
 
 **A missing design blocks its own task and nothing else.** Write the whole plan regardless. `/dev-develop` stops on the task whose surface has no approved design, exactly like an unratified assumption keeps one task off `DONE` without holding up the project.
 
@@ -304,8 +319,9 @@ Only after every **applicable** Stage 1 artifact is approved. Applicable matters
 
 Extra rules:
 
+- `build-plan.md` writes the history line step 2a settled, on an existing codebase: either `## Phase 0 — Already built` with one task per existing feature, or no Phase 0 at all, plus the one line under Core Principle that says which it is. `internal/adoption-baseline.md` has the wording. On a fresh project neither applies.
 - `build-plan.md` covers every feature in the Features in Scope list and nothing from the out of scope list. Its Feature Count table must match the number of tasks actually written. Order the phases so each one is visible and testable before the next starts.
-- `progress-tracker.md` mirrors `build-plan.md` exactly, one Progress table per phase and one row per task, same phase and task order. On a fresh project every row reads `PENDING` with no stamp, an empty Verify Check and Note written as `—`, Last completed reads "nothing yet", and Next names the first task. **Never stamp a row here.** A stamp names a model and a minute, and nothing has run yet. Its Worked example section is Reference only: read it for the shape, and delete it from the file you write.
+- `progress-tracker.md` mirrors `build-plan.md` exactly, one Progress table per phase and one row per task, same phase and task order. A Phase 0 in the plan gets its Progress table here too, every row reading `BASELINE` with its stamp and an empty Verify Check. **Never `DONE` and never a Verify Check on one of those rows**: nothing was built here and nothing was exercised, and `progress-tracker.md` defines the difference. Every other row reads `PENDING` with no stamp, an empty Verify Check and Note written as `—`, Last completed reads "nothing yet", and Next names the first task not in Phase 0. **Never stamp a `PENDING` row.** A stamp names a model and a minute, and nothing has been built yet. A `BASELINE` row is stamped, and that file's Status section says what its stamp means. Its Worked example section is Reference only: read it for the shape, and delete it from the file you write.
 - `decision-log.md` always ships, and always starts with its headings and an empty Entries table. Nothing has been decided during a build that has not started, so a row here would be invented reasoning. Keep the What belongs here section exactly as the template has it, since it is the boundary the writing skills read, and delete the Worked example.
 - `note-registry.md` always ships, backend or frontend, and always starts with its headings and an empty Entries table. Nothing has been run yet, so writing a row here would be inventing evidence. Keep the Who writes what and Excluded sections exactly as the template has them, since they are the contract the three writing skills read, and delete the Worked example.
 
@@ -342,18 +358,19 @@ It covers confirming the write landed, checking your own work for blank fields, 
 
 ### Step 10: Report
 
-Say six things:
+Say all of this:
 
 - The files written, including `docker-compose.yml` and `.env.example` if step 5 wrote them.
 - The optional sections and files skipped, and why, including `design.md` when there is no frontend.
 - The design source: the template chosen and its license, the design provided, or that there was none.
 - Every container in the compose file, its purpose, and the port it is on. Name any stand in service and the real service it stands in for. State what happens to local data between tasks.
 - **Every security finding from the dependency audit**, with its severity and whether the fix became a task. If the user declined an update, say so plainly here as well as recording it, so an accepted risk stays visible.
+- **The adoption baseline, on an existing codebase**: where the design line and the history line landed, and what the baseline does not exempt. Say the exemptions out loud, because a user who took both defaults is usually picturing a wider amnesty than they got.
 - Every skill installed, by name.
 - Every MCP server the user still needs to connect themselves, with the exact command.
 - That no application code was written.
 
-Then name the next step: a separate request to build the first task in `build-plan.md`.
+Then name the next step: a separate request to build the first task in `build-plan.md`. **Where the plan has a Phase 0 of baseline rows, name the first task after it**, since nothing in Phase 0 is work anybody is going to do.
 
 ---
 
@@ -363,6 +380,7 @@ All of these live in this skill's folder, read only when you reach them.
 
 - `internal/design-direction.md`: taking in supplied designs, the flow to surface audit, settling the system, building the prototypes, and the approval ask. Read at step 3, frontend only.
 - `internal/design-judgment.md`: the designer posture, the ten capabilities, the rules that hold on every surface, and the self critique. **Read with `design-direction.md` at step 3**, frontend only, and never on a backend.
+- `internal/adoption-baseline.md`: the two questions that decide where this workflow starts on a product that already exists, and what the baseline does not exempt. Read at step 2a, existing codebases only, and before step 3.
 - `internal/brownfield-audit.md`: the structure confirmation, the existing component decision, and the dependency audit. Read at step 4, existing codebases only.
 - `internal/standards.md`: the convention and tooling questions that fill `code-standards.md`, and how to derive conventions from an existing codebase. Read at step 7.
 - `patterns/*.md`: the four architecture style presets. Read only the one the user picks, at write time.

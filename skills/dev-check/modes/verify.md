@@ -25,6 +25,10 @@ Owns no whole file. Chat output only, plus screenshots and logs saved to a scrat
 
 **Write one: the Verify Check cell.** In `progress-tracker.md`, set this task's Verify Check cell in its phase table, `PASSED` on a pass and `FAILED` on a fail, stamped as that file's Progress section describes: `PASSED, <your exact model identifier>, <YYYY-MM-DD HH:MM from the system clock>`. A cell that already holds a value is superseded, never overwritten: strike the old one through with `~~` and append the new one after it, leaving exactly one unstruck value. On a `FAILED`, put a one line summary of what failed in the row's Note, and leave the detail to your report. On a `PASSED` that supersedes an earlier `FAILED`, clear that Note back to `—` in the same edit: the reason for it is gone, and Note is the one cell in the table that is overwritten rather than kept.
 
+**A task whose Status reads `BASELINE` gets no cell written at all.** That value says the feature was finished before this workflow arrived, so there is no build of yours to verify and a `PASSED` beside it would claim this workflow delivered something it did not. Stop, write nothing, and say in the report that the task is baseline and outside verification. `progress-tracker.md` defines the value.
+
+**That is about the task, not about the surfaces.** An ordinary new task touching a surface at `BASELINE` is verified normally, with the one adjustment in the design conformance list below.
+
 **That column is the only thing in `progress-tracker.md` you may touch.** Status is `/dev-develop`'s, the Assigned cell is a person's, and checkpoint rows are nobody's here. Never change one, however plainly wrong it looks. Report it instead.
 
 **`design-registry.md` and the prototypes in `.konteksto/designs/` are read only to you, and completely.** Not a status, not a row, and never a line of a prototype, however plainly it needs fixing. That whole folder is `/dev-architect`'s, `APPROVED` is a person's word alone, and a design you corrected to match the build is a design nobody approved.
@@ -86,6 +90,8 @@ You now hold four lists: the flow steps to confirm, the surfaces to confirm exis
 - every state the prototype demonstrates, reachable in the built page
 - every interaction it demonstrates, behaving the same way
 - every breakpoint `design.md` defines, composed as designed rather than merely reflowed
+
+**Build no conformance list for a surface at `BASELINE`.** That row means the surface shipped before this workflow and no prototype was ever owed, so there is nothing to compare against and a fail for not matching a file that does not exist is noise. Verify its behavior against the flow steps as normal, and say in the report which surfaces you checked this way. `design-registry.md` defines the value.
 
 **Exact pixel equality is not the bar and you must not report against it.** `/dev-develop`'s `ui-guide.md` defines fidelity and the order in which it yields. The list above is the checkable form of it, which is why it is the list.
 

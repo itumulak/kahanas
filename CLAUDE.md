@@ -63,6 +63,9 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 | Which token file is authoritative | `design.md` |
 | Fidelity, and what outranks it | `dev-develop/ui-guide.md` |
 | The bar for `DONE` | `code-standards.md` |
+| What a baseline surface is, and what ends it | `design-registry.md` |
+| What a baseline task is, and why it is not `DONE` | `progress-tracker.md` |
+| The two questions that place the baseline | `dev-architect/internal/adoption-baseline.md` |
 
 **This overview and `README.md` are the exception, and they still may not carry specifics.** Their job is orientation for somebody maintaining the skills, so they say what a rule is for and why it exists. They do not restate its exact conditions, values, or counts, because a summary that carries operational detail is just another copy waiting to go stale.
 
@@ -85,6 +88,10 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 **Exact pixel equality is not the bar, because nothing can check it.** A component library injects its own spacing and fonts rasterize differently on every machine, so a pixel comparison fails on a correct build. `ui-guide.md` defines the checkable form and the order in which fidelity yields, with accessibility above reproduction.
 
 **No skill may originate an approval, and a skill may record one a person actually gave.** Deciding and writing down are different acts, and making somebody hand edit markdown after saying yes is ceremony rather than safety. `design-registry.md` sets the conditions a yes has to meet. A skill writes every other status including `CHANGE REQUIRED`, because noticing a design has gone stale is an observation while deciding it is fixed is not.
+
+**A codebase that shipped before this workflow gets a baseline, not a backlog.** `/dev-architect` asks two questions on an existing project, before it maps a single surface: do the screens that already exist owe prototypes, and do the features already built appear in the plan. The default on both is no. Work before the line is recorded as predating the workflow, and everything after it follows the process in full, so a new page still needs a prototype and still needs a person to approve it.
+
+**The baseline is a date, and it is never a verdict.** A baseline row says nobody owes a design, not that anybody reviewed one, and it never satisfies a rule asking for `APPROVED`. A baseline task is not `DONE`, because `DONE` claims a build this workflow ran and watched come back clean. Collapsing either into its neighbour is the same failure as a fabricated note row: it reads exactly like a real one to the next session. `design-registry.md` and `progress-tracker.md` each define their own value, and `dev-architect/internal/adoption-baseline.md` holds the questions.
 
 **An accessibility departure makes the prototype stale, not the implementation wrong.** The build is correct and the approved design is what now disagrees with reality, so it is the design that gets fixed. Unrouted, the next surface inherits the same inaccessible pattern from a document still claiming somebody blessed it. `design-registry.md` holds the routing.
 

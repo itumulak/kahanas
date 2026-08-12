@@ -108,7 +108,7 @@ Then filter to what you sync **from**:
 
 Read the tracker, the registry, and `decision-log.md`, plus the parts of the plan you need. Read narrowly. The decision log is where an unratified assumption is recorded, and that is the one thing in it that changes what you may do here.
 
-For each task in `progress-tracker.md` whose Status is not `DONE`, ask whether the repo **proves** it is done:
+For each task in `progress-tracker.md` whose Status is neither `DONE` nor `BASELINE`, ask whether the repo **proves** it is done:
 
 - The files its bullets describe exist and contain what they promised.
 - For a data task, the migration exists **and** the schema is live, per the rule in `/dev-develop`'s `logical-guide.md` phase 2. Query the real database rather than trusting the migration file.
@@ -130,7 +130,9 @@ So the stamp you write here is a narrower claim than the one `/dev-develop` writ
 
 ### Step 3: Reconcile
 
-**The tracker.** Stamp `DONE` on every task the evidence proves, in the shape that file's Progress section sets: `DONE, <your exact model identifier>, <YYYY-MM-DD HH:MM from the system clock>`, superseding the old value by striking it through rather than overwriting it. Update Last completed, Next, and Phase to match the Status column.
+**The tracker.** Stamp `DONE` on every task the evidence proves, in the shape that file's Progress section sets: `DONE, <your exact model identifier>, <YYYY-MM-DD HH:MM from the system clock>`, superseding the old value by striking it through rather than overwriting it. Update Last completed, Next, and Phase to match the Status column, **reading past every `BASELINE` row and past a whole Phase 0 of them**, exactly as `/dev-develop` does when it picks up work. Next names a task somebody is going to build, and a baseline row is never that.
+
+**A `BASELINE` row is never promoted**, which is why step 2 leaves it out of the scan rather than finding evidence for it and then declining to act. Those rows say the feature was finished before this workflow arrived. Finding its code proves nothing new, since that is exactly what the row already says, and stamping it `DONE` would claim a build nobody here ran. Leave it, and the row for the task that changes it later is an ordinary row.
 
 **The Verify Check column is read only to you**, exactly as the note registry is, and for the same reason. That cell says a model ran the app and watched a behavior, and you have run nothing. Stamping it would be fabricating an observation. A task stamped `DONE` here with an empty Verify Check is reported as never verified, and pointed at `/dev-check verify`.
 
@@ -168,6 +170,8 @@ Give the stub the Source line the template defines for exactly this case:
 **Write that line even though it looks like filler.** A section with no Source reads as an oversight, and the next skill along cannot tell whether somebody checked the docs and forgot the line or never checked at all. This says which, in one line, and it is the only reason the stub is safe to leave behind.
 
 **Surfaces.** On a project with an `app/`, read `design-registry.md` and check it against the routes and pages the code actually has. Report a page in the code with no row, and a row whose prototype file is gone. **Write nothing there and never touch a prototype**, for the reason directly below: the code proves a page exists and never proves it was designed, still less that a person approved it. A row invented from a route would quietly assert both.
+
+**A page whose row reads `BASELINE` is not a finding.** That value already says the surface shipped before this workflow and owes no prototype, so a missing prototype file there is the recorded state rather than drift. Report only a page with no row at all.
 
 **Vocabulary.** Read `glossary.md`, then check the words the code actually uses for the concepts in it: type names, table names, routes, user facing strings. Report every place the code uses a word the glossary rejects on an Avoid line, and every domain concept in the code with no entry at all.
 
