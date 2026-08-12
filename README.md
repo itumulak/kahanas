@@ -89,6 +89,8 @@ Three of them describe the same task from three angles, and they stay separate o
 
 `design-registry.md` splits between a skill and a person: `/dev-architect` writes every status except `APPROVED`, which only a person decides. A skill may record an approval somebody actually gave, on strict conditions, and may never originate one. It still marks an approved design `CHANGE REQUIRED` when something invalidates it, because noticing a thing has gone stale is an observation and deciding it is fixed is not.
 
+**A product that already shipped gets a baseline rather than a backlog.** On an existing codebase `/dev-architect` asks where the line sits: whether the screens that already exist owe prototypes, and whether the features that are already built appear in the plan. The usual answer to both is no, and the work before the line is recorded as such instead of being stamped as though this workflow built it. Everything after the line follows the process in full.
+
 All but five have exactly one writer. `progress-tracker.md` splits by column: `/dev-develop` owns the Status of every task, and `/dev-check verify` owns the Verify Check beside it, because "the build is clean" and "somebody watched it work" are different claims and neither skill may make the other's. Both cells carry the model that stamped them and when, and a value that changes is struck through with the new one appended after it, so the whole history stays readable.
 
 `decision-log.md` takes appends from `/dev-develop` and `/dev-debug`, and only when there was something to decide. Most tasks add nothing.

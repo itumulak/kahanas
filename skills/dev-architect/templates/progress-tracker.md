@@ -59,6 +59,18 @@ The assignee is a **convention, not a lock.** `/dev-develop` reads it and stops 
 - `PASSED`, the behavior was exercised and observed to work.
 - `FAILED`, it was exercised and did not.
 
+**One more Status exists on a project that adopted this workflow with a codebase already shipped**, and only there. Delete this paragraph on a fresh project, where nothing can be baseline.
+
+- `BASELINE`, the feature was already built and finished before this workflow arrived. It was not built here and it has not been verified here.
+
+**Finished is part of that, not a detail of it.** A half built feature existed before the line too, and it is an ordinary `PENDING` task rather than a baseline row, because the row saying it is not done is the only thing that will get it finished.
+
+**A `BASELINE` row never reads `DONE` and never carries a Verify Check.** `DONE` claims this workflow built it and saw the build come back clean. `PASSED` claims a model exercised the behavior and watched it work. Neither happened, and a fabricated one reads exactly like a real one to every later session, which is the whole reason the value is separate rather than borrowed.
+
+**The stamp on a `BASELINE` row records the recording, not the building.** It says which model wrote the row down and at what minute, which is true and useful. It says nothing about when the feature was written or by whom.
+
+**`/dev-architect` writes these rows once, while settling the adoption baseline, and nothing ever promotes one.** A later change to that feature is an ordinary new task with an ordinary row, because the work being done now is work this workflow really is doing.
+
 **A `DONE` Status and a `PASSED` Verify Check are different claims, which is why they are separate columns.** `DONE` says the code was built and the build is clean. `PASSED` says somebody ran the thing and watched it work. A task can sit at `DONE` with a `FAILED` verify for as long as it takes `/dev-debug` to find the cause, and that pair is exactly the state a later session needs to see.
 
 ### The stamp
@@ -130,7 +142,9 @@ A Note is cleared the moment its reason goes: when `BLOCKED` is superseded by `D
 | --- | --- | --- | --- |
 | Phase 1 — <PHASE_NAME> | <NOT_DUE_OR_DUE_OR_APPROVED> | <NAME_AND_ROLE_PER_APPROVER_OR_NONE> | <WHAT_WAS_RAISED_AND_NOT_YET_ADDRESSED_OR_NONE> |
 
-One row per phase in `build-plan.md`. What each phase's reviewer must confirm lives in that phase's Checkpoint block in `build-plan.md`, not here. This table only tracks state.
+One row per phase in `build-plan.md`, **except a Phase 0 of baseline rows, which gets no row here and no Checkpoint block there.** A checkpoint asks a reviewer to confirm what a phase delivered, and that phase delivered nothing: its tasks were finished before this workflow arrived and by design never reach `DONE`, so its row could only ever sit at `not due` forever. Reviewing the code that was already there is a real thing to want, and it is a task in the plan rather than a checkpoint on a phase nobody built.
+
+What each phase's reviewer must confirm lives in that phase's Checkpoint block in `build-plan.md`, not here. This table only tracks state.
 
 **State** is one of three. `not due` means the phase still has tasks whose Status is not `DONE`. `due` means every task in the phase reads `DONE` and nobody has approved yet. `approved` means a reviewer other than the builder confirmed the phase against its criteria.
 

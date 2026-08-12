@@ -29,7 +29,7 @@ Read, in this order, and no more than this:
 5. **`project-overview.md`**, the Core User Flow steps for any page this task serves. That is the contract `/dev-check verify` will hold the result against.
 6. **`library-docs.md`**, only for a library this task actually uses. Skip the rest.
 7. **`tooling.md`**, the Local Data Lifecycle section, whenever this task touches the database. It says whether local data resets between tasks or persists, and the exact reset command.
-8. **`design-registry.md`**, the **approved prototype** it names, **`design.md`**, and **`ui-registry.md`**, only on the UI track. Read the registry row first, because a surface that is not `APPROVED` stops the task before any of the rest matters. None of these is optional reading before building a surface.
+8. **`design-registry.md`**, the **approved prototype** it names, **`design.md`**, and **`ui-registry.md`**, only on the UI track. Read the registry row first, because a surface that is not `APPROVED` stops the task before any of the rest matters. **`BASELINE` is the one row that does not stop it**, meaning a surface finished before this workflow arrived, which owes no prototype and has none to read: build against the surface as it already exists in the code. `ui-guide.md` states what that exempts and the one thing that ends the exemption. None of these is optional reading before building a surface.
 
 **Never reset the local database unless Local Data Lifecycle says to.** Someone else's work in progress may be sitting in it, and there is no undo. Where that section says data persists, work with what is there.
 
@@ -37,7 +37,7 @@ Read, in this order, and no more than this:
 
 **Completeness check, before any code, not partway through.**
 
-Confirm the design actually covers this task: on the logical track a data model, an interface surface, and the security expectation; on the UI track **an approved prototype for every surface it touches**, covering the states, the interactions, and every breakpoint `design.md` defines. Then run the **input coverage test** from `SKILL.md` again against the specific values this task produces.
+Confirm the design actually covers this task: on the logical track a data model, an interface surface, and the security expectation; on the UI track **an approved prototype for every surface it touches**, covering the states, the interactions, and every breakpoint `design.md` defines, except a surface at `BASELINE`, which owes none until this task recomposes it. Then run the **input coverage test** from `SKILL.md` again against the specific values this task produces.
 
 A surface with no approved prototype, or a prototype missing something this task needs, is a **visual gap**, and it stops that surface. **`ui-guide.md` defines it and its limits.**
 
@@ -77,7 +77,11 @@ Where you do need it, spawn a read only subagent with web access on a cheap mode
 
 Read `progress-tracker.md`. Find the first task whose Status is not `DONE`, or the one you were asked for. A `DONE` stamp means someone believed it was finished, so stop and ask before rebuilding it. A `BLOCKED` one means someone stopped on purpose: read its Note before doing anything, since the reason may still hold.
 
-Say where you are picking up, plainly: "this plan is 4 of 12 done, resuming at the session handling task."
+**Skip every `BASELINE` row, and skip a whole Phase 0 of them.** That value means the feature was finished before this workflow arrived, so it is not a task waiting to be picked up, and building it would rewrite working code nobody asked you to touch. **Never stamp one `DONE`**, since `DONE` claims a build you ran and a clean result you saw, and neither happened. `progress-tracker.md` defines the value.
+
+**A baseline row asked for by name is refused, not obeyed.** Say what the row means and offer the two things that are real: an ordinary new task in `build-plan.md` to change that feature, which is `/dev-architect`'s to write, or `/dev-debug` when the complaint is that it is broken. **This is the one place a direct instruction does not settle it**, because the row is a claim about history and building against it would quietly make that claim false.
+
+Say where you are picking up, plainly: "this plan is 4 of 12 done, resuming at the session handling task." **Count only real tasks in that fraction.** A Phase 0 of baseline rows is not progress this build made, and folding it in reports a plan as nearly finished on its first day.
 
 **Cross check before building.** Hold the task's bullets against the Core User Flow steps they serve. A flow step with no covering bullet is a gap in the plan itself: flag it and say so, rather than quietly building something the plan never described or quietly skipping it.
 

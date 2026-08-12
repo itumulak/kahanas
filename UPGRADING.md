@@ -76,10 +76,12 @@ Then do this:
   Check is the correct result: nothing was verified under a version that had
   no such column.
 - If my project has an app/ folder and design-registry.md is new, add a row
-  per surface already built with its file left as an em dash and a Note
-  saying it predates the registry. Never write APPROVED for a design that
-  does not exist. That word is what every downstream rule depends on, and I
-  would rather a UI task block than have it mean nothing.
+  per surface already built, with its status BASELINE, its file left as an em
+  dash, and its Note an em dash. BASELINE says the surface shipped before the
+  registry existed, so it owes no prototype and blocks nothing. Never write
+  APPROVED for a design that does not exist. That word is what every
+  downstream rule depends on, and I would rather a UI task block than have it
+  mean nothing.
 - Mark every existing library-docs.md section unsourced, since nobody
   verified them.
 
@@ -159,13 +161,13 @@ Then add a line under the table saying these rows predate stamping. Everything f
 
 The awkward case, because `/dev-develop` refuses to build a surface with no approved design, and a project built under an older version has no prototypes at all. Left alone, every UI task blocks.
 
-Two workable approaches.
+**This is the adoption baseline, and the registry now has a value for it.** Add a row per surface already built at `BASELINE`, with its file left as `—`. That value means the surface shipped before the registry existed, so it owes no prototype, blocks nothing, and needs no Note to explain itself. Add real rows with prototypes only for surfaces you have not built yet.
 
-**Record what exists, then move forward.** Add a row per surface already built, with its file left as `—` and a Note saying it predates the registry. Add real rows with prototypes only for surfaces you have not built yet. Simple, honest, and the existing pages stay buildable.
+**A baseline surface re enters the lifecycle when you recompose it**, meaning its layout, hierarchy, or interactions change. A copy or content change leaves it where it is. `design-registry.md`'s Status values section is where that rule lives.
 
-**Or adopt gradually.** Add rows only for new work. Everything already shipped stays outside the registry until you touch it, and the first time you rework a surface it gets a prototype like any new one.
+**Do not mark a row `APPROVED` to unblock yourself.** Nobody approved a design that does not exist, and that word is what every rule downstream depends on. `BASELINE` is true and does the job that Note used to do.
 
-**Do not mark a row `APPROVED` to unblock yourself.** Nobody approved a design that does not exist, and that word is what every rule downstream depends on. A Note saying the surface predates the registry is true and does the same job.
+**If your progress tracker is being backfilled with features that already shipped**, use `BASELINE` there too, never `DONE`. `DONE` claims a build somebody ran and watched come back clean, and a stamp naming a model and a minute nobody knows is exactly the fabrication these rules exist to prevent.
 
 ---
 
