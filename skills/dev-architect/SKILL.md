@@ -175,7 +175,7 @@ Otherwise **read `internal/adoption-baseline.md` and follow it.** It asks two qu
 
 **It runs before step 3, and that ordering is the point.** Step 3 is what maps flows to surfaces and stamps a status on each one, so a baseline settled after it has already produced the rows it was meant to prevent.
 
-The rule worth carrying from here: **the baseline changes what a row says, never whether the row exists.** The flow to surface mapping runs in full either way, and a product that skips it cannot tell a surface that shipped last year from one nobody has noticed is missing.
+**The flow to surface mapping in step 3 still runs in full**, whatever the answers are. That file says why.
 
 Both answers are written later, in steps 3 and 8. Carry them forward with the step 4 findings rather than writing early.
 
@@ -185,7 +185,7 @@ Both answers are written later, in steps 3 and 8. Carry them forward with the st
 
 Otherwise **read `internal/design-judgment.md` and `internal/design-direction.md`, and follow both.** The first is the designer posture and its rules. The second is the procedure: taking in what the user supplied, mapping flows to required surfaces, settling the system, building the prototypes, critiquing them, and asking for approval.
 
-Four rules worth seeing from here, because they are the ones that change what this step is.
+The rules worth seeing from here, because they are the ones that change what this step is.
 
 **You produce the designs.** Where the user has none, you design them from the scope. Where they supplied images, you build the HTML equivalent. Their originals are copied to `.konteksto/designs/sources/` first and **never overwritten**, since that artifact is the only thing in the project they actually authored.
 
@@ -321,7 +321,7 @@ Extra rules:
 
 - `build-plan.md` writes the history line step 2a settled, on an existing codebase: either `## Phase 0 — Already built` with one task per existing feature, or no Phase 0 at all, plus the one line under Core Principle that says which it is. `internal/adoption-baseline.md` has the wording. On a fresh project neither applies.
 - `build-plan.md` covers every feature in the Features in Scope list and nothing from the out of scope list. Its Feature Count table must match the number of tasks actually written. Order the phases so each one is visible and testable before the next starts.
-- `progress-tracker.md` mirrors `build-plan.md` exactly, one Progress table per phase and one row per task, same phase and task order. A Phase 0 in the plan gets its Progress table here too, every row reading `BASELINE` with its stamp and an empty Verify Check. **Never `DONE` and never a Verify Check on one of those rows**: nothing was built here and nothing was exercised, and `progress-tracker.md` defines the difference. Every other row reads `PENDING` with no stamp, an empty Verify Check and Note written as `—`, Last completed reads "nothing yet", and Next names the first task not in Phase 0. **Never stamp a `PENDING` row.** A stamp names a model and a minute, and nothing has been built yet. A `BASELINE` row is the one exception and is not really one: its stamp records that you wrote the row down at that minute, which is true, and says nothing about when the feature was written. Its Worked example section is Reference only: read it for the shape, and delete it from the file you write.
+- `progress-tracker.md` mirrors `build-plan.md` exactly, one Progress table per phase and one row per task, same phase and task order. A Phase 0 in the plan gets its Progress table here too, every row reading `BASELINE` with its stamp and an empty Verify Check. **Never `DONE` and never a Verify Check on one of those rows**: nothing was built here and nothing was exercised, and `progress-tracker.md` defines the difference. Every other row reads `PENDING` with no stamp, an empty Verify Check and Note written as `—`, Last completed reads "nothing yet", and Next names the first task not in Phase 0. **Never stamp a `PENDING` row.** A stamp names a model and a minute, and nothing has been built yet. A `BASELINE` row is stamped, and that file's Status section says what its stamp means. Its Worked example section is Reference only: read it for the shape, and delete it from the file you write.
 - `decision-log.md` always ships, and always starts with its headings and an empty Entries table. Nothing has been decided during a build that has not started, so a row here would be invented reasoning. Keep the What belongs here section exactly as the template has it, since it is the boundary the writing skills read, and delete the Worked example.
 - `note-registry.md` always ships, backend or frontend, and always starts with its headings and an empty Entries table. Nothing has been run yet, so writing a row here would be inventing evidence. Keep the Who writes what and Excluded sections exactly as the template has them, since they are the contract the three writing skills read, and delete the Worked example.
 
@@ -358,7 +358,7 @@ It covers confirming the write landed, checking your own work for blank fields, 
 
 ### Step 10: Report
 
-Say six things:
+Say all of this:
 
 - The files written, including `docker-compose.yml` and `.env.example` if step 5 wrote them.
 - The optional sections and files skipped, and why, including `design.md` when there is no frontend.

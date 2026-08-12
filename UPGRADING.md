@@ -56,7 +56,10 @@ be honest than tidy.
 2. Never stamp old work. Stamps name a model and a minute, and neither of us
    knows which model built anything under the old version. Set values, leave
    stamps off, and add a line under the table saying those rows predate
-   stamping.
+   stamping. One exception, and only one: a BASELINE row you write during
+   this migration carries your own model and the minute you write it, because
+   that stamp records the recording rather than the building, which is what
+   the templates say it means. Everything else you convert stays unstamped.
 3. Do not create a document my project has no use for. The design ones are
    frontend only and are skipped entirely for a backend with no app/ folder.
 
@@ -76,12 +79,14 @@ Then do this:
   Check is the correct result: nothing was verified under a version that had
   no such column.
 - If my project has an app/ folder and design-registry.md is new, add a row
-  per surface already built, with its status BASELINE, its file left as an em
-  dash, and its Note an em dash. BASELINE says the surface shipped before the
-  registry existed, so it owes no prototype and blocks nothing. Never write
-  APPROVED for a design that does not exist. That word is what every
-  downstream rule depends on, and I would rather a UI task block than have it
-  mean nothing.
+  per surface already finished, with its status BASELINE stamped per rule 2
+  above, its file left as an em dash, and its Note an em dash. BASELINE says
+  the surface was finished before the registry existed, so it owes no
+  prototype and blocks nothing. A half built surface is not one: give it
+  MISSING, because the row saying a thing is unfinished is the only thing
+  that will get it finished. Never write APPROVED for a design that does not
+  exist. That word is what every downstream rule depends on, and I would
+  rather a UI task block than have it mean nothing.
 - Mark every existing library-docs.md section unsourced, since nobody
   verified them.
 
@@ -161,13 +166,15 @@ Then add a line under the table saying these rows predate stamping. Everything f
 
 The awkward case, because `/dev-develop` refuses to build a surface with no approved design, and a project built under an older version has no prototypes at all. Left alone, every UI task blocks.
 
-**This is the adoption baseline, and the registry now has a value for it.** Add a row per surface already built at `BASELINE`, with its file left as `—`. That value means the surface shipped before the registry existed, so it owes no prototype, blocks nothing, and needs no Note to explain itself. Add real rows with prototypes only for surfaces you have not built yet.
+**This is the adoption baseline, and the registry now has a value for it.** Add a row per surface already finished at `BASELINE`, with its file left as `—`. That value means the surface was finished before the registry existed, so it owes no prototype, blocks nothing, and needs no Note to explain itself. A surface that was half built gets `MISSING` like any other unfinished one. Add real rows with prototypes for those and for surfaces you have not started.
+
+**Stamp the `BASELINE` rows you write**, with your own model and the minute you write them. That is the one place this migration stamps anything, and it is not an exception to the never stamp old work rule: the stamp records that you wrote the row down, not that anybody built the surface then. `design-registry.md`'s Stamping section is where that holds.
 
 **A baseline surface re enters the lifecycle when you recompose it**, meaning its layout, hierarchy, or interactions change. A copy or content change leaves it where it is. `design-registry.md`'s Status values section is where that rule lives.
 
 **Do not mark a row `APPROVED` to unblock yourself.** Nobody approved a design that does not exist, and that word is what every rule downstream depends on. `BASELINE` is true and does the job that Note used to do.
 
-**If your progress tracker is being backfilled with features that already shipped**, use `BASELINE` there too, never `DONE`. `DONE` claims a build somebody ran and watched come back clean, and a stamp naming a model and a minute nobody knows is exactly the fabrication these rules exist to prevent.
+**If your progress tracker is being backfilled with features that were already finished**, use `BASELINE` there too, never `DONE`. `DONE` claims a build somebody ran and watched come back clean, and a stamp naming a model and a minute nobody knows is exactly the fabrication these rules exist to prevent.
 
 ---
 

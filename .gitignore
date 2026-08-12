@@ -65,3 +65,8 @@ temp/
 
 # Claude Code specific
 .claude/settings.local.json
+
+# Kahanas working documents. A project using these skills commits .konteksto/.
+# This repository is the source of the skills rather than a project using them,
+# so anything generated here by running them on itself stays local.
+.konteksto/

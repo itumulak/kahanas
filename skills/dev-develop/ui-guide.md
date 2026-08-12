@@ -172,7 +172,7 @@ Fix what you find. **Where you deliberately departed from the prototype**, meani
 ## /dev-develop complete (UI)
 
 **Task**: <number and name from build-plan.md>
-**Design**: <the prototype file, and its registry status. Must read APPROVED>
+**Design**: <the prototype file, and its registry status. Must read APPROVED, or BASELINE with no prototype file>
 **Built**: <pages and components, with paths>
 **Registered**: <components added to ui-registry.md> | none
 **Reused**: <existing registered components used> | none
