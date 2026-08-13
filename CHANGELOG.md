@@ -4,7 +4,7 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
-## [Unreleased]
+## [0.6.0] — 2026-08-13
 
 Design becomes a skill of its own, and design approval becomes something that runs. Approving a prototype used to mean a skill saying "here it is" and a person reading a file, which is the weakest step in the whole workflow and the one everything visual depends on.
 
