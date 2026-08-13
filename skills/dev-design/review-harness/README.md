@@ -102,7 +102,13 @@ node capture.mjs \
   --breakpoints desktop:1440x900,tablet:834x1112,phone:390x844
 ```
 
-States come from `design-registry.md`, in that order, **default first**. On a prototype covering several surfaces they are the union of every covered surface's Required states, since one file is approved once and all its rows move together. Breakpoints come from `design.md`. Neither is guessed here.
+**On a prototype covering several surfaces, group the states by surface**, since a state is only ever compared with its own surface's:
+
+```bash
+  --states "cart:cart-default,cart-error|payment:payment-default,payment-error"
+```
+
+States come from `design-registry.md`, in that order. On a prototype covering several surfaces, pass one group per surface, each holding that row's Required states, since one file is approved once and all its rows move together. **Names must still be unique across the whole file**, because one address opens one composition, and duplicates are refused after slugging so `Cart Default` and `cart-default` cannot resolve to the same screenshot. Breakpoints come from `design.md`. Neither is guessed here.
 
 The URL is the **asset origin**, never the review one. Writes `screenshots/<state>__<breakpoint>.png` and `errors.json`.
 
@@ -137,7 +143,13 @@ Two ways a state fails, and both mark it unreachable.
 
 **Or it rendered exactly what another declared state rendered.** There is no way to ask a prototype whether it honoured a fragment, and a prototype that reported its own state would be reporting rather than demonstrating, so the pass compares what came out. **Two signals, and either one is enough:** the whole document's markup, and the screenshot bytes.
 
-**Every state is compared against every state declared before it, never against the first one alone.** A prototype can cover several surfaces, so the first state belongs to some other surface: comparing `payment-error` against `cart-default` finds them different and calls it implemented while it is really rendering `payment-default`. Within a colliding pair the later declaration is flagged, since the earlier is the composition that exists, which is why states are declared grouped by surface with each surface's base state first.
+**A state is compared with the other states of its own surface, and nothing else.** Both wider and narrower are wrong, in opposite directions.
+
+Comparing everything against the first state misses a real defect: on a prototype covering several surfaces the first state belongs to some other surface, so `payment-error` rendering `payment-default` differs from `cart-default` and gets called implemented.
+
+Comparing everything against everything blocks correct work, which is worse. **Two surfaces are allowed to look alike.** A standardised loading screen is deliberately the same screen twice, and refusing `payment-loading` for matching `cart-loading` would reject a prototype that is exactly right, with no way around it.
+
+**Both sides of a collision are reported and neither is blamed.** From outside there is no way to tell which of two identical states was never built, and declaration order is a guess rather than evidence.
 
 **Both are needed, and the markup alone is the trap.** A prototype that switches state by setting an attribute on the html element and letting CSS show and hide is an ordinary way to build one, and its body markup is byte identical in every state. Reading only the body reports a correct prototype as unimplemented and blocks its approval. Reading the whole document catches the attribute, and the screenshot catches anything expressed purely in styling.
 

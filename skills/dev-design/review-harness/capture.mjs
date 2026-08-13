@@ -52,10 +52,35 @@ for (const required of ["url", "out"]) {
 
 const URL_UNDER_CAPTURE = opts.url;
 const OUT = opts.out;
-const STATES = (opts.states ?? "default")
-  .split(",")
-  .map((s) => s.trim())
-  .filter(Boolean);
+// States are grouped by surface, because one prototype may cover several and a
+// state may only be compared with its own surface's. Two surfaces are allowed to
+// look alike: a standardised loading screen is the same screen twice, and
+// flagging it would block a correct prototype.
+//
+//   --states "default,error"                              one surface
+//   --states "cart:cart-default,cart-error|payment:payment-default,payment-error"
+const STATE_GROUPS = (opts.states ?? "default")
+  .split("|")
+  .map((group, index) => {
+    const at = group.indexOf(":");
+    const named = at > -1;
+    return {
+      surface: named ? group.slice(0, at).trim() : `surface-${index + 1}`,
+      states: (named ? group.slice(at + 1) : group)
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    };
+  })
+  .filter((g) => g.states.length > 0);
+
+const STATES = STATE_GROUPS.flatMap((g) => g.states);
+const SURFACE_OF = new Map(STATE_GROUPS.flatMap((g) => g.states.map((s) => [s, g.surface])));
+
+if (STATES.length === 0) {
+  console.error("capture.mjs: --states parsed to nothing");
+  process.exit(64);
+}
 // Parsed strictly, never filtered. Dropping a malformed entry is the worst
 // possible response: a typo like tablet:bad would silently produce a review with
 // no tablet coverage that reports itself complete, and nobody would look for the
@@ -79,6 +104,8 @@ if (BREAKPOINTS.length === 0) {
   process.exit(64);
 }
 
+const slug = (value) => value.toLowerCase().trim().replace(/\s+/g, "-");
+
 function requireNoDuplicates(kind, names) {
   const seen = new Set();
   for (const name of names) {
@@ -89,7 +116,9 @@ function requireNoDuplicates(kind, names) {
     seen.add(name);
   }
 }
-requireNoDuplicates("state", STATES);
+// Compared after slugging, since that is what becomes the address and the file
+// name. "Cart Default" and "cart-default" are two rows and one screenshot.
+requireNoDuplicates("state address", STATES.map(slug));
 requireNoDuplicates("breakpoint", BREAKPOINTS.map((b) => b.name));
 
 // Rule 1, enforced rather than trusted.
@@ -123,7 +152,6 @@ const LOOPBACK = new Set(["127.0.0.1", "localhost", "::1"]);
 }
 
 const ORIGIN = new URL(URL_UNDER_CAPTURE).origin;
-const slug = (value) => value.toLowerCase().trim().replace(/\s+/g, "-");
 
 // State names come from a registry cell and breakpoint names from design.md,
 // both of which are documents a person edits, and both end up in a file path
@@ -303,55 +331,69 @@ for (const breakpoint of BREAKPOINTS) {
 // Two ways a state fails to be reviewable, and both have to be caught.
 //
 // It never rendered, so there is nothing to look at. The first declared state is
-// not exempt from this: a proposal whose only state failed to navigate would
-// otherwise report itself reachable and be approvable by acknowledging the
-// navigation failure.
+// not exempt: a proposal whose only state failed to navigate would otherwise
+// report itself reachable and be approvable by acknowledging the failure.
 //
-// Or it rendered exactly what another declared state rendered, meaning the
-// fragment did nothing and the prototype does not implement it. Asking somebody
-// to approve a surface whose error state nobody has ever seen is asking them to
-// approve a claim.
+// Or it rendered exactly what another state of the same surface rendered,
+// meaning the fragment did nothing and the prototype does not implement one of
+// them.
 //
-// Every state is compared against every state declared before it, not against
-// the first one. A prototype can cover several surfaces, so the first state is
-// some other surface's, and comparing payment-error against cart-default finds
-// them different and calls it implemented while it is in fact rendering
-// payment-default. Comparing pairwise needs no surface metadata and catches it.
+// COMPARISON IS WITHIN A SURFACE, AND THAT MATTERS BOTH WAYS.
 //
-// Within a colliding pair the later declaration is the one flagged, since the
-// earlier one is the composition that exists and the later is the one that
-// failed to arrive. That is also why states are declared grouped by surface,
-// each surface's base state first.
+// Comparing everything against the first state is wrong on a prototype covering
+// several surfaces, since the first state belongs to some other surface:
+// payment-error rendering payment-default differs from cart-default and would
+// be called implemented.
+//
+// Comparing everything against everything is also wrong, and its failure is
+// worse because it blocks correct work. Two surfaces are allowed to look alike.
+// A standardised loading screen is deliberately the same screen twice, and
+// flagging cart-loading against payment-loading would refuse a prototype that is
+// exactly right with no way around it.
+//
+// So a state is compared with the other states of its own surface, and nothing
+// else.
 const signature = (breakpoint, state) =>
   `${domHashes.get(`${breakpoint}:${state}`)}|${shotHashes.get(`${breakpoint}:${state}`)}`;
 
-for (const [index, state] of STATES.entries()) {
-  const missing = BREAKPOINTS.filter((b) => !domHashes.has(`${b.name}:${state}`)).map((b) => b.name);
+const identical = (a, b) => BREAKPOINTS.every((bp) => signature(bp.name, a) === signature(bp.name, b));
 
-  if (missing.length > 0) {
-    stateReports.push({
-      state,
-      activated: false,
-      note: `did not render at ${missing.join(", ")}`,
-    });
-    continue;
-  }
-
-  // Either signal is enough on its own. The markup catches a state whose
-  // difference is off screen, and the pixels catch one expressed purely in
-  // styling, so a state has to match on both at every breakpoint before it is
-  // called unimplemented.
-  const collidesWith = STATES.slice(0, index).find((earlier) =>
-    BREAKPOINTS.every((b) => signature(b.name, state) === signature(b.name, earlier))
+for (const group of STATE_GROUPS) {
+  const rendered = group.states.filter((state) =>
+    BREAKPOINTS.every((b) => domHashes.has(`${b.name}:${state}`))
   );
 
-  stateReports.push({
-    state,
-    activated: !collidesWith,
-    note: collidesWith
-      ? `#state=${slug(state)} rendered the same document and the same pixels as ${collidesWith} at every breakpoint, so the prototype does not implement it`
-      : null,
-  });
+  for (const state of group.states) {
+    const missing = BREAKPOINTS.filter((b) => !domHashes.has(`${b.name}:${state}`)).map((b) => b.name);
+    if (missing.length > 0) {
+      stateReports.push({
+        state,
+        surface: group.surface,
+        activated: false,
+        note: `did not render at ${missing.join(", ")}`,
+      });
+      continue;
+    }
+
+    // Either signal is enough on its own. The markup catches a difference that
+    // is off screen, and the pixels catch one expressed purely in styling, so
+    // two states have to match on both at every breakpoint to collide.
+    const collisions = rendered.filter((other) => other !== state && identical(state, other));
+
+    stateReports.push({
+      state,
+      surface: group.surface,
+      activated: collisions.length === 0,
+      // Both sides of a collision are reported, and neither is blamed. From
+      // outside there is no way to tell which of two identical states is the one
+      // that was never built, and declaration order is a guess rather than
+      // evidence. Naming both is what a person needs to fix it.
+      note:
+        collisions.length === 0
+          ? null
+          : `rendered the same document and the same pixels as ${collisions.join(", ")} at every breakpoint, so one of them is not implemented`,
+    });
+  }
 }
 
 await context.close();

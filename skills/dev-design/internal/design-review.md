@@ -96,13 +96,15 @@ One disposable directory per session, outside the repository, in the system temp
 
 **One entry per row, because a prototype may cover more than one surface.** `surfaces` is a list for the same reason. Find every row in `design-registry.md` whose File column names this prototype, and carry all of them: hashing one row and then stamping all of them at promotion would let two of a checkout's three rows change during a review without anything noticing.
 
-**`states` covers every surface this prototype covers, and it is a list of addresses rather than a set of words.** A session that captured only the surface somebody reported has put a person in front of one third of what they are about to approve.
+**`states` covers every surface this prototype covers, grouped by surface, and it is a list of addresses rather than a set of words.** A session that captured only the surface somebody reported has put a person in front of one third of what they are about to approve.
 
 **A plain union is wrong when two surfaces use the same word, and they usually do.** A checkout whose cart and payment steps both have a `default` and an `error` state unions down to two names, and `#state=default` can open exactly one composition, so a whole surface goes uncaptured while every row is stamped `APPROVED`. **The deduplication is the bug**, and it is silent, which is the worst kind.
 
 **So on a prototype covering more than one surface, the state names are unique across all of them.** `cart-default` and `payment-default` are two different compositions and get two different addresses, which is what the file actually contains. `design-direction.md` owns that rule as part of the state contract, and `capture.mjs` refuses a duplicate outright rather than deduplicating it, so this fails loudly if it is ever got wrong.
 
 **A surface whose states genuinely cannot be named apart from its siblings' does not belong in a shared file.** `design-registry.md` says so already: where rows need to move independently, they belong in separate files.
+
+**Names must be distinct, and compositions need not be.** The capture pass compares a state only with the other states of its own surface, so two surfaces sharing a standardised loading screen are fine and expected. What is not fine is two states of one surface rendering the same thing, since one of them was never built. **Pass the states grouped by surface** so the pass knows which comparison it is making.
 
 **A prototype is not only its own file, and this is the part that is easy to miss.** It loads `shared/tokens.css` on every project, and it may load fonts, images, or another stylesheet. A token file edited during a review changes what the person is looking at while `proposal.html` hashes identically. **So `dependencyHashes` holds one entry per local file the prototype actually loaded**, keyed by its path under `.konteksto/designs/`, and step 7 checks them with the rest.
 
