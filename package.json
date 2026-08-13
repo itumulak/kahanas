@@ -23,6 +23,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "install-local": "node scripts/install-local.mjs"
+    "install-local": "node scripts/install-local.mjs",
+    "test": "node scripts/test-review-harness.mjs"
   }
 }

@@ -84,6 +84,8 @@ Conventional directories and patterns, for the shape above:
 
 **Never writes** application code, and never any of the `.konteksto` documents.
 
+**A project with a frontend already has Playwright, and that does not make it the test runner.** `/dev-architect` installs it to review designs and `/dev-check verify` uses it to screenshot a breakpoint, both recorded in the Visual verification section of `tooling.md`. Neither writes a test file, and neither sets `e2eTool`. **Read `test-preferences.json` and nothing else to decide what this project tests with**, because a browser that happens to be installed says nothing about whether anybody chose to write end to end tests, and treating it as a choice would put a suite in `e2e/` that nobody asked for. Where the user does pick Playwright as the end to end runner, that is a separate answer recorded here in the ordinary way, and the two uses then share an install and nothing else.
+
 ## Asks vs acts
 
 - **Acts without asking** when `test-preferences.json` exists, the tool is installed, and there are uncommitted source files. Straight to writing.

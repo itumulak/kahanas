@@ -1,7 +1,7 @@
 ---
 name: dev-architect
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion, WebSearch, WebFetch
-description: "Run /dev-architect after /dev-scope to design how the product gets built and how it looks. Weighs options, settles the stack, and on a frontend project designs every surface the flows require as an interactive HTML prototype in .konteksto/designs/ for a person to approve. On a codebase that already exists, settles the adoption baseline, meaning whether shipped surfaces owe prototypes and whether shipped features appear in the plan, then audits it for outdated or vulnerable packages, finds the MCP servers and skills that fit, then writes architecture, tooling, design, design registry, code standards, library docs, build plan, progress tracker, and ui registry into .konteksto/."
+description: "Run /dev-architect after /dev-scope to design how the product gets built and how it looks. Weighs options, settles the stack, and on a frontend project designs every surface the flows require as an interactive HTML prototype in .konteksto/designs/, then renders each one at every breakpoint and every state in a real browser and puts it in front of a person to approve. On a codebase that already exists, settles the adoption baseline, meaning whether shipped surfaces owe prototypes and whether shipped features appear in the plan, then audits it for outdated or vulnerable packages, finds the MCP servers and skills that fit, then writes architecture, tooling, design, design registry, code standards, library docs, build plan, progress tracker, and ui registry into .konteksto/."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -80,11 +80,17 @@ Read a template from `templates/`, in this skill's folder, and write the filled 
 
 Do NOT write application code, scaffold a project, or install a package the product itself ships. This skill produces documents and settles decisions. Building starts as a separate, later request.
 
-Four narrow exceptions. Agent tooling found in step 6, meaning skills and MCP servers, may be set up during this skill, but only per the consent rules in that step, and only for a tool the user approved by name. `docker-compose.yml` plus `.env.example` are written in step 5, because they are the structure the build sits in rather than the product itself. On a team project, `.gitignore` gains a line for `.konteksto/role.local.json`, because that file must never be committed and this is the only skill that creates the need for it.
+Some narrow exceptions, and each one states its own edges. Agent tooling found in step 6, meaning skills and MCP servers, may be set up during this skill, but only per the consent rules in that step, and only for a tool the user approved by name. `docker-compose.yml` plus `.env.example` are written in step 5, because they are the structure the build sits in rather than the product itself. On a team project, `.gitignore` gains a line for `.konteksto/role.local.json`, because that file must never be committed and this is the only skill that creates the need for it.
 
-**The fourth is design prototypes**, and it is the widest, so its edges are stated exactly. You may write standalone HTML, CSS, and JavaScript **inside `.konteksto/designs/` only**, as design artifacts. They are not application code, nothing in `app/` may import them, and no line of one is copied into the product by you.
+**Design prototypes**, which is the widest of them. You may write standalone HTML, CSS, and JavaScript **inside `.konteksto/designs/` only**, as design artifacts. They are not application code, nothing in `app/` may import them, and no line of one is copied into the product by you.
 
 **The limit is responsibility, not size.** Inside that folder you may not write production anything: no framework components, no API calls, no persistence, no authentication, no business logic. A prototype is made interactive with fixture data, local state, and simulated responses. A genuinely interactive surface may need a few hundred lines of prototype JavaScript, and that is fine. **The moment making it behave would require building a real service, stop**, because that is `/dev-develop`'s work and the prototype does not need it.
+
+**The review session workspace**, on a project with an `app/`. Step 3 renders each prototype and puts it in front of a person, and the small server and review page that does it are written into a throwaway directory outside the repository, fresh per session and deleted with it. `internal/design-review.md` defines the workspace and everything in it.
+
+**Its edges, which are tighter than the prototype one.** Nothing is written inside the repository, nothing is committed, and the server serves that directory and reaches nothing outside it. It exists for the length of one review. **A review harness that starts accumulating in the project is a product nobody agreed to maintain**, which is exactly why it lives in the system temporary area and dies there.
+
+**Playwright and its browser may be installed**, on a project with an `app/`, because a review cannot happen without one and the whole design lifecycle stops if it does not. Say what you are installing and why before you install it. It is a development tool for reviewing and verifying, and it is not a package the product ships, so it never enters `library-docs.md`. It is recorded in the Visual verification section of `tooling.md` like every other tool the agent works with.
 
 Do NOT fill a document with a guess. Every value is read from the existing codebase, stated by the user, found at a source you actually fetched, or picked by the user from options you presented.
 
@@ -195,7 +201,9 @@ The rules worth seeing from here, because they are the ones that change what thi
 
 **A missing design blocks its own task and nothing else.** Write the whole plan regardless. `/dev-develop` stops on the task whose surface has no approved design, exactly like an unratified assumption keeps one task off `DONE` without holding up the project.
 
-**You may never decide an `APPROVED`.** Present, set the row to `READY FOR REVIEW`, and ask. The registry defines what a yes has to look like before you may record one.
+**Approval happens in a review session, and this project needs a browser to get one.** You render the proposal at every breakpoint and every required state, collect what it threw while rendering, and put that evidence and the live prototype in front of a person. `internal/design-review.md` defines the session. **Playwright and a browser are required here, not optional**, so settle them during the stack walk and install them before step 3 needs them.
+
+**You may never decide an `APPROVED`.** Set the row to `READY FOR REVIEW`, run the session, and read back what the person chose. You never click a decision yourself. The registry defines what a yes has to look like before you may record one.
 
 ### Step 4: Audit an existing codebase
 
@@ -363,6 +371,7 @@ Say all of this:
 - The files written, including `docker-compose.yml` and `.env.example` if step 5 wrote them.
 - The optional sections and files skipped, and why, including `design.md` when there is no frontend.
 - The design source: the template chosen and its license, the design provided, or that there was none.
+- **Every review session run**, on a frontend project: the surface, who decided, what they decided, and where the row landed. Say plainly which surfaces were never put in front of anybody, since a prototype nobody reviewed is not a design anybody agreed to.
 - Every container in the compose file, its purpose, and the port it is on. Name any stand in service and the real service it stands in for. State what happens to local data between tasks.
 - **Every security finding from the dependency audit**, with its severity and whether the fix became a task. If the user declined an update, say so plainly here as well as recording it, so an accepted risk stays visible.
 - **The adoption baseline, on an existing codebase**: where the design line and the history line landed, and what the baseline does not exempt. Say the exemptions out loud, because a user who took both defaults is usually picturing a wider amnesty than they got.
@@ -380,6 +389,7 @@ All of these live in this skill's folder, read only when you reach them.
 
 - `internal/design-direction.md`: taking in supplied designs, the flow to surface audit, settling the system, building the prototypes, and the approval ask. Read at step 3, frontend only.
 - `internal/design-judgment.md`: the designer posture, the ten capabilities, the rules that hold on every surface, and the self critique. **Read with `design-direction.md` at step 3**, frontend only, and never on a backend.
+- `internal/design-review.md`: the review session. The two browser contexts and the wall between them, the session workspace, the capture pass, the decision record, and the checks that bind an approval to one revision. Read at step 6 of `design-direction.md`, frontend only.
 - `internal/adoption-baseline.md`: the two questions that decide where this workflow starts on a product that already exists, and what the baseline does not exempt. Read at step 2a, existing codebases only, and before step 3.
 - `internal/brownfield-audit.md`: the structure confirmation, the existing component decision, and the dependency audit. Read at step 4, existing codebases only.
 - `internal/standards.md`: the convention and tooling questions that fill `code-standards.md`, and how to derive conventions from an existing codebase. Read at step 7.

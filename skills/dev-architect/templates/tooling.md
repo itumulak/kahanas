@@ -67,28 +67,44 @@ Whoever builds a task follows this and nothing else. A build never drops a local
 
 ---
 
-## Visual verification (Optional)
+## Visual verification
 
-*Purpose: how a person or a skill renders a page and captures it at each breakpoint. Required on any project with an `app/`, and deleted entirely on a backend. Recorded because `/dev-check verify` must produce a screenshot per breakpoint or report the item as blocked, and a project with no way to take one would block every UI task forever.*
+*Purpose: how a person or a skill renders a page and captures it at each breakpoint. Required on any project with an `app/`, and deleted entirely on a backend. Two skills depend on it: `/dev-architect` cannot run a design review session without it, and `/dev-check verify` must produce a screenshot per breakpoint or report the item as blocked.*
+
+**On a project with an `app/`, this section is required and a browser is not optional.** The design lifecycle ends in a person looking at a rendered prototype, so a project with no way to render one cannot approve a design, and a project that cannot approve a design cannot build a surface. Settle it during the stack walk and install it before the first prototype is finished.
 
 | What | Value |
 | --- | --- |
-| Tool | <BROWSER_AUTOMATION_OR_SCREENSHOT_TOOL> |
-| Browser | <BROWSER_AND_HOW_IT_IS_INSTALLED> |
-| Command | `<COMMAND_THAT_RENDERS_A_ROUTE_AND_WRITES_AN_IMAGE>` |
+| Tool | <BROWSER_AUTOMATION_TOOL, DEFAULT_PLAYWRIGHT> |
+| Browser | <BROWSER_AND_HOW_IT_IS_INSTALLED, DEFAULT_CHROMIUM> |
+| Install | `<EXACT_COMMAND_THAT_INSTALLS_THE_TOOL_AND_ITS_BROWSER>` |
+| Review command | `<COMMAND_THAT_STARTS_A_DESIGN_REVIEW_SESSION>` |
+| Capture command | `<COMMAND_THAT_RENDERS_A_ROUTE_AND_WRITES_AN_IMAGE>` |
 | Output | <WHERE_THE_IMAGES_LAND> |
 
-**Settle this while settling the stack, not when the first verify blocks.** `/dev-check` has no browser of its own and no guarantee one exists in the environment, so this is the line that lets it meet its contract.
+**Playwright with Chromium is the default answer**, because it drives a real browser, sets a viewport exactly, and reports console errors, page errors, and failed requests without extra tooling, which is the whole evidence set a review session needs. A project already carrying a different browser automation tool records that one instead rather than installing a second.
 
-**Where the project genuinely has none**, say so here in one line rather than leaving the section empty. `/dev-check verify` then reports UI conformance as blocked, honestly and every time, instead of quietly degrading into reading the markup and calling it a match. An honest and repeated block is a prompt to install something. A silent downgrade is how a design contract stops meaning anything.
+**Chromium alone is enough for a design review.** A review answers whether this is the design to build, and rendering it in three engines answers a different question. Where a project needs cross browser evidence, that belongs to `/dev-check verify` against the built product, not to the approval of a prototype.
+
+**The review harness runs on Node, whatever the product is written in.** It ships with `/dev-architect` as three small files, and Node plus the Playwright package is what runs them. A Go or Python or Rust product with an `app/` therefore needs Node available to review a design, and that is a real requirement rather than an implied one, so it is written here where somebody setting the project up will see it.
+
+**The reason is that one harness beats one per language.** The alternative is the same review page and the same decision endpoint reimplemented per ecosystem, drifting apart, each one separately wrong in its own way, and this is the code path that decides whether an approval is genuine. **A project with an `app/` almost always has Node already**, since the client tooling brought it, so the requirement usually costs nothing. Where it genuinely does not, that is worth saying in this section along with what the project does instead.
+
+**A project using Playwright's Python or other language binding still needs the Node package for this.** The bindings are not interchangeable here, and installing both is cheaper than maintaining a second harness.
+
+**This is a development tool and not a package the product ships**, so it stays here and never enters `library-docs.md`, whatever the manifest says.
+
+**Where the tool cannot be installed at all**, say so here in one line, and say what blocks it. Two consequences follow and both are worth knowing in advance: `/dev-check verify` reports UI conformance as blocked, honestly and every time, rather than degrading into reading the markup and calling it a match, and every design approval has to be a person editing `design-registry.md` by hand. Both are honest, both are workable, and both are worse than installing a browser.
 
 ### Previewing a prototype
 
-*Purpose: how anybody opens a file in `.konteksto/designs/` to look at it. Needed by the person approving it as much as by any skill.*
+*Purpose: how anybody opens a file in `.konteksto/designs/` to look at it, outside a review session. Needed by whoever is building the surface as much as by whoever approved it.*
 
 **Command:** `<COMMAND_THAT_SERVES_THE_DESIGNS_FOLDER, FOR_EXAMPLE_A_STATIC_FILE_SERVER>`
 
 **No application infrastructure may be required to view a prototype.** No install, no build step, no dev server for the product itself. A prototype that needs the app running to be looked at cannot be reviewed before the app exists, which is precisely when it needs reviewing.
+
+**The review session does not relax that.** It serves a copy of the prototype over HTTP because the review page and its decision endpoint need an origin, and the prototype itself must still open on its own from the filesystem. One that only works under the session server has failed the rule and is not ready to review.
 
 ---
 

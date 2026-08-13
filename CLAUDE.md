@@ -66,6 +66,8 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 | What a baseline surface is, and what ends it | `design-registry.md` |
 | What a baseline task is, and why it is not `DONE` | `progress-tracker.md` |
 | The two questions that place the baseline | `dev-architect/internal/adoption-baseline.md` |
+| What a review session is, and the wall between its two browsers | `dev-architect/internal/design-review.md` |
+| How a prototype state is reached from outside | `dev-architect/internal/design-direction.md` |
 
 **This overview and `README.md` are the exception, and they still may not carry specifics.** Their job is orientation for somebody maintaining the skills, so they say what a rule is for and why it exists. They do not restate its exact conditions, values, or counts, because a summary that carries operational detail is just another copy waiting to go stale.
 
@@ -88,6 +90,10 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 **Exact pixel equality is not the bar, because nothing can check it.** A component library injects its own spacing and fonts rasterize differently on every machine, so a pixel comparison fails on a correct build. `ui-guide.md` defines the checkable form and the order in which fidelity yields, with accessibility above reproduction.
 
 **No skill may originate an approval, and a skill may record one a person actually gave.** Deciding and writing down are different acts, and making somebody hand edit markdown after saying yes is ceremony rather than safety. `design-registry.md` sets the conditions a yes has to meet. A skill writes every other status including `CHANGE REQUIRED`, because noticing a design has gone stale is an observation while deciding it is fixed is not.
+
+**Approval is an executable step on a project with a frontend, not a message asking somebody to look at a file.** `/dev-architect` renders each proposal at every breakpoint and every state it claims to have, collects what the page threw while doing it, and puts that evidence beside the live prototype for a person to decide on. A browser is required there for exactly that reason: the last thing standing between a design and every surface built on it is a person actually seeing it. `design-review.md` holds the session.
+
+**The browser a skill drives and the browser a person decides in are different browsers, and that rule is a convention rather than a guarantee.** A process holding a browser handle can click any button in it, so the wall between the two contexts is worth precisely what the Assigned column is worth: an instruction agents follow and a record people can audit. It is stated that way everywhere it appears, because a guarantee the system cannot keep is worse than no guarantee at all, and an approval is the last place to start overclaiming.
 
 **A codebase that shipped before this workflow gets a baseline, not a backlog.** `/dev-architect` asks two questions on an existing project, before it maps a single surface: do the screens that already exist owe prototypes, and do the features already built appear in the plan. The default on both is no. Work before the line is recorded as predating the workflow, and everything after it follows the process in full, so a new page still needs a prototype and still needs a person to approve it.
 
