@@ -76,7 +76,7 @@ Then the payload itself: a known decision, a name on approve, feedback on anythi
 
 **Approve is gated on the capture evidence, at the endpoint and not only in the page.** A state that did not activate refuses the approval outright with 422. Console errors, page errors, failed requests, error responses, and blocked external requests require `acknowledged: true`, which the page collects with a checkbox naming what was found. Console warnings are shown and gate nothing. A session with no `errors.json` at all is blocked, because no evidence is not clean evidence.
 
-The write is staged to a temporary file and renamed, and refuses when `decision.json` already exists, so a session produces exactly one decision and a reader never sees half of it.
+The record is written whole and then linked into place. **`link` fails with `EEXIST` atomically**, so two decisions arriving together cannot both win and a reader never sees half a file. Checking that the target exists and then renaming would lose that race, since rename overwrites.
 
 ## `capture.mjs`
 
@@ -113,9 +113,17 @@ The URL is the **asset origin**, never the review one. Writes `screenshots/<stat
 
 ### How a state that did not activate is detected
 
-There is no way to ask a prototype whether it honoured a fragment, so the pass compares what rendered. Each state's body markup is hashed at each breakpoint, and a state whose hash matches the default state's at every breakpoint did not activate: the fragment changed nothing.
+Two ways a state fails, and both mark it unreachable.
+
+**It never rendered.** Navigation failed at some breakpoint, so there is nothing to look at. **The default state is not exempt**: a proposal whose only state failed to load would otherwise report itself reachable, and be approvable by acknowledging the navigation failure.
+
+**Or it rendered exactly what the default rendered.** There is no way to ask a prototype whether it honoured a fragment, so the pass hashes each state's body markup at each breakpoint. A state matching the default everywhere did not activate, and the fragment changed nothing.
 
 **A state that legitimately renders exactly like the default is not a separate state**, so being flagged is the correct outcome there too.
+
+### Origins are parsed, never prefix matched
+
+`http://127.0.0.1:41655@evil.example/` starts with the asset origin as a string and is a request to `evil.example`. So is `http://127.0.0.1:41655.evil.example/`. Every origin comparison in the harness parses the URL and compares `.origin`, and a prototype can read `location.origin` to build exactly that string, so a prefix test is not a hard case to hit.
 
 ## `review.html`
 

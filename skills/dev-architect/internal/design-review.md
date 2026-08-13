@@ -98,6 +98,8 @@ One disposable directory per session, outside the repository, in the system temp
 
 **A git commit is deliberately not one of these.** It looked like the obvious way to notice the world moving, and it is the wrong instrument: an unrelated backend merge during a review would void a perfectly good approval, while a token file edited without a commit would slip past it. Hash what the design is actually made of.
 
+**`design.md` is deliberately not one either, and the boundary is worth stating.** These hashes answer one question: is this still the thing the person looked at. `design.md` is not part of what they looked at, it is the rule the prototype was built to follow, so a breakpoint added to it during a review does not make their approval a lie about a different artifact. **It makes the approved prototype stale**, which is a different problem with an answer that already exists: the row moves to `CHANGE REQUIRED` and the prototype gets fixed. Folding that into the session would void approvals for something the session cannot see and cannot judge, and would still not catch it a day later.
+
 ### 4. Serve it
 
 `server.mjs` does this, and the rules it holds up are here because they are the reason it is shaped the way it is.
@@ -149,6 +151,8 @@ For the surface under review:
 **The capture pass does not exercise interactions, and that is deliberate rather than missing.** Driving them would need every prototype to declare its buttons and flows in a machine readable contract, which is a second contract to write, keep true, and review, on top of the state one. **The person exercises the interactions**, in the live frame, by clicking the thing they are being asked to approve. That is why the live proposal is the review surface and the screenshots are supporting evidence, and it is the one part of a review a person is strictly better at than a script.
 
 **What the pass owes is the evidence a person cannot gather by clicking**: every breakpoint and every state rendered without them resizing a window thirty times, and the errors a prototype threw while looking perfectly fine.
+
+**Name the limit rather than leaving it implied: an error that only appears when somebody clicks is not in `errors.json`.** The pass loads each state and watches, so it catches what a prototype throws on the way in and misses what it throws on the way through. The live frame is a real browser with a real console, and a person who sees a control misbehave says so in their feedback like any other problem with the design. **The gate is honest about what it checked**, which is the point: it never claims a prototype is clean, only that nothing broke while it was being rendered.
 
 **A prototype must render with no network, so the pass aborts anything off session rather than noting it.** Letting it through would review the design against something that will not be there later, and would let an untrusted prototype talk to whatever it liked while nobody was watching. Each blocked request is recorded, so nothing disappears quietly.
 
@@ -226,7 +230,15 @@ Then, in this order:
 2. Stamp `APPROVED, <person>, <timestamp>` on every registry row pointing at that file, per the registry's own rules for a shared prototype.
 3. Confirm both landed, and report exactly what did if only one did.
 
-**The order matters, and no transaction across the two is needed.** The registry is the authority on whether a design is approved. A file written with no stamp beside it is a file nobody approved, which is a safe and readable state, and running the step again fixes it. A stamp with no file behind it is not safe: it claims an approved design that is not there. **Write the file first, always**, and the ordering does the work a rollback would, without a rollback that could itself fail halfway.
+**The order matters, and no transaction across the two is needed.** The registry is the authority on whether a design is approved. A file written with no stamp beside it is a file nobody approved, which is a safe and readable state. A stamp with no file behind it is not safe: it claims an approved design that is not there. **Write the file first, always**, and the ordering does the work a rollback would, without a rollback that could itself fail halfway.
+
+**Recovering a half finished promotion is its own procedure, and it is not running the session again.** Once step 1 has landed, the canonical file no longer matches `baselineHash`, so check 2 would fail and a fresh session would refuse the approval that already happened. Say what state it is in, and finish it:
+
+1. **Hash the canonical file and compare it to `proposalHash` in `decision.json`.** Equal means step 1 completed and the person's decision still applies to exactly what is on disk.
+2. **Write the stamp**, on every row pointing at that file, using the person and timestamp from `decision.json` rather than the current time. The approval happened when they clicked, not when the retry ran.
+3. **Not equal means step 1 did not complete**, so restore the canonical file from git and run a fresh session. Nothing is approved.
+
+**Keep `decision.json` until this is settled**, which is the one reason to delay a teardown. It is the only record that a person decided, and after step 1 the manifest can no longer prove what they decided about.
 
 **On Request changes:** move the row to `DRAFT`, put the feedback in the Note column, and leave any blocked task blocked. The next approval attempt needs a new session and a new proposal hash.
 

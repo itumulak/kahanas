@@ -98,6 +98,19 @@ try {
 
 const ORIGIN = new URL(URL_UNDER_CAPTURE).origin;
 const slug = (value) => value.toLowerCase().trim().replace(/\s+/g, "-");
+
+// Parse before comparing. A string prefix test passes for
+// http://127.0.0.1:1234@evil.example/, where everything before the at sign is
+// user information and the real host is evil.example, so a prototype could reach
+// the network through a URL that looks local.
+function isSessionUrl(value) {
+  if (/^(data:|blob:|about:)/.test(value)) return true;
+  try {
+    return new URL(value).origin === ORIGIN;
+  } catch {
+    return false;
+  }
+}
 const stateUrl = (state, cacheBust) =>
   `${URL_UNDER_CAPTURE}${URL_UNDER_CAPTURE.includes("?") ? "&" : "?"}_k=${cacheBust}#state=${slug(state)}`;
 
@@ -158,7 +171,7 @@ page.on("response", (res) => {
 // during a review invalidates the approval the same way editing the prototype
 // would.
 page.on("response", (res) => {
-  if (res.status() < 400 && res.url().startsWith(ORIGIN)) {
+  if (res.status() < 400 && isSessionUrl(res.url())) {
     dependencies.add(new URL(res.url()).pathname.split("?")[0]);
   }
 });
@@ -170,7 +183,7 @@ page.on("response", (res) => {
 // talk to whatever it liked while nobody was watching.
 await page.route("**/*", (route) => {
   const url = route.request().url();
-  if (url.startsWith(ORIGIN) || /^(data:|blob:|about:)/.test(url)) return route.continue();
+  if (isSessionUrl(url)) return route.continue();
   blocked.add(url);
   record("external-request", url, "blocked, a prototype must render with no network");
   return route.abort();
@@ -207,15 +220,35 @@ for (const breakpoint of BREAKPOINTS) {
   }
 }
 
-// A state that renders exactly what the default renders was not activated. The
-// fragment did nothing, and asking somebody to approve a surface whose error
-// state nobody has ever seen is asking them to approve a claim.
+// Two ways a state fails to be reviewable, and both have to be caught.
+//
+// It never rendered, so there is nothing to look at. The default state is not
+// exempt from this: a proposal whose only state failed to navigate would
+// otherwise report itself reachable and be approvable by acknowledging the
+// navigation failure.
+//
+// Or it rendered exactly what the default renders, meaning the fragment did
+// nothing and the prototype does not implement it. Asking somebody to approve a
+// surface whose error state nobody has ever seen is asking them to approve a
+// claim.
 const defaultState = STATES[0];
 for (const state of STATES) {
+  const missing = BREAKPOINTS.filter((b) => !domHashes.has(`${b.name}:${state}`)).map((b) => b.name);
+
+  if (missing.length > 0) {
+    stateReports.push({
+      state,
+      activated: false,
+      note: `did not render at ${missing.join(", ")}`,
+    });
+    continue;
+  }
+
   if (state === defaultState) {
     stateReports.push({ state, activated: true, note: "the default state" });
     continue;
   }
+
   const differsSomewhere = BREAKPOINTS.some(
     (b) => domHashes.get(`${b.name}:${state}`) !== domHashes.get(`${b.name}:${defaultState}`)
   );

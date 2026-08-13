@@ -33,7 +33,7 @@
 // plainly rather than claiming a guarantee this cannot keep.
 
 import { createServer } from "node:http";
-import { readFile, readdir, writeFile, rename, stat } from "node:fs/promises";
+import { readFile, readdir, writeFile, link, unlink, stat } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { resolve, join, extname, sep } from "node:path";
 
@@ -195,17 +195,58 @@ async function serveFile(res, root, urlPath, kind, fallback = null) {
 // something the registry says the surface has, so there is nothing to approve.
 // Everything else is acknowledged rather than blocked, because a prototype with
 // a noisy console can still be the right design and only a person can say.
-function approvalGate(errors) {
+const slug = (value) => String(value).toLowerCase().trim().replace(/\s+/g, "-");
+
+// A capture pass that produced nothing usable is not a clean capture pass.
+// Checking only that errors.json exists would let an empty object, a truncated
+// write, or a crashed run read as no findings, which is the most dangerous kind
+// of clean.
+function captureIsUnusable(errors, screenshots) {
+  if (!errors || typeof errors !== "object" || Array.isArray(errors)) {
+    return "no capture pass has run for this session, so there is no evidence to review";
+  }
+  if (!errors.capturedAt) return "the capture output has no timestamp, so it is not a finished pass";
+  if (!Array.isArray(errors.breakpoints) || errors.breakpoints.length === 0) {
+    return "the capture output records no breakpoints";
+  }
+  if (!Array.isArray(errors.states) || errors.states.length === 0) {
+    return "the capture output records no states";
+  }
+  if (!Array.isArray(errors.findings) || !Array.isArray(errors.dependencies)) {
+    return "the capture output is incomplete";
+  }
+
+  // Every state at every breakpoint, or the person was not shown what they are
+  // being asked to approve.
+  const present = new Set(screenshots);
+  const missing = [];
+  for (const state of errors.states) {
+    for (const breakpoint of errors.breakpoints) {
+      const name = `${slug(state.state)}__${breakpoint.name}.png`;
+      if (!present.has(name)) missing.push(name);
+    }
+  }
+  if (missing.length > 0) {
+    return `the capture pass is missing ${missing.length} screenshots, including ${missing[0]}`;
+  }
+
+  return null;
+}
+
+function approvalGate(errors, screenshots = []) {
   const blockers = [];
   const warnings = [];
 
-  if (!errors) {
-    blockers.push("no capture pass has run for this session, so there is no evidence to review");
+  const unusable = captureIsUnusable(errors, screenshots);
+  if (unusable) {
+    blockers.push(unusable);
     return { blockers, warnings };
   }
 
   for (const state of errors.states ?? []) {
-    if (!state.activated) blockers.push(`state did not activate: ${state.state}`);
+    if (!state.activated) {
+      blockers.push(`state did not activate: ${state.state}${state.note ? `, ${state.note}` : ""}`);
+    }
   }
 
   const counts = {};
@@ -217,18 +258,20 @@ function approvalGate(errors) {
   return { blockers, warnings };
 }
 
-async function sessionState() {
-  const errors = await readJson("errors.json", null);
-  const decision = await readJson("decision.json", null);
-
-  let screenshots = [];
+async function listScreenshots() {
   try {
-    screenshots = (await readdir(join(ROOT, "screenshots")))
+    return (await readdir(join(ROOT, "screenshots")))
       .filter((name) => /\.(png|jpe?g|webp)$/i.test(name))
       .sort();
   } catch {
-    screenshots = [];
+    return [];
   }
+}
+
+async function sessionState() {
+  const errors = await readJson("errors.json", null);
+  const decision = await readJson("decision.json", null);
+  const screenshots = await listScreenshots();
 
   return {
     manifest,
@@ -236,7 +279,7 @@ async function sessionState() {
     screenshots,
     assetOrigin: ASSET_ORIGIN,
     hasBaseline: await exists(join(PROTOTYPE_ROOT, "baseline.html")),
-    gate: approvalGate(errors),
+    gate: approvalGate(errors, screenshots),
     decided: decision !== null,
     decision,
   };
@@ -303,7 +346,10 @@ async function postDecision(req, res) {
   }
 
   if (decision === "approve") {
-    const { blockers, warnings } = approvalGate(await readJson("errors.json", null));
+    const { blockers, warnings } = approvalGate(
+      await readJson("errors.json", null),
+      await listScreenshots()
+    );
     if (blockers.length > 0) {
       return sendJson(res, 422, {
         error: "this proposal is not in a state that can be approved",
@@ -330,12 +376,22 @@ async function postDecision(req, res) {
   const target = join(ROOT, "decision.json");
   const staged = `${target}.${randomUUID()}.part`;
   try {
-    if (await exists(target)) {
-      return sendJson(res, 409, { error: "this session already recorded a decision" });
-    }
-    // Staged, then renamed, so a reader never sees a half written decision.
+    // Written whole, then linked into place. link fails with EEXIST atomically,
+    // so two decisions arriving together cannot both win, and a reader never
+    // sees a half written file. Checking that the target exists and then
+    // renaming would lose that race: rename overwrites, so the second decision
+    // would quietly replace the first.
     await writeFile(staged, JSON.stringify(record, null, 2));
-    await rename(staged, target);
+    try {
+      await link(staged, target);
+    } catch (err) {
+      if (err.code === "EEXIST") {
+        return sendJson(res, 409, { error: "this session already recorded a decision" });
+      }
+      throw err;
+    } finally {
+      await unlink(staged).catch(() => {});
+    }
   } catch (err) {
     return sendJson(res, 500, { error: `could not write decision: ${err.message}` });
   }

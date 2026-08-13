@@ -239,10 +239,12 @@ function frameFor(file, breakpoint, label) {
   // allow-same-origin is safe here and is needed for a prototype that uses
   // storage: the frame keeps the asset origin, which is not this page's origin,
   // so it still cannot reach into the review page or its endpoint.
-  frame.setAttribute(
-    "sandbox",
-    "allow-scripts allow-forms allow-modals allow-popups allow-same-origin"
-  );
+  //
+  // No allow-popups and no allow-top-navigation. A popup escapes the frame and
+  // is not covered by the asset origin's policy, so a prototype could navigate
+  // one anywhere. A design has nothing to demonstrate that needs a new window,
+  // and Open in a new tab does the honest version of it from this page.
+  frame.setAttribute("sandbox", "allow-scripts allow-forms allow-modals allow-same-origin");
   // A cache busting query forces a real load, since a prototype may not listen
   // for a hash change.
   frame.src = stateHref(file);
