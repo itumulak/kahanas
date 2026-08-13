@@ -273,6 +273,17 @@ Hash the canonical file, and compare it to both hashes you already hold. There a
 
 **Every decision moves every carried row, not only the one somebody named.** The rows in `registryRowHashes` all point at this prototype, a decision is about the file, and leaving a sibling behind is the same defect whichever way the decision went. An approval that stamped all three and a rejection that moved one would be a registry where two rows still claim a design that was just sent back.
 
+**Re read the registry before any of the three decisions writes anything, and check the current set of rows against `registryRowHashes`.** The approval path already does this as check 3, and the other two need it for the same reason: a review takes as long as a person takes, and the file on disk is not the file the session started with.
+
+| What you find | What it means | Do |
+| --- | --- | --- |
+| the same rows, unchanged | nothing moved | write the decision to all of them |
+| a row that changed | somebody edited it during the review | **stop**, report which row and how, and let a person say which version stands |
+| a row that appeared, pointing at this prototype | a surface joined the file mid review | **stop**. On an approval it was never captured or looked at; on a return it is about to be moved by feedback nobody gave about it |
+| a row that disappeared | a surface left the file mid review | **stop** and report it, rather than writing to a row that is no longer there |
+
+**Writing from the session's own snapshot without looking would be the same class of mistake this whole file exists to prevent**, one step further out: acting on what was true when you started rather than on what is true when you write.
+
 **On Request changes:** move every carried row to `DRAFT`, put the feedback in each Note column, and leave any blocked task blocked. The next approval attempt needs a new session and a new proposal hash.
 
 **On Reject:** the canonical file is not touched at all. Every carried row goes back to `MISSING` where nothing viable is left and `DRAFT` where something is, and any that was already approved stays at `CHANGE REQUIRED` until a replacement exists. The reason goes in each Note column.

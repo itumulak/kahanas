@@ -302,17 +302,30 @@ for (const breakpoint of BREAKPOINTS) {
 
 // Two ways a state fails to be reviewable, and both have to be caught.
 //
-// It never rendered, so there is nothing to look at. The default state is not
-// exempt from this: a proposal whose only state failed to navigate would
+// It never rendered, so there is nothing to look at. The first declared state is
+// not exempt from this: a proposal whose only state failed to navigate would
 // otherwise report itself reachable and be approvable by acknowledging the
 // navigation failure.
 //
-// Or it rendered exactly what the default renders, meaning the fragment did
-// nothing and the prototype does not implement it. Asking somebody to approve a
-// surface whose error state nobody has ever seen is asking them to approve a
-// claim.
-const defaultState = STATES[0];
-for (const state of STATES) {
+// Or it rendered exactly what another declared state rendered, meaning the
+// fragment did nothing and the prototype does not implement it. Asking somebody
+// to approve a surface whose error state nobody has ever seen is asking them to
+// approve a claim.
+//
+// Every state is compared against every state declared before it, not against
+// the first one. A prototype can cover several surfaces, so the first state is
+// some other surface's, and comparing payment-error against cart-default finds
+// them different and calls it implemented while it is in fact rendering
+// payment-default. Comparing pairwise needs no surface metadata and catches it.
+//
+// Within a colliding pair the later declaration is the one flagged, since the
+// earlier one is the composition that exists and the later is the one that
+// failed to arrive. That is also why states are declared grouped by surface,
+// each surface's base state first.
+const signature = (breakpoint, state) =>
+  `${domHashes.get(`${breakpoint}:${state}`)}|${shotHashes.get(`${breakpoint}:${state}`)}`;
+
+for (const [index, state] of STATES.entries()) {
   const missing = BREAKPOINTS.filter((b) => !domHashes.has(`${b.name}:${state}`)).map((b) => b.name);
 
   if (missing.length > 0) {
@@ -324,28 +337,20 @@ for (const state of STATES) {
     continue;
   }
 
-  if (state === defaultState) {
-    stateReports.push({ state, activated: true, note: "the default state" });
-    continue;
-  }
+  // Either signal is enough on its own. The markup catches a state whose
+  // difference is off screen, and the pixels catch one expressed purely in
+  // styling, so a state has to match on both at every breakpoint before it is
+  // called unimplemented.
+  const collidesWith = STATES.slice(0, index).find((earlier) =>
+    BREAKPOINTS.every((b) => signature(b.name, state) === signature(b.name, earlier))
+  );
 
-  // Either signal is enough. The markup catches a state whose difference is off
-  // screen, and the pixels catch one expressed purely in styling, and a state
-  // has to match the default on both at every breakpoint before it is called
-  // unimplemented.
-  const differsSomewhere = BREAKPOINTS.some((b) => {
-    const key = `${b.name}:${state}`;
-    const base = `${b.name}:${defaultState}`;
-    return (
-      domHashes.get(key) !== domHashes.get(base) || shotHashes.get(key) !== shotHashes.get(base)
-    );
-  });
   stateReports.push({
     state,
-    activated: differsSomewhere,
-    note: differsSomewhere
-      ? null
-      : `#state=${slug(state)} rendered the same document and the same pixels as ${defaultState} at every breakpoint, so the prototype does not implement it`,
+    activated: !collidesWith,
+    note: collidesWith
+      ? `#state=${slug(state)} rendered the same document and the same pixels as ${collidesWith} at every breakpoint, so the prototype does not implement it`
+      : null,
   });
 }
 

@@ -175,6 +175,7 @@ This is the recurring path, and it runs before any critique or review, because t
 | --- | --- | --- |
 | `APPROVED` | to `CHANGE REQUIRED` with the reason in its Note, then to `DRAFT` | the lifecycle records that something invalidated an approval, rather than an approval quietly vanishing |
 | `READY FOR REVIEW` | to `DRAFT` | it claims finished and self critiqued, and it is about to stop being either |
+| `CHANGE REQUIRED` | to `DRAFT`, keeping its Note | something already invalidated it and the Note says what; this is the run that acts on it |
 | `DRAFT` | leave it, and keep its Note | it is already saying what it is |
 
 **Editing the file while a row still reads `APPROVED` or `READY FOR REVIEW` means the registry is describing something that no longer exists.** One claims a person approved this file, the other claims it is finished and waiting on them, and both stop being true the moment you edit it.

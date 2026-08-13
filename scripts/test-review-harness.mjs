@@ -579,6 +579,47 @@ if(s==='empty'){document.getElementById('empty').hidden=false;document.getElemen
   // lets CSS show and hide is a normal way to build one, and its body markup is
   // identical in every state. Reading only the body reported it unimplemented
   // and blocked approval of a correct prototype.
+  // A shared prototype covers several surfaces, so the first declared state
+  // belongs to some other surface. Comparing everything against it finds
+  // payment-error different from cart-default and calls it implemented, while it
+  // is really rendering payment-default. States are compared pairwise for this.
+  await check("an unimplemented state in a second surface is caught", async () => {
+    const shared = await makeSession({
+      states: ["cart-default", "cart-error", "payment-default", "payment-error"],
+      prototype: `<!doctype html><html><head><meta charset="utf-8"><title>Checkout</title></head><body>
+<div id="cart-default"><h1>Cart</h1></div>
+<div id="cart-error" hidden><h1>Cart</h1><p>Out of stock.</p></div>
+<div id="payment-default" hidden><h1>Payment</h1></div>
+<script>
+var s=(location.hash.match(/state=([\\w-]+)/)||[,'cart-default'])[1];
+// payment-error is declared in the registry and never built, so it falls back
+// to payment-default rather than to the first state of the file.
+if(s==='payment-error'){s='payment-default';}
+['cart-default','cart-error','payment-default'].forEach(function(id){
+  document.getElementById(id).hidden=(id!==s);
+});
+</script></body></html>`,
+    });
+    cleanups.push(shared.dir);
+    const sharedServer = await startServer(shared.dir);
+    const sharedResult = await run(
+      join(HARNESS, "capture.mjs"),
+      ["--url", `${sharedServer.asset}/proposal.html`, "--out", shared.dir, "--states", "cart-default,cart-error,payment-default,payment-error", "--breakpoints", "desktop:800x600"],
+      shared.dir
+    );
+    const sharedEvidence = JSON.parse(await readFile(join(shared.dir, "errors.json"), "utf8"));
+    sharedServer.stop();
+
+    equal(sharedResult.code, 2, `exit code, stderr was: ${sharedResult.err.trim()}`);
+    const byName = Object.fromEntries(sharedEvidence.states.map((s) => [s.state, s]));
+    equal(byName["payment-default"].activated, true, "payment-default activated");
+    equal(byName["payment-error"].activated, false, "payment-error activated");
+    assert(
+      byName["payment-error"].note.includes("payment-default"),
+      `expected the collision named, got ${byName["payment-error"].note}`
+    );
+  });
+
   await check("a state driven by an attribute and CSS is reachable", async () => {
     const cssSession = await makeSession({
       states: ["default", "empty"],
