@@ -4,14 +4,6 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
-## [Unreleased]
-
-### Fixed
-
-- **The review harness runs in place instead of being copied into the session.** Copying it could not work: Node resolves an import by looking beside the importing file and then upwards, so `capture.mjs` running from a temporary directory searched `/tmp` and `/` for Playwright and exited 69 on a project that had it installed correctly. Found by running the workflow end to end on a real project rather than by reading it, which is the only way it could have been found: the test suite ran the harness in place and so tested a configuration the instructions never described.
-- **The dependency hashes are written into the manifest as a step of the capture pass.** They can only be known after the pass runs, the manifest is written before the server starts, and nothing said to go back and fill them in, so they stayed empty. The promotion check then passed by having nothing to compare, which is the most convincing kind of wrong. An empty map beside a non empty dependency list is now a failed check.
-- **A fresh project's design line step says where to go next.** It said to skip and then said nothing.
-
 ## [0.6.0] — 2026-08-13
 
 Design becomes a skill of its own, and design approval becomes something that runs. Approving a prototype used to mean a skill saying "here it is" and a person reading a file, which is the weakest step in the whole workflow and the one everything visual depends on.
@@ -83,6 +75,12 @@ Design becomes a skill of its own, and design approval becomes something that ru
 - **The browser a skill drives and the browser a person decides in are different browsers.** The capture pass never loads the review page, and `/dev-design` never clicks a decision control, evaluates script that reaches one, or calls the endpoint behind one. **This is a convention and not a guarantee**, and it says so everywhere it appears: a process holding a browser handle can click any button in it. It is worth what the Assigned column is worth, meaning an instruction agents follow and a record people can audit, and real enforcement is branch protection on the registry.
 - **Playwright being installed does not make it the test runner.** `/dev-test` still reads `test-preferences.json` and nothing else, so a browser that arrived for reviewing designs never produces an end to end suite nobody asked for.
 - **A review ignores the project's own `playwright.config.ts`, and the capture pass is built so it cannot read one.** It drives the browser through the library API rather than the test runner. That config belongs to the end to end suite: its base URL points at the product's dev server, its projects fan out across engines, and its global setup may sign a user in. A design review drives a prototype on a loopback port with fixture data and no identity, and inheriting any of that would point the capture pass at a running application or hand it a real session.
+
+### Fixed
+
+- **The review harness runs in place instead of being copied into the session.** Copying it could not work: Node resolves an import by looking beside the importing file and then upwards, so `capture.mjs` running from a temporary directory searched `/tmp` and `/` for Playwright and exited 69 on a project that had it installed correctly. Found by running the workflow end to end on a real project rather than by reading it, which is the only way it could have been found: the test suite ran the harness in place and so tested a configuration the instructions never described.
+- **The dependency hashes are written into the manifest as a step of the capture pass.** They can only be known after the pass runs, the manifest is written before the server starts, and nothing said to go back and fill them in, so they stayed empty. The promotion check then passed by having nothing to compare, which is the most convincing kind of wrong. An empty map beside a non empty dependency list is now a failed check.
+- **A fresh project's design line step says where to go next.** It said to skip and then said nothing.
 
 ## [0.5.0] — 2026-08-13
 
