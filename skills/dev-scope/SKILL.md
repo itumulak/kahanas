@@ -42,7 +42,7 @@ Two files, both filled from a template in `templates/`, in this skill's own fold
 
 The glossary is the project's own words: what each thing in the domain is called, and which words are rejected for it. It is the one place the product, the documents, and the code agree on a name, and its Who writes what section states the split from its own side as well.
 
-Writes nothing else. Not `architecture.md`, not `build-plan.md`, not code, not config. If the conversation surfaces something that belongs in another document, note it in your closing report for `/dev-architect` to pick up, and leave the file alone.
+Writes nothing else. Not `architecture.md`, not `build-plan.md`, not code, not config. If the conversation surfaces something that belongs in another document, note it in your closing report for the skill that owns it, `/dev-architect` or `/dev-design`, and leave the file alone.
 
 ## Guardrails
 

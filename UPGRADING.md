@@ -114,7 +114,7 @@ about. Do not smooth over a gap. I want the list.
 
 **Never stamp old work.** Stamps name a model and a minute. You do not know which model built a task under an older version, and inventing one defeats the reason the column exists. Set the value, leave the stamp off, and say in the file that it predates stamping.
 
-**Let sections arrive lazily.** Most additions are a new section in a document `/dev-architect` or `/dev-design` already owns, and it writes them next time it runs. Nothing breaks in the meantime: a skill that looks for a missing section reports it rather than failing. Only add one by hand when you want its benefit before the next architect pass.
+**Let sections arrive lazily.** Most additions are a new section in a document `/dev-architect` or `/dev-design` already owns, and it writes them next time it runs. Nothing breaks in the meantime: a skill that looks for a missing section reports it rather than failing. Only add one by hand when you want its benefit before the next pass by the skill that owns it, which for a design section is `/dev-design` and may be a while.
 
 ---
 

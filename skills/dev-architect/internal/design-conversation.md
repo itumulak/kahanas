@@ -172,7 +172,7 @@ One case at a time: concurrency, retries, timeouts, partial failure, and the emp
 
 **A user who starts describing screens here is not interrupting, they are early.** Write it down, say it will be picked up by `/dev-design`, and carry it forward in your report rather than deciding anything.
 
-**When the visual side is not specified, you extract the page contents from the user. Never invent them.** What goes on a page is something only they know.
+**Do not extract page contents here either, and this is the sentence that used to say the opposite.** What goes on a page is something only the user knows, which is exactly why it is asked once, by the skill that will design it, with the flows in front of it. Asking here produces a second set of answers nobody records in a document, and a stack conversation that has quietly decided what a screen contains.
 
 ---
 

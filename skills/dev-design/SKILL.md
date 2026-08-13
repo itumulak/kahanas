@@ -99,13 +99,22 @@ Every user facing choice is an options panel: 2 to 4 concrete options real to th
 
 **Then work out which run this is.** The answer changes everything after it:
 
+**Something arriving from another skill or from the user names a surface, not a route.** A `/dev-develop` visual gap, a `/dev-check verify` off design report or confirmed departure, feedback from an earlier review, or a user asking for a change: in every case, find that surface's row first, then route on what the row and the files say. Route on the state, never on who asked.
+
 | What you found | This is | Go to |
 | --- | --- | --- |
-| no `design-registry.md` | the first run | step 2 |
-| a registry, and a surface named by the user or by a `/dev-develop` report | a revision | step 4a |
-| a registry, and a surface in the flows with no row | a new surface | step 3, for that surface only |
+| no `design-registry.md` at all | the first run | step 2 |
+| a surface the flows require with no row | an unmapped surface | step 3, for that surface only, then step 4 |
+| a row at `MISSING`, with no prototype file | a design that was never built | step 4, for that surface only |
+| a row at `DRAFT` or `READY FOR REVIEW`, never approved, with a prototype | an unfinished design | step 4a, which is where the feedback is read |
+| a row that carries an `APPROVED` stamp anywhere in its history | a revision of an approved design | step 4a |
+| a row at `CHANGE REQUIRED` | a revision of an approved design | step 4a |
+| a row at `BASELINE`, and the task recomposes the surface | a surface re entering the lifecycle | step 4, and move the row to `MISSING` first |
+| a row at `BASELINE`, and the task does not recompose it | nothing owed | say so and stop |
 
 **A revision is the common case after the first run**, and it is a different job from designing something new: the surface already has a design, somebody has said what is wrong with it, and the approved file has to keep standing until a replacement is approved.
+
+**`design-registry.md` defines what recomposing means**, and it is a change to layout, hierarchy, or interaction rather than to copy, content, or data. Read it before moving a `BASELINE` row anywhere.
 
 ### Step 2: Settle the design line, on an existing codebase
 
@@ -137,7 +146,7 @@ Then go to step 5. **Step 4a is for a surface that already has a design**, and a
 
 ### Step 4a: Revise a surface that already has a design
 
-This is the recurring path, and it runs before any critique or review, because there is nothing to critique until the revision exists.
+This is the recurring path, and it runs before any critique or review, because there is nothing to critique until the revision exists. **It covers an unfinished design as much as an approved one**: a row at `DRAFT` that a review sent back is here, and so is one nobody has looked at yet.
 
 **First, find out what is actually being asked.** One of these, and the wording matters because they are different problems:
 
@@ -146,16 +155,21 @@ This is the recurring path, and it runs before any critique or review, because t
 | a `/dev-develop` report | a visual gap, meaning the prototype is silent on a state, an interaction, or a breakpoint the task needs |
 | a `/dev-check verify` report | a confirmed departure, usually an accessibility fix, which makes the prototype the thing that is now wrong |
 | a `Request changes` or `Reject` on an earlier session | the feedback is in the row's Note column, put there by the last review |
+| a `/dev-check verify` off design report | the build and the prototype disagree, and the report says which one it thinks is wrong |
 | the user, directly | ask what is wrong with it before touching anything |
 
-**Then move the row, before the file changes.** An approved design that is being revised goes to `CHANGE REQUIRED` first, with the reason in its Note, and only then to `DRAFT`. **Editing the file while the row still reads `APPROVED` means that word is describing something nobody approved**, which is the one thing the lifecycle exists to prevent.
+**Then move the row, before the file changes.** An approved design that is being revised goes to `CHANGE REQUIRED` first, with the reason in its Note, and only then to `DRAFT`. A row already at `DRAFT` stays there and keeps its Note until the revision is done. **Editing the file while the row still reads `APPROVED` means that word is describing something nobody approved**, which is the one thing the lifecycle exists to prevent.
 
-**Then edit the working draft, not the canonical file.**
+**Then edit the working draft, and work out which file that is from what the canonical file is holding rather than from the row's current status.**
 
-| The row was | The revision is written to | Why |
-| --- | --- | --- |
-| `APPROVED` | `.konteksto/designs/drafts/<slug>.html` | the canonical file keeps holding the last approved design, which is what `/dev-develop` is building against meanwhile and what the review compares against |
-| anything else | `.konteksto/designs/<slug>.html` | there is no approved design to protect |
+| The canonical file holds | The revision is written to |
+| --- | --- |
+| a design that was ever approved | `.konteksto/designs/drafts/<slug>.html` |
+| a design nobody has ever approved | `.konteksto/designs/<slug>.html` |
+
+**The test is the Status cell's whole history, not its current value.** Stamps are superseded by striking through and appending, never deleted, so **an `APPROVED` stamp anywhere in the cell, struck or not, means the canonical file is holding something a person approved**. A row reading `DRAFT` today may well have read `APPROVED` last week, and the file on disk still holds that approved design until a promotion replaces it. **`.konteksto/designs/drafts/<slug>.html` already existing says the same thing**, and either signal is enough.
+
+**Reading the current status instead is a data loss bug, and it is not a theoretical one.** A surface goes `APPROVED`, then `CHANGE REQUIRED`, then `DRAFT`, and the revision lands in `drafts/`. A person clicks Request changes, and the row stays at `DRAFT`. The next run sees `DRAFT`, concludes there is no approved design to protect, and writes over the canonical file with an unapproved revision. **The last approved design is then gone from the working tree**, recoverable only from git by somebody who noticed.
 
 `internal/design-review.md` defines that draft path and what happens to it on each decision.
 
