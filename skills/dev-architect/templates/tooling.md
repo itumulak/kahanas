@@ -69,7 +69,7 @@ Whoever builds a task follows this and nothing else. A build never drops a local
 
 ## Visual verification
 
-*Purpose: how a person or a skill renders a page and captures it at each breakpoint. Required on any project with an `app/`, and deleted entirely on a backend. Two skills depend on it: `/dev-architect` cannot run a design review session without it, and `/dev-check verify` must produce a screenshot per breakpoint or report the item as blocked.*
+*Purpose: how a person or a skill renders a page and captures it at each breakpoint. Required on any project with an `app/`, and deleted entirely on a backend. Two skills depend on it: `/dev-design` cannot run a design review session without it, and `/dev-check verify` must produce a screenshot per breakpoint or report the item as blocked. `/dev-architect` writes this section and installs the tool, and uses neither.*
 
 **On a project with an `app/`, this section is required and a browser is not optional.** The design lifecycle ends in a person looking at a rendered prototype, so a project with no way to render one cannot approve a design, and a project that cannot approve a design cannot build a surface. Settle it during the stack walk and install it before the first prototype is finished.
 
@@ -86,7 +86,7 @@ Whoever builds a task follows this and nothing else. A build never drops a local
 
 **Chromium alone is enough for a design review.** A review answers whether this is the design to build, and rendering it in three engines answers a different question. Where a project needs cross browser evidence, that belongs to `/dev-check verify` against the built product, not to the approval of a prototype.
 
-**The review harness runs on Node, whatever the product is written in.** It ships with `/dev-architect` as three small files, and Node plus the Playwright package is what runs them. A Go or Python or Rust product with an `app/` therefore needs Node available to review a design, and that is a real requirement rather than an implied one, so it is written here where somebody setting the project up will see it.
+**The review harness runs on Node, whatever the product is written in.** It ships with `/dev-design` as three small files, and Node plus the Playwright package is what runs them. A Go or Python or Rust product with an `app/` therefore needs Node available to review a design, and that is a real requirement rather than an implied one, so it is written here where somebody setting the project up will see it.
 
 **The reason is that one harness beats one per language.** The alternative is the same review page and the same decision endpoint reimplemented per ecosystem, drifting apart, each one separately wrong in its own way, and this is the code path that decides whether an approval is genuine. **A project with an `app/` almost always has Node already**, since the client tooling brought it, so the requirement usually costs nothing. Where it genuinely does not, that is worth saying in this section along with what the project does instead.
 

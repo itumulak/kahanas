@@ -38,7 +38,9 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 
 Most of the individual rules below are this one rule applied to a particular file. `/dev-develop` finding a missing design cannot design it. `/dev-check` finding a wrong prototype cannot fix it. `/dev-sync` finding a term in the code cannot make it the project's word. `/dev-architect` finding a product requirement cannot add it to the scope.
 
-**`/dev-architect` and `/dev-design` are peers, not a chain.** Both sit downstream of `/dev-scope` and neither is downstream of the other, which is why the table gives each of them the other's intent in its may never column. `/dev-design` works inside the technical constraints and may not add a dependency or change the application structure to suit a design, and `/dev-architect` may not decide what a screen looks like while settling the stack. Each routes to the other.
+**`/dev-architect` and `/dev-design` are peers in authority, and sequential in time.** Neither may overrule the other, which is why the table gives each of them the other's intent in its may never column: `/dev-design` works inside the technical constraints and may not add a dependency or change the application structure to suit a design, and `/dev-architect` may not decide what a screen looks like while settling the stack. Each routes to the other rather than deciding for it.
+
+**Ordering is a separate thing from authority, and they get confused.** `/dev-architect` runs first on a new project, because a prototype should not fight the framework that will implement it and because the browser a review needs is installed there. That is a dependency in setup order, not a claim that design answers to architecture. After the first pass the ordering mostly stops mattering: `/dev-design` runs on its own, many times, whenever a surface needs one.
 
 **When a new rule is needed, check whether this already covers it.** A rule derived from the invariant needs no separate justification and will not drift out of step with the others.
 

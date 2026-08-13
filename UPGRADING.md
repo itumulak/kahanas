@@ -42,9 +42,10 @@ I have just upgraded the Kahanas dev skills from <OLD VERSION> to the version
 now installed. Migrate my .konteksto/ documents to match the new templates.
 
 Read the templates that shipped with the upgrade before changing anything.
-They are in the installed skills folder, under dev-architect/templates/ and
-dev-scope/templates/, wherever the skills were installed (.claude/skills or
-.agents/skills). Compare each one against my existing document.
+They are in the installed skills folder, under dev-architect/templates/,
+dev-design/templates/, and dev-scope/templates/, wherever the skills were
+installed (.claude/skills or .agents/skills). Compare each one against my
+existing document.
 
 Three rules matter more than completeness, and I would rather the migration
 be honest than tidy.
@@ -91,7 +92,7 @@ Then do this:
   verified them.
 - Never edit anything in .konteksto/designs/. Not a prototype, not a file
   in sources/, not to add a newer convention a template mentions. Those
-  belong to the dev-architect skill, and an approved prototype changed by
+  belong to the dev-design skill, and an approved prototype changed by
   a migration is a design nobody approved. Tell me what you would have
   changed instead.
 
@@ -113,13 +114,13 @@ about. Do not smooth over a gap. I want the list.
 
 **Never stamp old work.** Stamps name a model and a minute. You do not know which model built a task under an older version, and inventing one defeats the reason the column exists. Set the value, leave the stamp off, and say in the file that it predates stamping.
 
-**Let sections arrive lazily.** Most additions are a new section in a document `/dev-architect` already owns, and it writes them next time it runs. Nothing breaks in the meantime: a skill that looks for a missing section reports it rather than failing. Only add one by hand when you want its benefit before the next architect pass.
+**Let sections arrive lazily.** Most additions are a new section in a document `/dev-architect` or `/dev-design` already owns, and it writes them next time it runs. Nothing breaks in the meantime: a skill that looks for a missing section reports it rather than failing. Only add one by hand when you want its benefit before the next architect pass.
 
 ---
 
 ## What each version needs
 
-Templates live in `skills/dev-architect/templates/`, except `project-overview.md` and `glossary.md`, which are in `skills/dev-scope/templates/`.
+Templates live in `skills/dev-architect/templates/`, except `design.md` and `design-registry.md`, which are in `skills/dev-design/templates/`, and `project-overview.md` and `glossary.md`, which are in `skills/dev-scope/templates/`.
 
 ### Coming from 0.1.0
 
@@ -163,15 +164,15 @@ Reinstalling the skills, which you have already done above, is all that is requi
 
 Nothing here is a document migration, and all of it is frontend only. A backend with no `app/` skips this section entirely.
 
-**Install a browser, because design approval now needs one.** `/dev-architect` renders every proposal before asking anybody to approve it, so a project with no browser can no longer approve a design through the skill. Playwright with Chromium is the default:
+**Install a browser, because design approval now needs one.** `/dev-design` renders every proposal before asking anybody to approve it, so a project with no browser can no longer approve a design through the skill. Playwright with Chromium is the default:
 
 ```bash
 npm install --save-dev @playwright/test && npx playwright install chromium
 ```
 
-**Fill in the Visual verification section of `tooling.md`.** It is no longer optional on a frontend project, and it gained an install command and a review command beside the capture one. `/dev-architect` writes it next time it runs, and doing it by hand now is worth it, since two skills read it.
+**Fill in the Visual verification section of `tooling.md`.** It is no longer optional on a frontend project, and it gained an install command and a review command beside the capture one. `/dev-architect` owns that file and writes it next time it runs, and doing it by hand now is worth it, since `/dev-design` and `/dev-check verify` both read it.
 
-**Your existing prototypes have no state contract, and they will not be reviewable until they do.** Each one now reaches every state in its Required states cell from the page address, as `<file>.html#state=<name>`, with the registry's spelling lowercased and spaces written as hyphens. **Do not hand edit them and do not ask an agent to bulk edit them.** Everything in `.konteksto/designs/` belongs to `/dev-architect`, and an approved prototype edited in place is a design nobody approved. Add the fragment when a surface next comes back through the lifecycle for a reason of its own.
+**Your existing prototypes have no state contract, and they will not be reviewable until they do.** Each one now reaches every state in its Required states cell from the page address, as `<file>.html#state=<name>`, with the registry's spelling lowercased and spaces written as hyphens. **Do not hand edit them and do not ask an agent to bulk edit them.** Everything in `.konteksto/designs/` belongs to `/dev-design`, and an approved prototype edited in place is a design nobody approved. Add the fragment when a surface next comes back through the lifecycle for a reason of its own.
 
 **Nothing already approved is invalidated.** An `APPROVED` row stays approved and `/dev-develop` keeps building against it. The one thing you lose in the meantime is that `/dev-check verify` reaching a state by click path is less certain than reaching it by address, and it reports what it did either way.
 

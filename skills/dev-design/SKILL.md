@@ -102,8 +102,10 @@ Every user facing choice is an options panel: 2 to 4 concrete options real to th
 | What you found | This is | Go to |
 | --- | --- | --- |
 | no `design-registry.md` | the first run | step 2 |
-| a registry, and a surface named by the user or by a `/dev-develop` report | a revision | step 5 |
+| a registry, and a surface named by the user or by a `/dev-develop` report | a revision | step 4a |
 | a registry, and a surface in the flows with no row | a new surface | step 3, for that surface only |
+
+**A revision is the common case after the first run**, and it is a different job from designing something new: the surface already has a design, somebody has said what is wrong with it, and the approved file has to keep standing until a replacement is approved.
 
 ### Step 2: Settle the design line, on an existing codebase
 
@@ -130,6 +132,38 @@ Still `internal/design-direction.md`. Breakpoints, density, dark mode, the state
 Then the prototypes. **Coverage is the rule, not one file per surface.** Several surfaces may share a file where they are genuinely steps of one thing, and one complicated surface may warrant several. The registry holds the mapping.
 
 **Every prototype renders on its own from the filesystem**, with no install, no build step, no dev server, and no network, and **every state it declares opens from the page address**. That state contract is defined in `design-direction.md` and three skills depend on it.
+
+Then go to step 5. **Step 4a is for a surface that already has a design**, and a first run skips it entirely.
+
+### Step 4a: Revise a surface that already has a design
+
+This is the recurring path, and it runs before any critique or review, because there is nothing to critique until the revision exists.
+
+**First, find out what is actually being asked.** One of these, and the wording matters because they are different problems:
+
+| Where it came from | What it says |
+| --- | --- |
+| a `/dev-develop` report | a visual gap, meaning the prototype is silent on a state, an interaction, or a breakpoint the task needs |
+| a `/dev-check verify` report | a confirmed departure, usually an accessibility fix, which makes the prototype the thing that is now wrong |
+| a `Request changes` or `Reject` on an earlier session | the feedback is in the row's Note column, put there by the last review |
+| the user, directly | ask what is wrong with it before touching anything |
+
+**Then move the row, before the file changes.** An approved design that is being revised goes to `CHANGE REQUIRED` first, with the reason in its Note, and only then to `DRAFT`. **Editing the file while the row still reads `APPROVED` means that word is describing something nobody approved**, which is the one thing the lifecycle exists to prevent.
+
+**Then edit the working draft, not the canonical file.**
+
+| The row was | The revision is written to | Why |
+| --- | --- | --- |
+| `APPROVED` | `.konteksto/designs/drafts/<slug>.html` | the canonical file keeps holding the last approved design, which is what `/dev-develop` is building against meanwhile and what the review compares against |
+| anything else | `.konteksto/designs/<slug>.html` | there is no approved design to protect |
+
+`internal/design-review.md` defines that draft path and what happens to it on each decision.
+
+**Carry the feedback into the design rather than around it.** A person who asked for a denser table and a clearer error state asked for two things, and a revision that fixes one and quietly drops the other comes back for a second round. Say what you changed, and say plainly if you disagreed with something and did not change it.
+
+**A revision that would need a new dependency, a new component library, or a change to the application structure is not yours to make.** Stop and route to `/dev-architect`, per the ownership section above.
+
+Then go to step 5. A revision earns the same critique and the same review session as a new design, because it is going to be approved by the same standard.
 
 ### Step 5: Critique, then run the review session
 
