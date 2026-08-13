@@ -31,7 +31,9 @@ Written before anything starts. `design-review.md` defines the fields and what t
 
 **`proposalHash` must be a full sha256 hex digest of `prototype/proposal.html`.** The server validates it at startup and exits 65 rather than starting, because a session that cannot bind a decision to a revision is a session whose decisions mean nothing.
 
-**`states` and `breakpoints` are required too**, and they are what the capture pass is graded against. A capture output checked against its own state list would grade its own homework: a pass run with a shorter list covered everything it attempted, and the states the registry requires were never rendered. Missing either exits 65.
+**`states` and `breakpoints` are required too**, and they are what the capture pass is graded against. A capture output checked against its own state list would grade its own homework: a pass run with a shorter list covered everything it attempted, and the states the registry requires were never rendered. Missing either exits 65, and so does a breakpoint without a width and a height.
+
+**Breakpoints are compared by name and size together**, since a breakpoint is a size rather than a label and evidence captured at `desktop:320x200` is not evidence about a 1440 wide layout. **The capture output must also name this session's proposal**, or any findings file left in the directory would satisfy the gate, including one from a pass against a different page on another loopback port.
 
 ## Running the tests
 

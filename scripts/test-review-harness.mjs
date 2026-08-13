@@ -82,14 +82,14 @@ if(s==='empty'){document.getElementById('empty').hidden=false;document.getElemen
 }
 
 // A clean capture output, as capture.mjs would have written it.
-async function writeEvidence(session, { states, breakpoints, findings = [] } = {}) {
+async function writeEvidence(session, server, { states, breakpoints, findings = [], url } = {}) {
   const s = states ?? session.states;
   const b = breakpoints ?? session.breakpoints;
   await writeFile(
     join(session.dir, "errors.json"),
     JSON.stringify({
       capturedAt: new Date().toISOString(),
-      url: "http://127.0.0.1:1/proposal.html",
+      url: url ?? `${server.asset}/proposal.html`,
       breakpoints: b,
       states: s.map((name) => ({ state: name, activated: true, note: null })),
       dependencies: ["/proposal.html"],
@@ -114,12 +114,33 @@ function run(file, args, cwd) {
   });
 }
 
+// Every server this suite starts, so a failed assertion before stop() cannot
+// leave a child holding a port and hang the run at exactly the moment it is
+// reporting a regression.
+const running = new Set();
+function stopEverything() {
+  for (const child of running) {
+    try {
+      child.kill();
+    } catch {}
+  }
+  running.clear();
+}
+process.on("exit", stopEverything);
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.on(signal, () => {
+    stopEverything();
+    process.exit(130);
+  });
+}
+
 // Start a session server and return its two origins plus the page token.
 async function startServer(dir) {
   const child = spawn(process.execPath, [join(HARNESS, "server.mjs"), "--dir", dir], {
     cwd: dir,
     stdio: ["ignore", "pipe", "pipe"],
   });
+  running.add(child);
   let out = "";
   let err = "";
   child.stdout.on("data", (d) => (out += d));
@@ -141,7 +162,16 @@ async function startServer(dir) {
   const page = await (await fetch(review + "/")).text();
   const token = page.match(/const TOKEN = "([^"]+)"/)?.[1];
 
-  return { child, review, asset, token, stop: () => child.kill() };
+  return {
+    child,
+    review,
+    asset,
+    token,
+    stop: () => {
+      child.kill();
+      running.delete(child);
+    },
+  };
 }
 
 function decide(server, body, headers = {}) {
@@ -169,6 +199,7 @@ for (const [name, overrides] of [
   ["missing required states are refused", { states: [] }],
   ["missing required breakpoints are refused", { breakpoints: [] }],
   ["a nameless breakpoint is refused", { breakpoints: [{ width: 1, height: 1 }] }],
+  ["a breakpoint with no dimensions is refused", { breakpoints: [{ name: "desktop" }] }],
 ]) {
   await check(name, async () => {
     const session = await makeSession({ manifest: overrides });
@@ -196,8 +227,8 @@ process.stdout.write("\ndecision endpoint guards\n");
 {
   const session = await makeSession();
   cleanups.push(session.dir);
-  await writeEvidence(session);
   const server = await startServer(session.dir);
+  await writeEvidence(session, server);
   const hash = sha256(session.html);
   const evidenceHash = sha256(await readFile(join(session.dir, "errors.json")));
 
@@ -286,8 +317,8 @@ await check("no capture pass blocks approval", async () => {
 await check("an empty capture output blocks approval", async () => {
   const session = await makeSession();
   cleanups.push(session.dir);
-  await writeFile(join(session.dir, "errors.json"), "{}");
   const server = await startServer(session.dir);
+  await writeFile(join(session.dir, "errors.json"), "{}");
   const gate = await gateOf(server);
   server.stop();
   assert(gate.blockers.length > 0, "expected a blocker");
@@ -296,8 +327,8 @@ await check("an empty capture output blocks approval", async () => {
 await check("a short capture pass cannot grade itself complete", async () => {
   const session = await makeSession({ states: ["default", "empty"] });
   cleanups.push(session.dir);
-  await writeEvidence(session, { states: ["default"] });
   const server = await startServer(session.dir);
+  await writeEvidence(session, server, { states: ["default"] });
   const gate = await gateOf(server);
   server.stop();
   assert(gate.blockers.some((b) => b.includes("empty")), `expected the missing state named, got ${JSON.stringify(gate.blockers)}`);
@@ -308,19 +339,55 @@ await check("a missing breakpoint blocks approval", async () => {
     breakpoints: [{ name: "desktop", width: 800, height: 600 }, { name: "phone", width: 390, height: 844 }],
   });
   cleanups.push(session.dir);
-  await writeEvidence(session, { breakpoints: [{ name: "desktop", width: 800, height: 600 }] });
   const server = await startServer(session.dir);
+  await writeEvidence(session, server, { breakpoints: [{ name: "desktop", width: 800, height: 600 }] });
   const gate = await gateOf(server);
   server.stop();
   assert(gate.blockers.some((b) => b.includes("phone")), `expected phone named, got ${JSON.stringify(gate.blockers)}`);
 });
 
+await check("a breakpoint captured at the wrong size blocks approval", async () => {
+  const session = await makeSession({ breakpoints: [{ name: "desktop", width: 1440, height: 900 }] });
+  cleanups.push(session.dir);
+  const server = await startServer(session.dir);
+  await writeEvidence(session, server, { breakpoints: [{ name: "desktop", width: 320, height: 200 }] });
+  const gate = await gateOf(server);
+  server.stop();
+  assert(
+    gate.blockers.some((b) => b.includes("1440x900")),
+    `expected the required size named, got ${JSON.stringify(gate.blockers)}`
+  );
+});
+
+await check("evidence from another page blocks approval", async () => {
+  const session = await makeSession();
+  cleanups.push(session.dir);
+  const server = await startServer(session.dir);
+  await writeEvidence(session, server, { url: "http://127.0.0.1:9/proposal.html" });
+  const gate = await gateOf(server);
+  server.stop();
+  assert(
+    gate.blockers.some((b) => b.includes("not this session's proposal")),
+    `expected the foreign capture named, got ${JSON.stringify(gate.blockers)}`
+  );
+});
+
+await check("evidence naming another page of this session blocks approval", async () => {
+  const session = await makeSession();
+  cleanups.push(session.dir);
+  const server = await startServer(session.dir);
+  await writeEvidence(session, server, { url: `${server.asset}/baseline.html` });
+  const gate = await gateOf(server);
+  server.stop();
+  assert(gate.blockers.length > 0, "expected a blocker");
+});
+
 await check("a missing screenshot blocks approval", async () => {
   const session = await makeSession();
   cleanups.push(session.dir);
-  await writeEvidence(session);
-  await rm(join(session.dir, "screenshots", "empty__desktop.png"));
   const server = await startServer(session.dir);
+  await writeEvidence(session, server);
+  await rm(join(session.dir, "screenshots", "empty__desktop.png"));
   const gate = await gateOf(server);
   server.stop();
   assert(gate.blockers.some((b) => b.includes("empty__desktop.png")), `expected the screenshot named, got ${JSON.stringify(gate.blockers)}`);
@@ -329,12 +396,12 @@ await check("a missing screenshot blocks approval", async () => {
 await check("a state that did not activate blocks approval", async () => {
   const session = await makeSession();
   cleanups.push(session.dir);
-  await writeEvidence(session);
+  const server = await startServer(session.dir);
+  await writeEvidence(session, server);
   const evidence = JSON.parse(await readFile(join(session.dir, "errors.json"), "utf8"));
   evidence.states[1].activated = false;
   evidence.states[1].note = "did not render at desktop";
   await writeFile(join(session.dir, "errors.json"), JSON.stringify(evidence));
-  const server = await startServer(session.dir);
   const gate = await gateOf(server);
   const res = await decide(server, {
     decision: "approve",
@@ -351,13 +418,13 @@ await check("a state that did not activate blocks approval", async () => {
 await check("findings require an acknowledgement, and it is recorded", async () => {
   const session = await makeSession();
   cleanups.push(session.dir);
-  await writeEvidence(session, {
+  const server = await startServer(session.dir);
+  await writeEvidence(session, server, {
     findings: [
       { kind: "console-error", state: "default", breakpoint: "desktop", message: "boom" },
       { kind: "console-error", state: "empty", breakpoint: "desktop", message: "boom" },
     ],
   });
-  const server = await startServer(session.dir);
   const body = {
     decision: "approve",
     person: "Ian Tumulak",
@@ -380,8 +447,8 @@ await check("findings require an acknowledgement, and it is recorded", async () 
 await check("a console warning alone gates nothing", async () => {
   const session = await makeSession();
   cleanups.push(session.dir);
-  await writeEvidence(session, { findings: [{ kind: "console-warning", message: "meh" }] });
   const server = await startServer(session.dir);
+  await writeEvidence(session, server, { findings: [{ kind: "console-warning", message: "meh" }] });
   const gate = await gateOf(server);
   server.stop();
   equal(gate.blockers.length, 0, "blockers");
@@ -395,8 +462,8 @@ process.stdout.write("\none decision per session\n");
 await check("twenty concurrent approvals record exactly one", async () => {
   const session = await makeSession();
   cleanups.push(session.dir);
-  await writeEvidence(session);
   const server = await startServer(session.dir);
+  await writeEvidence(session, server);
   const body = {
     decision: "approve",
     proposalHash: sha256(session.html),
@@ -533,6 +600,7 @@ if(s==='empty'){document.getElementById('empty').hidden=false;document.getElemen
 
 // ------------------------------------------------------------------------ done
 
+stopEverything();
 for (const dir of cleanups) await rm(dir, { recursive: true, force: true });
 
 process.stdout.write(`\n${passed} passed, ${failures.length} failed\n`);

@@ -138,10 +138,18 @@ if (!Array.isArray(manifest.states) || manifest.states.length === 0) {
 if (
   !Array.isArray(manifest.breakpoints) ||
   manifest.breakpoints.length === 0 ||
-  manifest.breakpoints.some((b) => !b || typeof b.name !== "string" || b.name === "")
+  manifest.breakpoints.some(
+    (b) =>
+      !b ||
+      typeof b.name !== "string" ||
+      b.name === "" ||
+      !(Number(b.width) > 0) ||
+      !(Number(b.height) > 0)
+  )
 ) {
   console.error(
-    "server.mjs: manifest.breakpoints must list the breakpoints in design.md, each with a name"
+    "server.mjs: manifest.breakpoints must list the breakpoints in design.md, " +
+      "each with a name, a width, and a height"
   );
   process.exit(65);
 }
@@ -233,6 +241,19 @@ function captureIsUnusable(errors, screenshots) {
     return "the capture output is incomplete";
   }
 
+  // The evidence has to be evidence about this proposal. Without this check any
+  // capture output left in the directory satisfies the gate, including a pass
+  // run against a different page on another loopback port.
+  let capturedFrom;
+  try {
+    capturedFrom = new URL(errors.url);
+  } catch {
+    return "the capture output does not record which page it rendered";
+  }
+  if (capturedFrom.origin !== ASSET_ORIGIN || capturedFrom.pathname !== "/proposal.html") {
+    return `the capture pass rendered ${errors.url}, which is not this session's proposal`;
+  }
+
   // Checked against what the manifest requires, never against what the capture
   // output says it did. A pass run with a shorter state list would otherwise
   // grade its own homework: it covered everything it attempted, and the states
@@ -244,9 +265,12 @@ function captureIsUnusable(errors, screenshots) {
     return `the capture pass never rendered ${missedStates.join(", ")}, which this surface requires`;
   }
 
-  const expectedBreakpoints = new Set(manifest.breakpoints.map((b) => b.name));
-  const capturedBreakpoints = new Set(errors.breakpoints.map((b) => b.name));
-  const missedBreakpoints = [...expectedBreakpoints].filter((b) => !capturedBreakpoints.has(b));
+  // Name, width, and height together. A breakpoint is a size, so evidence
+  // captured at desktop 320 by 200 is not evidence about the desktop layout
+  // however it is labelled, and a name only comparison accepts it.
+  const size = (b) => `${b.name}:${Number(b.width)}x${Number(b.height)}`;
+  const capturedSizes = new Set(errors.breakpoints.map(size));
+  const missedBreakpoints = manifest.breakpoints.map(size).filter((b) => !capturedSizes.has(b));
   if (missedBreakpoints.length > 0) {
     return `the capture pass never rendered at ${missedBreakpoints.join(", ")}`;
   }
@@ -256,7 +280,7 @@ function captureIsUnusable(errors, screenshots) {
   const present = new Set(screenshots);
   const missing = [];
   for (const state of expectedStates) {
-    for (const breakpoint of expectedBreakpoints) {
+    for (const breakpoint of manifest.breakpoints.map((b) => b.name)) {
       const name = `${state}__${breakpoint}.png`;
       if (!present.has(name)) missing.push(name);
     }

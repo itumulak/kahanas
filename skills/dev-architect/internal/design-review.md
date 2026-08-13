@@ -100,6 +100,10 @@ One disposable directory per session, outside the repository, in the system temp
 
 **`states` and `breakpoints` say what this surface requires**, taken from the Required states cell and from `design.md`, and the session refuses to start without them. **They are what the capture pass is graded against, and the capture output is never graded against itself.** A pass run with a shorter list covered everything it attempted and would otherwise report itself complete, while the states the registry says the surface has were never rendered at all.
 
+**A breakpoint carries its width and height, and all three are checked.** A breakpoint is a size rather than a label, so evidence captured at desktop 320 by 200 says nothing about the desktop layout however it is named. `design.md` holds the real numbers and they travel with the name.
+
+**The capture output also has to name this session's proposal.** Any findings file left in the directory would otherwise satisfy the gate, including one from a pass run against a different page on another loopback port. This is the same failure as grading a pass against its own claims, one step further out.
+
 **A git commit is deliberately not one of these.** It looked like the obvious way to notice the world moving, and it is the wrong instrument: an unrelated backend merge during a review would void a perfectly good approval, while a token file edited without a commit would slip past it. Hash what the design is actually made of.
 
 **`design.md` is deliberately not one either, and the boundary is worth stating.** These hashes answer one question: is this still the thing the person looked at. `design.md` is not part of what they looked at, it is the rule the prototype was built to follow, so a breakpoint added to it during a review does not make their approval a lie about a different artifact. **It makes the approved prototype stale**, which is a different problem with an answer that already exists: the row moves to `CHANGE REQUIRED` and the prototype gets fixed. Folding that into the session would void approvals for something the session cannot see and cannot judge, and would still not catch it a day later.
