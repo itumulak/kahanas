@@ -171,9 +171,11 @@ Roll the observations into a verdict per flow step and per promised surface. Ass
 
 **A design conformance check needs the same evidence as everything else.** A screenshot at that breakpoint, or the item is `blocked`, not met. Reading the code and judging it to match is exactly what this mode exists to prevent, and it is easier to slip into on visual work than on any other kind.
 
-**Use the mechanism `tooling.md` records**, in its Visual verification section: the tool, the browser, and the exact command. That section exists because this skill has no browser of its own and the environment may not have one either.
+**Use the mechanism `tooling.md` records**, in its Visual verification section: the tool, the browser, and the exact commands. That section exists because this skill has no browser of its own, and on a project with an `app/` it is required rather than optional, since no design on such a project could have been approved without one.
 
-**Where it is missing or says the project has none, report every conformance item as `blocked` and say why in one line.** Do not improvise a tool, and do not fall back to reading the markup and calling it a match. A block that keeps appearing is a prompt to install something, and it is honest. A silent downgrade turns the design contract into decoration while still reporting a pass.
+**Comparing a state means opening it, not clicking towards it.** Each prototype exposes every state in its Required states cell from the page address, as `<file>.html#state=<name>`, with the registry's own spelling lowercased and spaces written as hyphens. `internal/design-direction.md` in `/dev-architect` defines that contract. Use it, so the state you screenshot is the state you meant rather than whatever the click path happened to reach.
+
+**Where the section is missing or says the project has none, report every conformance item as `blocked` and say why in one line**, and on a project with an `app/` say the second thing too: that section is required there, so its absence is a project setup gap for `/dev-architect` rather than a normal state to keep reporting around. Do not improvise a tool, and do not fall back to reading the markup and calling it a match. A block that keeps appearing is a prompt to install something, and it is honest. A silent downgrade turns the design contract into decoration while still reporting a pass.
 
 Conformance is a PASS only when every flow step is met and every promised surface exists. One missing or not live item makes the whole verdict a FAIL.
 

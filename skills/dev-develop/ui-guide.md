@@ -47,14 +47,16 @@ Where two of those pull against each other, this order settles it:
 - an orphaned control, such as a toggle with nothing around it
 - a bare functional widget where a real product would ship a whole surface, with real copy, layout, and supporting content
 
-**Run your implementation checks before you report.** That is your job and it is not the same as acceptance verification, which is `/dev-check verify`'s: you confirm what you built is sound, it confirms what was built is what the product needed. Audit your own build against that list and fix every hit. When you have a browser available, render the page and look at it, the way a designer checks their own work. That is the only reliable way to catch a broken render, and a screenshot costs less than a round trip with the user.
+**Run your implementation checks before you report.** That is your job and it is not the same as acceptance verification, which is `/dev-check verify`'s: you confirm what you built is sound, it confirms what was built is what the product needed. Audit your own build against that list and fix every hit. Render the page and look at it, the way a designer checks their own work, using the browser `tooling.md` records. That is the only reliable way to catch a broken render, and a screenshot costs less than a round trip with the user.
 
 ## Where the design comes from
 
 Five documents, and they decide different things:
 
 1. **`design-registry.md`**, first, to find this surface's row. It names the prototype file and says whether it is approved. **Nothing else on this list matters until that row reads `APPROVED`**, or reads `BASELINE`, which the visual gap rule below exempts and which has no prototype to read.
-2. **The approved prototype** at `.konteksto/designs/<surface>.html`. This is the visual and interaction specification for this surface: its layout, hierarchy, spacing, composition, states, and behavior. Open it, and where a browser is available, render it and look at it rather than reading the markup alone.
+2. **The approved prototype** at `.konteksto/designs/<surface>.html`. This is the visual and interaction specification for this surface: its layout, hierarchy, spacing, composition, states, and behavior. Render it and look at it rather than reading the markup alone. The Visual verification section of `tooling.md` records the browser, and on a project with an `app/` it is required rather than optional, since the design in front of you could not have been approved without one.
+
+   **Open each state directly rather than clicking towards it.** Every state in the surface's Required states cell is reachable as `<file>.html#state=<name>`, with the registry's spelling lowercased and spaces written as hyphens. `internal/design-direction.md` in `/dev-architect` defines that contract. A state you reached by guessing at a click path is a state you might have half reached.
 3. **`design.md`**, the design system. Character, the build mandate, composition patterns, component rules, the states vocabulary, breakpoints, and a pointer to where the real tokens live.
 4. **`code-standards.md`**, the Component Structure section, which fixes the internal ordering of a component and the token discipline.
 5. **`ui-registry.md`**, the inventory of components that already exist, with their props and a usage example.

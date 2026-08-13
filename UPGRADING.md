@@ -89,6 +89,11 @@ Then do this:
   rather a UI task block than have it mean nothing.
 - Mark every existing library-docs.md section unsourced, since nobody
   verified them.
+- Never edit anything in .konteksto/designs/. Not a prototype, not a file
+  in sources/, not to add a newer convention a template mentions. Those
+  belong to the dev-architect skill, and an approved prototype changed by
+  a migration is a design nobody approved. Tell me what you would have
+  changed instead.
 
 Never delete or overwrite anything in .konteksto/ that holds real content.
 Moving a section between documents is fine. Discarding one is not.
@@ -143,6 +148,24 @@ That is not busywork. A remembered gotcha and a verified one look identical on t
 ### Coming from 0.3.0
 
 Nothing. 0.4.0 changed how the instructions are written and not what they produce.
+
+### Coming from 0.5.0 or earlier, on a project with an `app/`
+
+Nothing here is a document migration, and all of it is frontend only. A backend with no `app/` skips this section entirely.
+
+**Install a browser, because design approval now needs one.** `/dev-architect` renders every proposal before asking anybody to approve it, so a project with no browser can no longer approve a design through the skill. Playwright with Chromium is the default:
+
+```bash
+npm install --save-dev @playwright/test && npx playwright install chromium
+```
+
+**Fill in the Visual verification section of `tooling.md`.** It is no longer optional on a frontend project, and it gained an install command and a review command beside the capture one. `/dev-architect` writes it next time it runs, and doing it by hand now is worth it, since two skills read it.
+
+**Your existing prototypes have no state contract, and they will not be reviewable until they do.** Each one now reaches every state in its Required states cell from the page address, as `<file>.html#state=<name>`, with the registry's spelling lowercased and spaces written as hyphens. **Do not hand edit them and do not ask an agent to bulk edit them.** Everything in `.konteksto/designs/` belongs to `/dev-architect`, and an approved prototype edited in place is a design nobody approved. Add the fragment when a surface next comes back through the lifecycle for a reason of its own.
+
+**Nothing already approved is invalidated.** An `APPROVED` row stays approved and `/dev-develop` keeps building against it. The one thing you lose in the meantime is that `/dev-check verify` reaching a state by click path is less certain than reaching it by address, and it reports what it did either way.
+
+**Do not re review your approved designs to get them through the new session.** The point of the session is that nobody approves a surface without seeing it run, and a person already did see these, whatever the mechanism was. Re running them adds ceremony and no evidence.
 
 ---
 

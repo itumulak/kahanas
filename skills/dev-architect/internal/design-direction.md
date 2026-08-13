@@ -108,9 +108,25 @@ What it needs from you at this step: write the starting values into the mirror o
 
 **Each file is independently renderable, with no application infrastructure at all.** No install, no build step, no dev server for the product, and no network. Inline the CSS and JavaScript, or link only to `shared/`. **Never link a prototype at anything under `app/`**, including the production styling config, since that reintroduces the dependency this rule exists to prevent and often points at a file a browser cannot read anyway. Two reasons, and the second is the one people forget: a prototype that depends on a CDN is a blank page the day that CDN moves, and these files sit in version control for years. And a prototype needing the app to run cannot be reviewed before the app exists, which is exactly when it needs reviewing.
 
-**Record the preview command in `tooling.md`**, under Previewing a prototype, along with the visual verification tool `/dev-check` will use. Settle both here rather than when the first verify blocks on having no way to take a screenshot.
+**Fill in the Visual verification section of `tooling.md` here**, meaning the tool, the browser, the install command, and the review session command. On a project with an `app/` it is required rather than optional, because step 6 cannot run a review without it and `/dev-check verify` cannot produce a screenshot without it. Settle it now rather than when the first review or the first verify has nowhere to start.
 
 **Interactive means every interaction the flow actually names is demonstrated.** Buttons that do something, navigation that navigates, forms that validate, menus that open, modals that appear, destructive actions that confirm, and every state reachable rather than described. The point is that a still image cannot answer what happens when you click, and half the disagreements about a design are about exactly that.
+
+### Every state is reachable from outside the prototype
+
+**This is the state contract, and it is defined here and nowhere else.** The review session in step 6 activates every state in the surface's Required states cell and screenshots each one at each breakpoint, and `/dev-check verify` reaches the same states later. Neither can do it if the only way into the error state is to know which button to click in which order.
+
+**Each prototype exposes every one of its required states through the page address**, as a fragment naming the state exactly as the registry spells it:
+
+```
+account-recovery.html#state=invalid-code
+```
+
+Opening that address puts the surface in that state directly, on load, with no click path. The state names come from the Required states cell, lowercased with spaces as hyphens, so `invalid code` becomes `invalid-code` and nothing has to be looked up anywhere.
+
+**The controls stay too.** A person reviewing this file should still be able to click through the flow the way a user would, and the fragment is an additional way in rather than a replacement for the design. A prototype whose states are only reachable by fragment has stopped demonstrating its own interactions.
+
+**The address is the contract because it survives everything else.** A prototype opened from the filesystem, served by the review session, or loaded by `/dev-check verify` a month later all read the same fragment, and none of them needs a global object, a build step, or an agreement about a function name that a later prototype spells differently.
 
 **Use fixture data and simulated behavior.** Local state, hardcoded rows, a timeout standing in for a request. **Never build a real backend, a real API call, a real database, or real authentication to make a prototype interactive.** That is production code, it is forbidden here, and it is `/dev-develop`'s work.
 
@@ -118,17 +134,23 @@ What it needs from you at this step: write the starting values into the mirror o
 
 **Later surfaces inherit the approved system.** Once one surface is approved, its colours, type, spacing, components, and structure are the system, and every later prototype adopts them. A departure is a proposal to the user with its reason, never a quiet change.
 
-## Step 6: Critique, then ask for approval
+## Step 6: Critique, then run the review session
 
 **Run the self critique in `design-judgment.md` before showing anything**, and say what it found and what you fixed. A first draft that survives its own critique untouched was not really critiqued.
 
-Then present the surface and set its row to `READY FOR REVIEW`.
+**Then check the surface is actually reviewable**, which is what the row moving to `READY FOR REVIEW` claims. Every state in its Required states cell opens from its fragment, every breakpoint in `design.md` is composed, and the file renders on its own from the filesystem. A state the registry claims and the prototype cannot reach is a defect to fix now, not a note to hand to a reviewer.
 
-**You may never decide an `APPROVED`.** Present the prototype, say what to look at, and ask. An approval you originated would make every rule that depends on approval depend on nothing.
+Set the row to `READY FOR REVIEW`, then **read `internal/design-review.md` and run the session it defines.** It renders the proposal at every breakpoint and every state, collects what the page threw while doing it, puts that evidence and the live prototype in front of a person, and reads back the decision they made.
 
-**You may record an approval they gave**, in their name, rather than sending them off to edit markdown. The registry template's Status values section sets the conditions a yes has to meet first. Follow it exactly, and where the answer is vague, ask a concrete question instead of banking it.
+The three rules worth seeing from here, since they are what make the session mean anything.
 
-Where the user asks for changes, revise and present again.
+**You may never decide an `APPROVED`.** An approval you originated would make every rule that depends on approval depend on nothing.
+
+**The browser you drive and the browser they decide in are different browsers.** You drive the capture pass and nothing else. You never open the review page, click a decision, or reach the endpoint behind one. `design-review.md` defines the wall and says honestly what it is worth.
+
+**You may record the approval they gave**, in their name, from the decision record. The registry template's Status values section sets the conditions first, including the two that only apply to a session. Follow it exactly.
+
+On Request changes or Reject, the feedback goes in the row's Note column and the surface comes back here for another revision and another session.
 
 ## Step 7: Record it
 

@@ -73,6 +73,23 @@ And one complex surface may warrant several files. The registry is the mapping, 
 
 **When in doubt, do not record it.** A design wrongly sitting at `READY FOR REVIEW` costs one question. A design wrongly reading `APPROVED` costs whatever gets built on it.
 
+### The yes arrives through a review session
+
+*Keep this section on any project with an `app/`. Delete it on a backend, which has no surfaces and no sessions.*
+
+On a project with a frontend, the yes above is given on a review page, not in conversation. `/dev-architect` renders the proposal at every breakpoint and every required state, collects whatever it threw while doing so, and puts that evidence in front of a person along with the live prototype. They click one of three decisions, and the session writes what they chose to a decision record. The skill reads that record and stamps the row.
+
+**`internal/design-review.md` in the `/dev-architect` skill defines the session**, meaning the two browser contexts, the decision record, and the checks that bind an approval to one exact revision. Do not restate any of it here.
+
+Two conditions this file adds, both of which a recorded approval must satisfy:
+
+4. **The revision approved is the revision promoted.** The decision record names the proposal it was shown, and that must still be what the working copy holds and what the canonical file and this row looked like when the session started. Anything moved, and the approval is void rather than noted.
+5. **The skill did not produce the decision.** The capture browser Playwright drives never loads the review page, and this skill never clicks a decision control, evaluates script that reaches one, or calls the endpoint behind one.
+
+**Condition 5 is a convention and not a guarantee, and saying so is the point.** A process that can drive a browser can click any button in it. This rule is the same kind of thing as the Assigned column in `progress-tracker.md`: an instruction an agent follows, and a record a person can audit afterwards. Where a project needs the guarantee rather than the convention, it comes from branch protection on this file, which is where it comes from for every other rule here too.
+
+**A person may still approve by editing this file directly**, and on a frontend project that is the ordinary path when their browser cannot reach the session. It needs no session, no evidence, and no permission. It is their product.
+
 **A skill may write every other value**, including moving an approved design to `CHANGE REQUIRED` when a scope change or a build clearly invalidated it. Recording that something has gone stale is an observation. Deciding it is fixed is not.
 
 ### The lifecycle
@@ -129,7 +146,19 @@ DRAFT, claude-opus-5, 2026-08-11 14:02
 
 One thing here differs from the tracker and is easy to get wrong. **An `APPROVED` stamp carries the approving person's name**, whether they wrote the row or a skill recorded their explicit yes. Never a model identifier, and never a name read out of `git config`. The evidence that matters is the approval interaction, not who owns the checkout, and a shared machine makes the git identity worth nothing.
 
-**The Note column is narrow.** Only a `MISSING` or a `CHANGE REQUIRED` row carries one, both must, and every other row reads `—`. A `MISSING` note says what the flow needs and nobody has designed. A `CHANGE REQUIRED` note says what made it wrong. It is overwritten rather than superseded, because the struck stamps beside it already hold the history.
+**The Note column is narrow.** Three rows carry one, all three must, and every other row reads `—`:
+
+| Row | Its note says |
+| --- | --- |
+| `MISSING` | what the flow needs and nobody has designed |
+| `CHANGE REQUIRED` | what made the approved design wrong |
+| `DRAFT` that a review sent back | the feedback the person gave when they asked for changes or rejected it |
+
+**The third exists because feedback with nowhere to go is feedback that arrives back unchanged.** A person who asked for a denser table and a clearer error state said the one thing the next revision needs, and a row that dropped it to `—` on the way back to `DRAFT` sends the same design round again. It clears when the row next reaches `READY FOR REVIEW`, since by then it has been acted on or deliberately not.
+
+A `DRAFT` row that nobody has reviewed yet still reads `—`. The note is a review outcome, not a description of being unfinished.
+
+The Note is overwritten rather than superseded, because the struck stamps beside it already hold the history.
 
 ---
 
