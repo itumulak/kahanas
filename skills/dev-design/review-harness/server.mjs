@@ -35,7 +35,8 @@
 import { createServer } from "node:http";
 import { readFile, readdir, writeFile, link, unlink, stat } from "node:fs/promises";
 import { randomUUID, createHash } from "node:crypto";
-import { resolve, join, extname, sep } from "node:path";
+import { resolve, join, extname, sep, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const DECISIONS = new Set(["approve", "request-changes", "reject"]);
 const SHA256 = /^[a-f0-9]{64}$/i;
@@ -86,6 +87,12 @@ if (!opts.dir) {
 }
 
 const ROOT = resolve(opts.dir);
+// The review page is read from this file's own folder, never from the session.
+// The harness runs in place out of the skill, and the session directory holds
+// only data: a copy of the code there could not resolve its dependencies,
+// because Node looks for them beside the importing file and a temporary
+// directory has no node_modules above it.
+const HARNESS = dirname(fileURLToPath(import.meta.url));
 const PROTOTYPE_ROOT = join(ROOT, "prototype");
 const HOST = opts.host ?? "127.0.0.1";
 const TOKEN = randomUUID();
@@ -519,7 +526,7 @@ const reviewServer = createServer(async (req, res) => {
     }
 
     if (url === "/" || url.startsWith("/review.html")) {
-      const page = await readFile(join(ROOT, "review.html"), "utf8");
+      const page = await readFile(join(HARNESS, "review.html"), "utf8");
       return send(
         res,
         200,

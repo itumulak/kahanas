@@ -70,7 +70,7 @@ Do NOT write application code. Nothing in `app/` is yours, and no line of a prot
 
 **The limit is responsibility, not size.** Inside that folder you may not write production anything: no framework components, no API calls, no persistence, no authentication, no business logic. A prototype is made interactive with fixture data, local state, and simulated responses. A genuinely interactive surface may need a few hundred lines of prototype JavaScript, and that is fine. **The moment making it behave would require building a real service, stop**, because that is `/dev-develop`'s work and the prototype does not need it.
 
-**The review session workspace.** A review copies three files from `review-harness/` into a throwaway directory outside the repository, and runs them there. `internal/design-review.md` defines the workspace and everything in it. Nothing is written inside the repository, nothing is committed, and it exists for the length of one review.
+**The review session workspace.** A review creates a throwaway directory outside the repository and puts the session's data in it: a copy of the prototype, the manifest, the evidence, and the screenshots. **The harness itself is never copied**, it runs in place out of `review-harness/`, which is also the only way its own dependency resolves. `internal/design-review.md` defines the workspace. Nothing is written inside the repository, nothing is committed, and it exists for the length of one review.
 
 Do NOT install anything. **`/dev-architect` makes every tool call in this workflow**, including installing the browser this skill needs. Where the Visual verification section of `tooling.md` is missing or empty on a project with an `app/`, stop and route back rather than installing it yourself.
 
@@ -129,7 +129,7 @@ Every user facing choice is an options panel: 2 to 4 concrete options real to th
 
 ### Step 2: Settle the design line, on an existing codebase
 
-**Skip this on a fresh project, and on a scaffold `/dev-develop` built.** It applies only when the code was already there when this workflow arrived.
+**Skip this on a fresh project, and on a scaffold `/dev-develop` built, and go straight to step 3.** It applies only when the code was already there when this workflow arrived.
 
 **Read `internal/adoption-baseline.md` and follow it.** It asks one question: do the surfaces that already exist owe prototypes. The default is no.
 

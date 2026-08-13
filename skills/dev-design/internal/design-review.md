@@ -56,23 +56,24 @@ One disposable directory per session, outside the repository, in the system temp
 ├── manifest.json          what this session is reviewing
 ├── decision.json          written by the person's click, never by this skill
 ├── errors.json            written by the capture pass
-├── screenshots/
-├── server.mjs             copied from the harness
-├── capture.mjs            copied from the harness
-└── review.html            copied from the harness
+└── screenshots/
 ```
 
 **The prototype sits in its own folder because it gets its own origin.** Step 4 says why.
+
+**No code goes in here.** The workspace holds data and nothing else.
 
 **Nothing in it is committed and nothing in it survives the session.** Screenshots and error logs are diagnostic evidence, not the design. A project that genuinely wants them retained says so in `tooling.md`, which is the one place a policy like that belongs.
 
 **The working copy is a copy.** The canonical file at `.konteksto/designs/<slug>.html` is not served, not opened, and not touched until an approval is recorded. A revision under review must not be able to damage the design that is currently approved, and the simplest way to guarantee that is to never have the canonical path open for writing.
 
-**The three code files are copied from `review-harness/` in this skill's own folder, never written from scratch.** Copy them as they are and pass them arguments. `review-harness/README.md` documents what each one takes.
+**Run the harness in place, out of this skill's own `review-harness/` folder, and copy nothing.** Pass it the session directory as an argument. `review-harness/README.md` documents what each file takes.
 
-**Do not regenerate them, and do not improve them in the copy.** They are the part of this session that decides whether an approval is genuine, and a file rewritten from memory each session is a file nobody has ever reviewed twice. A harness that is actually wrong is a bug to fix in this repository, where the fix is read once and then applies to every project. Where the copy will not do what a session needs, say so and stop, rather than patching around it in a temporary directory nobody will ever look at again.
+**Copying the code into the session would break it, and the reason is worth knowing rather than rediscovering.** Node resolves an import by looking beside the importing file and then upwards, so `capture.mjs` running from a temporary directory looks in `/tmp` and then `/` for Playwright, finds nothing, and exits 69 on a project that has it installed perfectly well. Run in place, it looks upward from the skill folder, reaches the project root, and finds it.
 
-**Copying them is the one place this skill puts code outside `.konteksto/designs/`.** `SKILL.md`'s guardrails carry the exception and its edges. They are session scaffolding, they are thrown away with the directory, and no line of any of them goes near the product.
+**Do not regenerate the harness, and do not edit it for one session.** It is the part of this session that decides whether an approval is genuine, and a file rewritten from memory each time is a file nobody has ever reviewed twice. A harness that is actually wrong is a bug to fix in this repository, where the fix is read once and then applies to every project. Where it will not do what a session needs, say so and stop.
+
+**This skill therefore writes no code outside `.konteksto/designs/` at all.** It writes the session's data files and runs somebody else's program on them.
 
 ### 3. Write the manifest
 
@@ -168,6 +169,10 @@ For the surface under review:
 3. **Console messages, uncaught page errors, failed requests, and error responses**, collected throughout into `errors.json`, each tagged with the state and breakpoint it happened in.
 4. **Every local file the prototype loaded**, which becomes `dependencyHashes` in the manifest.
 
+**Then write those hashes into the manifest, before anybody is shown anything.** This is a step, not a note. `errors.json` lists what actually loaded, and the manifest was written before the server started, so it necessarily went out with `dependencyHashes` empty. Filling it is the only thing standing between a shared token file changing mid review and nobody noticing.
+
+**An empty `dependencyHashes` beside a non empty `dependencies` list is a failure, not a pass.** Step 7's check would otherwise succeed by having nothing to compare, which is the most convincing kind of wrong. Check the two against each other before the session goes in front of a person, and stop if they disagree.
+
 **The capture pass does not exercise interactions, and that is deliberate rather than missing.** Driving them would need every prototype to declare its buttons and flows in a machine readable contract, which is a second contract to write, keep true, and review, on top of the state one. **The person exercises the interactions**, in the live frame, by clicking the thing they are being asked to approve. That is why the live proposal is the review surface and the screenshots are supporting evidence, and it is the one part of a review a person is strictly better at than a script.
 
 **What the pass owes is the evidence a person cannot gather by clicking**: every breakpoint and every state rendered without them resizing a window thirty times, and the errors a prototype threw while looking perfectly fine.
@@ -246,7 +251,7 @@ The capture findings are not decoration beside the decision, so the server sorts
 1. Recompute the working copy hash. It matches `proposalHash` in the decision.
 2. Recompute the canonical file hash. It matches `baselineHash` in the manifest, or both are absent.
 3. Recompute every entry in `registryRowHashes`. All match, and no row has appeared or disappeared that points at this prototype.
-4. Recompute every entry in `dependencyHashes`. All match.
+4. Recompute every entry in `dependencyHashes`. All match, and there is one entry for every path in `errors.json`'s `dependencies`. **An empty map here is a failed check rather than a passed one** whenever the capture pass recorded a dependency.
 5. `person` is a name, and it is not a model identifier.
 
 **Any check failing stops the approval.** Say which one failed and what it means: the first says the proposal moved after the person looked at it, the fourth says something it renders with did, and the second and third say the world moved underneath the review. **A row that appeared pointing at this prototype during the review is that same failure**, since it is a surface nobody captured and nobody looked at, about to be stamped `APPROVED` along with the rest. Rebase or regenerate the proposal and run a fresh session. **Never record the approval and note the discrepancy.** A stamp that says a person approved something they did not see is the one failure this whole file exists to prevent.

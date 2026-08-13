@@ -4,6 +4,14 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
+## [Unreleased]
+
+### Fixed
+
+- **The review harness runs in place instead of being copied into the session.** Copying it could not work: Node resolves an import by looking beside the importing file and then upwards, so `capture.mjs` running from a temporary directory searched `/tmp` and `/` for Playwright and exited 69 on a project that had it installed correctly. Found by running the workflow end to end on a real project rather than by reading it, which is the only way it could have been found: the test suite ran the harness in place and so tested a configuration the instructions never described.
+- **The dependency hashes are written into the manifest as a step of the capture pass.** They can only be known after the pass runs, the manifest is written before the server starts, and nothing said to go back and fill them in, so they stayed empty. The promotion check then passed by having nothing to compare, which is the most convincing kind of wrong. An empty map beside a non empty dependency list is now a failed check.
+- **A fresh project's design line step says where to go next.** It said to skip and then said nothing.
+
 ## [0.6.0] — 2026-08-13
 
 Design becomes a skill of its own, and design approval becomes something that runs. Approving a prototype used to mean a skill saying "here it is" and a person reading a file, which is the weakest step in the whole workflow and the one everything visual depends on.

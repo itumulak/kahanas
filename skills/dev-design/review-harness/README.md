@@ -2,7 +2,11 @@
 
 Three files `/dev-design` copies into a review session workspace and runs. **`internal/design-review.md` defines the session and the rules.** This file documents the interfaces only, so a session can be driven without reading the code.
 
-**Copy them as they are.** Do not regenerate them, and do not improve them in the copy. This is the code path that decides whether an approval is genuine, and a file rewritten from memory each session is a file nobody has ever reviewed twice. Where the harness will not do what a session needs, that is a bug to fix here, once, for every project.
+**Run them in place and copy nothing.** The session directory holds data; the code stays here.
+
+**Copying breaks it.** Node resolves an import by looking beside the importing file and then upwards, so `capture.mjs` run from a temporary directory searches `/tmp` and `/` for Playwright and exits 69 on a project that has it installed. In place, it searches upward from the skill folder and reaches the project's `node_modules`.
+
+**Do not regenerate them and do not edit them for one session.** This is the code path that decides whether an approval is genuine, and a file rewritten from memory each time is a file nobody has ever reviewed twice. Where the harness will not do what a session needs, that is a bug to fix here, once, for every project.
 
 ---
 
@@ -17,10 +21,7 @@ Three files `/dev-design` copies into a review session workspace and runs. **`in
 ├── manifest.json          written by /dev-design
 ├── decision.json          written by server.mjs, on the person's click
 ├── errors.json            written by capture.mjs
-├── screenshots/           written by capture.mjs
-├── server.mjs             copied
-├── capture.mjs            copied
-└── review.html            copied
+└── screenshots/           written by capture.mjs
 ```
 
 Nothing outside this directory is reachable from the session.

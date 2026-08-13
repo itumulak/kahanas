@@ -59,10 +59,8 @@ if(s==='empty'){document.getElementById('empty').hidden=false;document.getElemen
 </script></body></html>`;
   await writeFile(join(dir, "prototype", "proposal.html"), html);
 
-  // review.html is served from the session directory, so it is copied. server.mjs
-  // and capture.mjs are run in place from the harness, both so the real files are
-  // what gets tested and so Playwright resolves from this repository.
-  await writeFile(join(dir, "review.html"), await readFile(join(HARNESS, "review.html")));
+  // Nothing from the harness is copied. It runs in place out of the skill folder,
+  // which is what a real session does and what lets Playwright resolve.
 
   await writeFile(
     join(dir, "manifest.json"),
