@@ -265,6 +265,7 @@ await page.route("**/*", (route) => {
 
 let bust = 0;
 const domHashes = new Map();
+const shotHashes = new Map();
 
 for (const breakpoint of BREAKPOINTS) {
   await page.setViewportSize({ width: breakpoint.width, height: breakpoint.height });
@@ -283,11 +284,19 @@ for (const breakpoint of BREAKPOINTS) {
     // Let a fragment driven transition and any entry animation settle.
     await page.waitForTimeout(250);
 
-    const html = await page.evaluate(() => document.body?.innerHTML ?? "");
-    const domHash = createHash("sha256").update(html).digest("hex").slice(0, 16);
-    domHashes.set(`${breakpoint.name}:${state}`, domHash);
+    // The whole document rather than the body's markup. A prototype that
+    // switches state by setting an attribute on the html or body element and
+    // letting CSS do the showing and hiding is a normal way to build one, and
+    // its body innerHTML is identical in every state. Reading only that reports
+    // a correct prototype as unimplemented, which blocks approval outright.
+    const html = await page.evaluate(() => document.documentElement?.outerHTML ?? "");
+    domHashes.set(`${breakpoint.name}:${state}`, createHash("sha256").update(html).digest("hex"));
 
-    await page.screenshot({ path: shotPath(state, breakpoint.name), fullPage: true });
+    // What the person will actually look at, which is the second and broader
+    // signal: two states that render the same pixels are the same state to a
+    // reviewer whatever the markup says.
+    const image = await page.screenshot({ path: shotPath(state, breakpoint.name), fullPage: true });
+    shotHashes.set(`${breakpoint.name}:${state}`, createHash("sha256").update(image).digest("hex"));
   }
 }
 
@@ -320,15 +329,23 @@ for (const state of STATES) {
     continue;
   }
 
-  const differsSomewhere = BREAKPOINTS.some(
-    (b) => domHashes.get(`${b.name}:${state}`) !== domHashes.get(`${b.name}:${defaultState}`)
-  );
+  // Either signal is enough. The markup catches a state whose difference is off
+  // screen, and the pixels catch one expressed purely in styling, and a state
+  // has to match the default on both at every breakpoint before it is called
+  // unimplemented.
+  const differsSomewhere = BREAKPOINTS.some((b) => {
+    const key = `${b.name}:${state}`;
+    const base = `${b.name}:${defaultState}`;
+    return (
+      domHashes.get(key) !== domHashes.get(base) || shotHashes.get(key) !== shotHashes.get(base)
+    );
+  });
   stateReports.push({
     state,
     activated: differsSomewhere,
     note: differsSomewhere
       ? null
-      : `#state=${slug(state)} rendered the same DOM as ${defaultState} at every breakpoint, so the prototype does not implement it`,
+      : `#state=${slug(state)} rendered the same document and the same pixels as ${defaultState} at every breakpoint, so the prototype does not implement it`,
   });
 }
 

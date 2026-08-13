@@ -575,6 +575,35 @@ if(s==='empty'){document.getElementById('empty').hidden=false;document.getElemen
     equal(evidence.states.find((s) => s.state === "empty").activated, true, "activated");
   });
 
+  // A prototype that switches state with an attribute on the html element and
+  // lets CSS show and hide is a normal way to build one, and its body markup is
+  // identical in every state. Reading only the body reported it unimplemented
+  // and blocked approval of a correct prototype.
+  await check("a state driven by an attribute and CSS is reachable", async () => {
+    const cssSession = await makeSession({
+      states: ["default", "empty"],
+      prototype: `<!doctype html><html><head><meta charset="utf-8"><title>T</title><style>
+html[data-state="default"] #empty { display: none }
+html[data-state="empty"] #default { display: none }
+</style></head><body>
+<div id="default"><p>Default.</p></div><div id="empty"><p>Empty.</p></div>
+<script>
+document.documentElement.dataset.state=(location.hash.match(/state=([\\w-]+)/)||[,'default'])[1];
+</script></body></html>`,
+    });
+    cleanups.push(cssSession.dir);
+    const cssServer = await startServer(cssSession.dir);
+    const cssResult = await run(
+      join(HARNESS, "capture.mjs"),
+      ["--url", `${cssServer.asset}/proposal.html`, "--out", cssSession.dir, "--states", "default,empty", "--breakpoints", "desktop:800x600"],
+      cssSession.dir
+    );
+    const cssEvidence = JSON.parse(await readFile(join(cssSession.dir, "errors.json"), "utf8"));
+    cssServer.stop();
+    equal(cssResult.code, 0, `exit code, stderr was: ${cssResult.err.trim()}`);
+    equal(cssEvidence.states.find((s) => s.state === "empty").activated, true, "activated");
+  });
+
   await check("a loaded dependency is recorded for hashing", async () => {
     assert(evidence.dependencies.includes("/shared/tokens.css"), `dependencies were ${JSON.stringify(evidence.dependencies)}`);
   });

@@ -166,6 +166,8 @@ For the surface under review:
 
 **A state that will not activate is a defect in the proposal, not a note on the review.** Fix the prototype and start the session again. A row cannot honestly reach `READY FOR REVIEW` while a state the registry says it has cannot be reached, and asking a person to approve a surface whose error state nobody has ever seen is asking them to approve a claim rather than a design.
 
+**A state is judged by what came out, never by what the prototype says about itself.** The pass compares the whole document and the screenshot bytes against the default state, and either differing is enough. A prototype reporting its own current state would be reporting rather than demonstrating, which is the same distinction as a skill recording its own approval. `review-harness/README.md` has the mechanics and the one build style that makes the naive version of this check wrong.
+
 **A failed request is a finding whatever else is true.** A prototype has no backend by construction, so anything it tried to fetch and could not is either a leftover from a supplied source file or a dependency this file is not allowed to have.
 
 Close the capture context when the pass finishes. It does not stay open into the next step.

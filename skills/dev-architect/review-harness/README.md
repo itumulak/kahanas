@@ -135,9 +135,13 @@ Two ways a state fails, and both mark it unreachable.
 
 **It never rendered.** Navigation failed at some breakpoint, so there is nothing to look at. **The default state is not exempt**: a proposal whose only state failed to load would otherwise report itself reachable, and be approvable by acknowledging the navigation failure.
 
-**Or it rendered exactly what the default rendered.** There is no way to ask a prototype whether it honoured a fragment, so the pass hashes each state's body markup at each breakpoint. A state matching the default everywhere did not activate, and the fragment changed nothing.
+**Or it rendered exactly what the default rendered.** There is no way to ask a prototype whether it honoured a fragment, and a prototype that reported its own state would be reporting rather than demonstrating, so the pass compares what came out. **Two signals, and either one is enough:** the whole document's markup, and the screenshot bytes.
 
-**A state that legitimately renders exactly like the default is not a separate state**, so being flagged is the correct outcome there too.
+**Both are needed, and the markup alone is the trap.** A prototype that switches state by setting an attribute on the html element and letting CSS show and hide is an ordinary way to build one, and its body markup is byte identical in every state. Reading only the body reports a correct prototype as unimplemented and blocks its approval. Reading the whole document catches the attribute, and the screenshot catches anything expressed purely in styling.
+
+**A state that renders the same document and the same pixels as the default at every breakpoint is not a separate state**, so being flagged is the correct outcome there too. A state whose only difference is invisible, in metadata nobody can see, is a state a reviewer cannot review.
+
+**Dynamic content cuts the other way.** A prototype rendering a live timestamp differs from itself on every load, so every state reads as reachable and an unimplemented one would slip through. Prototypes use fixture data for other reasons already, and this is one more.
 
 ### Origins are parsed, never prefix matched
 
