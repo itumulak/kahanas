@@ -4,7 +4,7 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
-## [Unreleased]
+## [0.5.0] — 2026-08-13
 
 ### Added
 
