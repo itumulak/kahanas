@@ -56,19 +56,41 @@ const STATES = (opts.states ?? "default")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
+// Parsed strictly, never filtered. Dropping a malformed entry is the worst
+// possible response: a typo like tablet:bad would silently produce a review with
+// no tablet coverage that reports itself complete, and nobody would look for the
+// breakpoint that was never there.
 const BREAKPOINTS = (opts.breakpoints ?? "desktop:1440x900,tablet:834x1112,phone:390x844")
   .split(",")
   .map((entry) => {
     const [name, size] = entry.split(":");
     const [width, height] = (size ?? "").split("x").map(Number);
-    return { name: name?.trim(), width, height };
-  })
-  .filter((b) => b.name && b.width > 0 && b.height > 0);
+    if (!name?.trim() || !(width > 0) || !(height > 0)) {
+      console.error(
+        `capture.mjs: breakpoint ${JSON.stringify(entry)} is malformed, expected name:WIDTHxHEIGHT`
+      );
+      process.exit(64);
+    }
+    return { name: name.trim(), width, height };
+  });
 
 if (BREAKPOINTS.length === 0) {
-  console.error("capture.mjs: --breakpoints parsed to nothing, expected name:WIDTHxHEIGHT pairs");
+  console.error("capture.mjs: --breakpoints is empty, expected name:WIDTHxHEIGHT pairs");
   process.exit(64);
 }
+
+function requireNoDuplicates(kind, names) {
+  const seen = new Set();
+  for (const name of names) {
+    if (seen.has(name)) {
+      console.error(`capture.mjs: ${kind} ${JSON.stringify(name)} is listed twice`);
+      process.exit(64);
+    }
+    seen.add(name);
+  }
+}
+requireNoDuplicates("state", STATES);
+requireNoDuplicates("breakpoint", BREAKPOINTS.map((b) => b.name));
 
 // Rule 1, enforced rather than trusted.
 if (/review\.html|\/api\//.test(URL_UNDER_CAPTURE)) {
@@ -79,20 +101,24 @@ if (/review\.html|\/api\//.test(URL_UNDER_CAPTURE)) {
   process.exit(64);
 }
 
-// Rule 2: importing the library directly is what keeps playwright.config.ts out
-// of this. Never run this file through the Playwright test runner.
-let chromium;
-try {
-  ({ chromium } = await import("playwright"));
-} catch {
+// This URL decides which origin the pass will allow, so a wrong one does not
+// merely point somewhere else, it makes that somewhere else the trusted origin
+// and lets the prototype talk to it freely. A session is always on loopback.
+const LOOPBACK = new Set(["127.0.0.1", "localhost", "::1"]);
+{
+  let parsed;
   try {
-    ({ chromium } = await import("@playwright/test"));
+    parsed = new URL(URL_UNDER_CAPTURE);
   } catch {
+    console.error(`capture.mjs: --url ${JSON.stringify(URL_UNDER_CAPTURE)} is not a URL`);
+    process.exit(64);
+  }
+  if (parsed.protocol !== "http:" || !LOOPBACK.has(parsed.hostname)) {
     console.error(
-      "capture.mjs: Playwright is not installed.\n" +
-        "  npm install --save-dev @playwright/test && npx playwright install chromium"
+      `capture.mjs: --url must be an http address on loopback, got ${parsed.protocol}//${parsed.hostname}.\n` +
+        "A review session serves the prototype on 127.0.0.1."
     );
-    process.exit(69);
+    process.exit(64);
   }
 }
 
@@ -117,6 +143,23 @@ function requireSafeName(kind, original, name) {
 
 for (const state of STATES) requireSafeName("state", state, slug(state));
 for (const breakpoint of BREAKPOINTS) requireSafeName("breakpoint", breakpoint.name, breakpoint.name);
+
+// Rule 2: importing the library directly is what keeps playwright.config.ts out
+// of this. Never run this file through the Playwright test runner.
+let chromium;
+try {
+  ({ chromium } = await import("playwright"));
+} catch {
+  try {
+    ({ chromium } = await import("@playwright/test"));
+  } catch {
+    console.error(
+      "capture.mjs: Playwright is not installed.\n" +
+        "  npm install --save-dev @playwright/test && npx playwright install chromium"
+    );
+    process.exit(69);
+  }
+}
 
 // Parse before comparing. A string prefix test passes for
 // http://127.0.0.1:1234@evil.example/, where everything before the at sign is

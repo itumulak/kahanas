@@ -31,6 +31,16 @@ Written before anything starts. `design-review.md` defines the fields and what t
 
 **`proposalHash` must be a full sha256 hex digest of `prototype/proposal.html`.** The server validates it at startup and exits 65 rather than starting, because a session that cannot bind a decision to a revision is a session whose decisions mean nothing.
 
+**`states` and `breakpoints` are required too**, and they are what the capture pass is graded against. A capture output checked against its own state list would grade its own homework: a pass run with a shorter list covered everything it attempted, and the states the registry requires were never rendered. Missing either exits 65.
+
+## Running the tests
+
+```bash
+npm test
+```
+
+`scripts/test-review-harness.mjs` in this repository, not shipped with the skill. Playwright is optional: without it the browser cases are skipped and the server cases still run in full.
+
 ## `server.mjs`
 
 ```bash

@@ -128,6 +128,23 @@ if (!SHA256.test(String(manifest.proposalHash ?? ""))) {
   );
   process.exit(65);
 }
+// The states and breakpoints this surface requires, taken from the registry and
+// design.md by /dev-architect. They are what the capture pass is graded against,
+// so a session without them cannot tell a complete pass from a short one.
+if (!Array.isArray(manifest.states) || manifest.states.length === 0) {
+  console.error("server.mjs: manifest.states must list the states this surface requires");
+  process.exit(65);
+}
+if (
+  !Array.isArray(manifest.breakpoints) ||
+  manifest.breakpoints.length === 0 ||
+  manifest.breakpoints.some((b) => !b || typeof b.name !== "string" || b.name === "")
+) {
+  console.error(
+    "server.mjs: manifest.breakpoints must list the breakpoints in design.md, each with a name"
+  );
+  process.exit(65);
+}
 if (!(await exists(join(PROTOTYPE_ROOT, "proposal.html")))) {
   console.error(`server.mjs: ${join(PROTOTYPE_ROOT, "proposal.html")} does not exist`);
   process.exit(65);
@@ -216,13 +233,31 @@ function captureIsUnusable(errors, screenshots) {
     return "the capture output is incomplete";
   }
 
-  // Every state at every breakpoint, or the person was not shown what they are
-  // being asked to approve.
+  // Checked against what the manifest requires, never against what the capture
+  // output says it did. A pass run with a shorter state list would otherwise
+  // grade its own homework: it covered everything it attempted, and the states
+  // the registry says the surface has were never rendered at all.
+  const expectedStates = new Set(manifest.states.map(slug));
+  const capturedStates = new Set(errors.states.map((s) => slug(s.state)));
+  const missedStates = [...expectedStates].filter((s) => !capturedStates.has(s));
+  if (missedStates.length > 0) {
+    return `the capture pass never rendered ${missedStates.join(", ")}, which this surface requires`;
+  }
+
+  const expectedBreakpoints = new Set(manifest.breakpoints.map((b) => b.name));
+  const capturedBreakpoints = new Set(errors.breakpoints.map((b) => b.name));
+  const missedBreakpoints = [...expectedBreakpoints].filter((b) => !capturedBreakpoints.has(b));
+  if (missedBreakpoints.length > 0) {
+    return `the capture pass never rendered at ${missedBreakpoints.join(", ")}`;
+  }
+
+  // Every required state at every required breakpoint, or the person was not
+  // shown what they are being asked to approve.
   const present = new Set(screenshots);
   const missing = [];
-  for (const state of errors.states) {
-    for (const breakpoint of errors.breakpoints) {
-      const name = `${slug(state.state)}__${breakpoint.name}.png`;
+  for (const state of expectedStates) {
+    for (const breakpoint of expectedBreakpoints) {
+      const name = `${state}__${breakpoint}.png`;
       if (!present.has(name)) missing.push(name);
     }
   }
@@ -258,19 +293,28 @@ function approvalGate(errors, screenshots = []) {
   return { blockers, warnings };
 }
 
-// The digest of the evidence exactly as it is on disk. An acknowledgement is a
-// statement about specific findings, so the decision has to name which ones, the
-// same way it names the revision. Without this, a capture pass rerunning between
-// the page loading and the click would have the person acknowledging findings
-// they never saw, and the record would not show it.
-async function evidenceDigest() {
+// One read, one snapshot, and everything derived from it.
+//
+// An acknowledgement is a statement about specific findings, so the decision has
+// to name which ones, the same way it names the revision. Reading the file twice
+// to get the findings and then the digest reintroduces the very race that is
+// being closed: a capture pass renaming between the two reads pairs one pass's
+// findings with another pass's hash, and every check downstream then agrees with
+// itself about the wrong thing.
+async function evidenceSnapshot() {
+  let bytes;
   try {
-    return createHash("sha256")
-      .update(await readFile(join(ROOT, "errors.json")))
-      .digest("hex");
+    bytes = await readFile(join(ROOT, "errors.json"));
   } catch {
-    return null;
+    return { parsed: null, hash: null };
   }
+  let parsed = null;
+  try {
+    parsed = JSON.parse(bytes.toString("utf8"));
+  } catch {
+    parsed = null;
+  }
+  return { parsed, hash: createHash("sha256").update(bytes).digest("hex") };
 }
 
 async function listScreenshots() {
@@ -284,18 +328,18 @@ async function listScreenshots() {
 }
 
 async function sessionState() {
-  const errors = await readJson("errors.json", null);
+  const evidence = await evidenceSnapshot();
   const decision = await readJson("decision.json", null);
   const screenshots = await listScreenshots();
 
   return {
     manifest,
-    errors,
+    errors: evidence.parsed,
     screenshots,
     assetOrigin: ASSET_ORIGIN,
     hasBaseline: await exists(join(PROTOTYPE_ROOT, "baseline.html")),
-    gate: approvalGate(errors, screenshots),
-    evidenceHash: await evidenceDigest(),
+    gate: approvalGate(evidence.parsed, screenshots),
+    evidenceHash: evidence.hash,
     decided: decision !== null,
     decision,
   };
@@ -362,11 +406,9 @@ async function postDecision(req, res) {
   }
 
   let acknowledgedFindings = null;
+  const evidence = await evidenceSnapshot();
   if (decision === "approve") {
-    const { blockers, warnings } = approvalGate(
-      await readJson("errors.json", null),
-      await listScreenshots()
-    );
+    const { blockers, warnings } = approvalGate(evidence.parsed, await listScreenshots());
     if (blockers.length > 0) {
       return sendJson(res, 422, {
         error: "this proposal is not in a state that can be approved",
@@ -375,7 +417,7 @@ async function postDecision(req, res) {
     }
     // The evidence must be the evidence the page showed. A capture pass that
     // reran since then changes what an acknowledgement would mean.
-    if (payload.evidenceHash !== (await evidenceDigest())) {
+    if (payload.evidenceHash !== evidence.hash) {
       return sendJson(res, 409, {
         error: "the capture evidence changed since this page loaded, reload before deciding",
       });
@@ -399,7 +441,7 @@ async function postDecision(req, res) {
     proposalHash: manifest.proposalHash,
     acknowledged: decision === "approve" ? payload.acknowledged === true : null,
     acknowledgedFindings,
-    evidenceHash: decision === "approve" ? await evidenceDigest() : null,
+    evidenceHash: decision === "approve" ? evidence.hash : null,
     decidedAt: new Date().toISOString(),
   };
 
@@ -488,8 +530,11 @@ let ASSET_ORIGIN = "";
 await new Promise((done) => assetServer.listen(0, HOST, done));
 await new Promise((done) => reviewServer.listen(0, HOST, done));
 
-ASSET_ORIGIN = `http://${HOST}:${assetServer.address().port}`;
-REVIEW_ORIGIN = `http://${HOST}:${reviewServer.address().port}`;
+// An IPv6 literal has to be bracketed in a URL, or http://::1:41655 is nonsense
+// that every origin comparison then fails against.
+const HOST_IN_URL = HOST.includes(":") ? `[${HOST}]` : HOST;
+ASSET_ORIGIN = `http://${HOST_IN_URL}:${assetServer.address().port}`;
+REVIEW_ORIGIN = `http://${HOST_IN_URL}:${reviewServer.address().port}`;
 
 console.log(`KAHANAS_REVIEW_URL=${REVIEW_ORIGIN}/`);
 console.log(`KAHANAS_ASSET_URL=${ASSET_ORIGIN}/`);

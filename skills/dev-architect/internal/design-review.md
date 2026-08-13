@@ -85,6 +85,8 @@ One disposable directory per session, outside the repository, in the system temp
   "baselineHash": "sha256 of the canonical file, or null when none exists",
   "registryRowHash": "sha256 of the registry row text at session start",
   "dependencyHashes": {},
+  "states": ["default", "submitting", "invalid-code"],
+  "breakpoints": [{ "name": "desktop", "width": 1440, "height": 900 }],
   "createdAt": "2026-08-13 15:30",
   "createdByModel": "claude-opus-5"
 }
@@ -95,6 +97,8 @@ One disposable directory per session, outside the repository, in the system temp
 **A prototype is not only its own file, and this is the part that is easy to miss.** It loads `shared/tokens.css` on every project, and it may load fonts, images, or another stylesheet. A token file edited during a review changes what the person is looking at while `proposal.html` hashes identically. **So `dependencyHashes` holds one entry per local file the prototype actually loaded**, keyed by its path under `.konteksto/designs/`, and step 7 checks them with the rest.
 
 **Fill it after the capture pass, not before.** `errors.json` carries a `dependencies` list of every local file the prototype really loaded, which is the honest answer and beats parsing the markup for links: it catches what JavaScript fetched and skips what a commented out tag mentions.
+
+**`states` and `breakpoints` say what this surface requires**, taken from the Required states cell and from `design.md`, and the session refuses to start without them. **They are what the capture pass is graded against, and the capture output is never graded against itself.** A pass run with a shorter list covered everything it attempted and would otherwise report itself complete, while the states the registry says the surface has were never rendered at all.
 
 **A git commit is deliberately not one of these.** It looked like the obvious way to notice the world moving, and it is the wrong instrument: an unrelated backend merge during a review would void a perfectly good approval, while a token file edited without a commit would slip past it. Hash what the design is actually made of.
 
