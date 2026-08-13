@@ -31,7 +31,7 @@ Owns no whole file. Chat output only, plus screenshots and logs saved to a scrat
 
 **That column is the only thing in `progress-tracker.md` you may touch.** Status is `/dev-develop`'s, the Assigned cell is a person's, and checkpoint rows are nobody's here. Never change one, however plainly wrong it looks. Report it instead.
 
-**`design-registry.md` and the prototypes in `.konteksto/designs/` are read only to you, and completely.** Not a status, not a row, and never a line of a prototype, however plainly it needs fixing. That whole folder is `/dev-architect`'s, `APPROVED` is a person's word alone, and a design you corrected to match the build is a design nobody approved.
+**`design-registry.md` and the prototypes in `.konteksto/designs/` are read only to you, and completely.** Not a status, not a row, and never a line of a prototype, however plainly it needs fixing. That whole folder is `/dev-design`'s, `APPROVED` is a person's word alone, and a design you corrected to match the build is a design nobody approved.
 
 **BLOCKED writes nothing.** A behavior you could not exercise is not a verdict about the task, and a cell left at `—` says truthfully that nobody has checked yet.
 
@@ -97,7 +97,7 @@ You now hold four lists: the flow steps to confirm, the surfaces to confirm exis
 
 **Accessibility outranks reproduction.** Where the built page departs from the prototype to fix a contrast or touch target problem, that is a pass with a note, never a fail. `/dev-develop` was told to report those departures, and a departure it reported and you confirmed is the system working.
 
-**Route every confirmed departure to `/dev-architect`, because it makes the prototype stale.** The implementation is right and the approved design is now wrong, so that row has to reach `CHANGE REQUIRED` and the prototype has to be fixed. Neither you nor `/dev-develop` may write that, which is exactly why saying it in your report is the only thing that moves it. A departure nobody routed leaves an inaccessible pattern sitting under the word `APPROVED`, where the next surface copies it.
+**Route every confirmed departure to `/dev-design`, because it makes the prototype stale.** The implementation is right and the approved design is now wrong, so that row has to reach `CHANGE REQUIRED` and the prototype has to be fixed. Neither you nor `/dev-develop` may write that, which is exactly why saying it in your report is the only thing that moves it. A departure nobody routed leaves an inaccessible pattern sitting under the word `APPROVED`, where the next surface copies it.
 
 No task and no matching flow, for example a small fix outside the plan? Verify against observed behavior alone, and say in the report that there was no contract to check against.
 
@@ -167,13 +167,13 @@ Roll the observations into a verdict per flow step and per promised surface. Ass
 
 **Missing and not live are different failures.** Missing is a build gap, and not live is a wiring gap. Both stop a task being done, and reporting them separately makes the fix obvious.
 
-**Off design is a third kind, and it goes to a different place.** Missing and not live go to `/dev-develop`. Off design goes to `/dev-develop` when the build diverged from an approved design, and to `/dev-architect` when the prototype itself turns out to be wrong or silent on what was needed. Say which you think it is, and why.
+**Off design is a third kind, and it goes to a different place.** Missing and not live go to `/dev-develop`. Off design goes to `/dev-develop` when the build diverged from an approved design, and to `/dev-design` when the prototype itself turns out to be wrong or silent on what was needed. Say which you think it is, and why.
 
 **A design conformance check needs the same evidence as everything else.** A screenshot at that breakpoint, or the item is `blocked`, not met. Reading the code and judging it to match is exactly what this mode exists to prevent, and it is easier to slip into on visual work than on any other kind.
 
 **Use the mechanism `tooling.md` records**, in its Visual verification section: the tool, the browser, and the exact commands. That section exists because this skill has no browser of its own, and on a project with an `app/` it is required rather than optional, since no design on such a project could have been approved without one.
 
-**Comparing a state means opening it, not clicking towards it.** Each prototype exposes every state in its Required states cell from the page address, as `<file>.html#state=<name>`, with the registry's own spelling lowercased and spaces written as hyphens. `internal/design-direction.md` in `/dev-architect` defines that contract. Use it, so the state you screenshot is the state you meant rather than whatever the click path happened to reach.
+**Comparing a state means opening it, not clicking towards it.** Each prototype exposes every state in its Required states cell from the page address, as `<file>.html#state=<name>`, with the registry's own spelling lowercased and spaces written as hyphens. `internal/design-direction.md` in `/dev-design` defines that contract. Use it, so the state you screenshot is the state you meant rather than whatever the click path happened to reach.
 
 **Where the section is missing or says the project has none, report every conformance item as `blocked` and say why in one line**, and on a project with an `app/` say the second thing too: that section is required there, so its absence is a project setup gap for `/dev-architect` rather than a normal state to keep reporting around. Do not improvise a tool, and do not fall back to reading the markup and calling it a match. A block that keeps appearing is a prompt to install something, and it is honest. A silent downgrade turns the design contract into decoration while still reporting a pass.
 
@@ -220,8 +220,8 @@ Write the verdict where it belongs before reporting:
 
 **Design conformance** (UI tasks only, drop this section entirely otherwise):
 - <conformance item>: met at desktop, tablet, phone, evidence: <screenshot path per breakpoint>
-- <conformance item>: built but off design at <breakpoint>: <what differs> → /dev-develop, or /dev-architect if the prototype is the thing that is wrong
-- <departure>: accepted, <the accessibility reason /dev-develop gave> → /dev-architect, to absorb it into the prototype
+- <conformance item>: built but off design at <breakpoint>: <what differs> → /dev-develop, or /dev-design if the prototype is the thing that is wrong
+- <departure>: accepted, <the accessibility reason /dev-develop gave> → /dev-design, to absorb it into the prototype
 
 **Missing surfaces** (in the task's bullets, never built):
 - <page, route, or table>: <where it was expected> → build before done

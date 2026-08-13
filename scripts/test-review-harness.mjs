@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 
-const HARNESS = join(dirname(fileURLToPath(import.meta.url)), "..", "skills", "dev-architect", "review-harness");
+const HARNESS = join(dirname(fileURLToPath(import.meta.url)), "..", "skills", "dev-design", "review-harness");
 
 let passed = 0;
 const failures = [];
@@ -512,6 +512,7 @@ for (const [name, extra] of [
   ["a slash in a breakpoint name is refused", ["--states", "default", "--breakpoints", "a/b:800x600"]],
   ["a malformed breakpoint is refused rather than dropped", ["--states", "default", "--breakpoints", "desktop:800x600,tablet:bad"]],
   ["a duplicate state is refused", ["--states", "default,default", "--breakpoints", "desktop:800x600"]],
+  ["two state names that resolve to one address are refused", ["--states", "Cart Default,cart-default", "--breakpoints", "desktop:800x600"]],
 ]) {
   await check(name, async () => {
     const result = await run(join(HARNESS, "capture.mjs"), captureArgs(extra), captureSession.dir);
@@ -579,6 +580,86 @@ if(s==='empty'){document.getElementById('empty').hidden=false;document.getElemen
   // lets CSS show and hide is a normal way to build one, and its body markup is
   // identical in every state. Reading only the body reported it unimplemented
   // and blocked approval of a correct prototype.
+  // A shared prototype covers several surfaces, so the first declared state
+  // belongs to some other surface. Comparing everything against it finds
+  // payment-error different from cart-default and calls it implemented, while it
+  // is really rendering payment-default. States are compared pairwise for this.
+  await check("an unimplemented state in a second surface is caught", async () => {
+    const shared = await makeSession({
+      states: ["cart-default", "cart-error", "payment-default", "payment-error"],
+      prototype: `<!doctype html><html><head><meta charset="utf-8"><title>Checkout</title></head><body>
+<div id="cart-default"><h1>Cart</h1></div>
+<div id="cart-error" hidden><h1>Cart</h1><p>Out of stock.</p></div>
+<div id="payment-default" hidden><h1>Payment</h1></div>
+<script>
+var s=(location.hash.match(/state=([\\w-]+)/)||[,'cart-default'])[1];
+// payment-error is declared in the registry and never built, so it falls back
+// to payment-default rather than to the first state of the file.
+if(s==='payment-error'){s='payment-default';}
+['cart-default','cart-error','payment-default'].forEach(function(id){
+  document.getElementById(id).hidden=(id!==s);
+});
+</script></body></html>`,
+    });
+    cleanups.push(shared.dir);
+    const sharedServer = await startServer(shared.dir);
+    const sharedResult = await run(
+      join(HARNESS, "capture.mjs"),
+      ["--url", `${sharedServer.asset}/proposal.html`, "--out", shared.dir, "--states", "cart:cart-default,cart-error|payment:payment-default,payment-error", "--breakpoints", "desktop:800x600"],
+      shared.dir
+    );
+    const sharedEvidence = JSON.parse(await readFile(join(shared.dir, "errors.json"), "utf8"));
+    sharedServer.stop();
+
+    equal(sharedResult.code, 2, `exit code, stderr was: ${sharedResult.err.trim()}`);
+    const byName = Object.fromEntries(sharedEvidence.states.map((s) => [s.state, s]));
+    // Both sides of the collision are reported, since from outside there is no
+    // way to tell which of two identical states was never built.
+    equal(byName["payment-error"].activated, false, "payment-error activated");
+    equal(byName["payment-default"].activated, false, "payment-default activated");
+    assert(
+      byName["payment-error"].note.includes("payment-default"),
+      `expected the collision named, got ${byName["payment-error"].note}`
+    );
+    // The cart surface is untouched by the payment surface's problem.
+    equal(byName["cart-default"].activated, true, "cart-default activated");
+    equal(byName["cart-error"].activated, true, "cart-error activated");
+    equal(byName["payment-error"].surface, "payment", "surface recorded");
+  });
+
+  // A standardised loading screen is deliberately the same screen twice. A
+  // global pairwise comparison would refuse a prototype that is exactly right.
+  await check("two surfaces may render an identical state", async () => {
+    const twin = await makeSession({
+      states: ["cart-default", "cart-loading", "payment-default", "payment-loading"],
+      prototype: `<!doctype html><html><head><meta charset="utf-8"><title>Checkout</title></head><body>
+<div id="cart-default" hidden><h1>Cart</h1></div>
+<div id="payment-default" hidden><h1>Payment</h1></div>
+<div id="loading" hidden><p>Loading...</p></div>
+<script>
+var s=(location.hash.match(/state=([\\w-]+)/)||[,'cart-default'])[1];
+var show = (s==='cart-loading'||s==='payment-loading') ? 'loading' : s;
+['cart-default','payment-default','loading'].forEach(function(id){
+  document.getElementById(id).hidden=(id!==show);
+});
+</script></body></html>`,
+    });
+    cleanups.push(twin.dir);
+    const twinServer = await startServer(twin.dir);
+    const twinResult = await run(
+      join(HARNESS, "capture.mjs"),
+      ["--url", `${twinServer.asset}/proposal.html`, "--out", twin.dir, "--states", "cart:cart-default,cart-loading|payment:payment-default,payment-loading", "--breakpoints", "desktop:800x600"],
+      twin.dir
+    );
+    const twinEvidence = JSON.parse(await readFile(join(twin.dir, "errors.json"), "utf8"));
+    twinServer.stop();
+    equal(twinResult.code, 0, `exit code, stderr was: ${twinResult.err.trim()}`);
+    assert(
+      twinEvidence.states.every((s) => s.activated),
+      `identical states across surfaces must be allowed, got ${JSON.stringify(twinEvidence.states)}`
+    );
+  });
+
   await check("a state driven by an attribute and CSS is reachable", async () => {
     const cssSession = await makeSession({
       states: ["default", "empty"],

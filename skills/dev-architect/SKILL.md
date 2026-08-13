@@ -1,7 +1,7 @@
 ---
 name: dev-architect
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion, WebSearch, WebFetch
-description: "Run /dev-architect after /dev-scope to design how the product gets built and how it looks. Weighs options, settles the stack, and on a frontend project designs every surface the flows require as an interactive HTML prototype in .konteksto/designs/, then renders each one at every breakpoint and every state in a real browser and puts it in front of a person to approve. On a codebase that already exists, settles the adoption baseline, meaning whether shipped surfaces owe prototypes and whether shipped features appear in the plan, then audits it for outdated or vulnerable packages, finds the MCP servers and skills that fit, then writes architecture, tooling, design, design registry, code standards, library docs, build plan, progress tracker, and ui registry into .konteksto/."
+description: "Run /dev-architect after /dev-scope to settle how the product gets built. Weighs options and settles the stack layer by layer, writes the local development containers, and on a codebase that already exists settles whether features already built appear in the plan, then audits it for outdated or vulnerable packages and finds the MCP servers and skills that fit. Writes architecture, tooling, code standards, library docs, build plan, progress tracker, and ui registry into .konteksto/. On a project with a frontend, /dev-design designs the surfaces afterwards."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -12,27 +12,29 @@ Write everything this skill produces, files and messages alike, in plain simple 
 
 ## What this skill does
 
-Answers **how the product gets built**, given a `project-overview.md` that already says what it is. Settles every load bearing technical decision, and on a project with a frontend every design decision too, then records the result across the documents in `.konteksto/` plus interactive prototypes covering every surface.
+Answers **how the product gets built**, given a `project-overview.md` that already says what it is. Settles every load bearing technical decision and records the result across the documents in `.konteksto/`.
 
-`/dev-scope` owns the what and never names a tool. This skill makes every tool call there is.
+`/dev-scope` owns the what and never names a tool. **This skill makes every tool call there is**, including installing the browser `/dev-design` and `/dev-check verify` need.
+
+**How the product looks is `/dev-design`'s**, on a project with an `app/`. It owns `design.md`, `design-registry.md`, and the prototypes, and nothing here writes any of them.
 
 ## Where this sits
 
 **Before this:** `/dev-scope`, which settled what the product is.
 
-**After this:** `/dev-develop`, which builds the first real task in the plan, meaning the first one outside a Phase 0 of baseline rows where the plan has one.
+**After this:** `/dev-design` on a project with an `app/`, which designs every surface the flows require and gets each one approved. On a backend with no `app/`, straight to `/dev-develop`, which builds the first real task in the plan, meaning the first one outside a Phase 0 of baseline rows where the plan has one.
 
 The whole chain, once per project then once per task:
 
 ```
-/dev-scope  →  /dev-architect  →  /dev-develop  →  /dev-check verify  →  /dev-test
+/dev-scope  →  /dev-architect  →  /dev-design  →  /dev-develop  →  /dev-check verify  →  /dev-test
 ```
 
 `/dev-debug` when verify fails. `/dev-check review`, `/dev-document pr`, and `/dev-sync` before a merge.
 
 ## Artifact ownership
 
-The documents below, all created and updated by this skill only, filled from the matching template in `templates/`, which lives in this skill's own folder. Plus, on a project with an `app/`, the prototypes in `.konteksto/designs/`.
+The documents below, all created and updated by this skill only, filled from the matching template in `templates/`, which lives in this skill's own folder.
 
 **No count appears anywhere in these instructions, deliberately.** A number written beside a list that later grows is wrong the first time somebody adds to it, and it had already gone wrong twice here before anybody noticed. The list is the list.
 
@@ -42,22 +44,22 @@ The documents below, all created and updated by this skill only, filled from the
 | --- | --- | --- |
 | 1 | `architecture.md` | the pages and flows in `project-overview.md` |
 | 2 | `tooling.md` | the Stack table in `architecture.md` |
-| 3 | `design.md` | the client framework, and the flows in `project-overview.md`. **Frontend only**, skip it entirely when there is no `app/` |
-| 4 | `design-registry.md`, plus the prototypes in `.konteksto/designs/` | the flows in `project-overview.md`, and the system in `design.md`. **Frontend only**, skipped with `design.md` |
-| 5 | `code-standards.md` | the Stack table, and where `design.md` says the tokens live |
-| 6 | `library-docs.md` | the approved dependency list in `code-standards.md` |
+| 3 | `code-standards.md` | the Stack table |
+| 4 | `library-docs.md` | the approved dependency list in `code-standards.md` |
 
-**Stage 2, the plan.** Turns the foundation into an ordered build. Starts only once every **applicable** Stage 1 artifact is approved, meaning the design ones do not hold up a backend that never had them.
+**Stage 2, the plan.** Turns the foundation into an ordered build. Starts once every Stage 1 artifact is approved.
 
 | Order | Document | Depends on |
 | --- | --- | --- |
-| 7 | `build-plan.md` | Features in Scope, plus the architecture |
-| 8 | `progress-tracker.md` | the exact phases and tasks in `build-plan.md` |
-| 9 | `decision-log.md` | nothing, it starts empty |
-| 10 | `note-registry.md` | nothing, it starts empty |
-| 11 | `ui-registry.md` | the component rules in `code-standards.md` and `design.md` |
+| 5 | `build-plan.md` | Features in Scope, plus the architecture |
+| 6 | `progress-tracker.md` | the exact phases and tasks in `build-plan.md` |
+| 7 | `decision-log.md` | nothing, it starts empty |
+| 8 | `note-registry.md` | nothing, it starts empty |
+| 9 | `ui-registry.md` | the component rules in `code-standards.md` |
 
-Never touch `project-overview.md`. It is `/dev-scope`'s file. If the design work proves it wrong, say so and ask the user to run `/dev-scope` again rather than editing it yourself.
+**The plan does not wait on any design.** `/dev-design` runs after this skill, and a surface with no approved prototype blocks its own task rather than the plan. Write the whole plan regardless.
+
+Never touch `project-overview.md`. It is `/dev-scope`'s file. If this work proves it wrong, say so and ask the user to run `/dev-scope` again rather than editing it yourself.
 
 **`glossary.md` is the one exception, and a narrow one.** `/dev-scope` creates it, and you are its second writer. Read it before the design conversation, name everything you write with its words, and add to it only in these two cases:
 
@@ -68,9 +70,7 @@ Never touch `project-overview.md`. It is `/dev-scope`'s file. If the design work
 
 **No implementation words go in, ever.** Not a table, a type, a field, an endpoint, or a library. That file has to survive a rewrite that changes every one of them. Its What does not belong here and Who writes what sections state the rest, and they stay as they are.
 
-**`.konteksto/designs/` is yours and nobody else's.** Every prototype in it, and the `sources/` folder holding what the user supplied. `/dev-develop` builds from a prototype and never edits one. `/dev-check` compares against one and never edits one. A design that turns out to be wrong comes back here.
-
-**One value in `design-registry.md` is not yours to decide: `APPROVED`.** You write every other status, including moving an approved design to `CHANGE REQUIRED`. **The registry's Status values section defines who may approve and the conditions for recording one**, and it is short. Read it before writing that cell.
+**`design.md`, `design-registry.md`, and `.konteksto/designs/` are `/dev-design`'s, and you write none of them.** Not a row, not a status, not a line of a prototype, and not on the first run when none of them exists yet. A design need that turns out to be a technical decision comes back here; the design itself never does.
 
 **Four of these are living files, created here and updated elsewhere.** `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `ui-registry.md` are written once by this skill, in their starting state, and every update after that belongs to another skill: a task's Status and a new component section to `/dev-develop`, a task's Verify Check to `/dev-check verify`, a decision row to `/dev-develop` or `/dev-debug`, and a note row to whichever of `/dev-develop`, `/dev-check`, or `/dev-debug` ran the thing. Do not stamp a task, register a component, log a decision, or write a note row for something that does not exist yet.
 
@@ -82,15 +82,9 @@ Do NOT write application code, scaffold a project, or install a package the prod
 
 Some narrow exceptions, and each one states its own edges. Agent tooling found in step 6, meaning skills and MCP servers, may be set up during this skill, but only per the consent rules in that step, and only for a tool the user approved by name. `docker-compose.yml` plus `.env.example` are written in step 5, because they are the structure the build sits in rather than the product itself. On a team project, `.gitignore` gains a line for `.konteksto/role.local.json`, because that file must never be committed and this is the only skill that creates the need for it.
 
-**Design prototypes**, which is the widest of them. You may write standalone HTML, CSS, and JavaScript **inside `.konteksto/designs/` only**, as design artifacts. They are not application code, nothing in `app/` may import them, and no line of one is copied into the product by you.
+**Playwright and its browser may be installed**, on a project with an `app/`. **You install it and you never use it**, which looks odd until you remember the rule it protects: this skill makes every tool call, so a skill that needed a browser and installed its own would put a second tool caller in the system. `/dev-design` cannot review a design without one and `/dev-check verify` cannot screenshot a breakpoint without one, and both read what you recorded rather than reaching for a package manager.
 
-**The limit is responsibility, not size.** Inside that folder you may not write production anything: no framework components, no API calls, no persistence, no authentication, no business logic. A prototype is made interactive with fixture data, local state, and simulated responses. A genuinely interactive surface may need a few hundred lines of prototype JavaScript, and that is fine. **The moment making it behave would require building a real service, stop**, because that is `/dev-develop`'s work and the prototype does not need it.
-
-**The review session workspace**, on a project with an `app/`. Step 3 renders each prototype and puts it in front of a person, and the small server and review page that does it are written into a throwaway directory outside the repository, fresh per session and deleted with it. `internal/design-review.md` defines the workspace and everything in it.
-
-**Its edges, which are tighter than the prototype one.** Nothing is written inside the repository, nothing is committed, and the server serves that directory and reaches nothing outside it. It exists for the length of one review. **A review harness that starts accumulating in the project is a product nobody agreed to maintain**, which is exactly why it lives in the system temporary area and dies there.
-
-**Playwright and its browser may be installed**, on a project with an `app/`, because a review cannot happen without one and the whole design lifecycle stops if it does not. Say what you are installing and why before you install it. It is a development tool for reviewing and verifying, and it is not a package the product ships, so it never enters `library-docs.md`. It is recorded in the Visual verification section of `tooling.md` like every other tool the agent works with.
+Say what you are installing and why before you install it. It is a development tool for reviewing and verifying rather than a package the product ships, so it never enters `library-docs.md`. It is recorded in the Visual verification section of `tooling.md` like every other tool the agent works with.
 
 Do NOT fill a document with a guess. Every value is read from the existing codebase, stated by the user, found at a source you actually fetched, or picked by the user from options you presented.
 
@@ -121,7 +115,7 @@ The full mechanics, including the free text slot, generating options fresh rathe
 - **Read what `/dev-scope` handed you**, if anything: whether a codebase exists, the stack it showed, and any tool or constraint the user named during scoping. Do not survey the same ground again.
 - **Work out whether the code is actually somebody else's.** A manifest and a source tree are not proof of an existing codebase, because `/dev-develop` scaffolds this project itself as the first task in the plan. Code whose stack matches what `.konteksto/architecture.md` already specifies is **our own scaffold**, and it is not brownfield. Only code with no matching documents, or code that diverges from them, is a real existing codebase.
 - **If a real codebase exists and you were not handed a survey**, read it now: the directory tree, every package manifest, the lint and build config, the entry points. The stack that is already there is a decision already made. Record it, do not re litigate it.
-- **Check `.konteksto/` for existing documents.** Report which of the expected artifacts are present, plus any prototypes in `designs/` and what `design-registry.md` says about them. Never overwrite one silently; ask whether to update in place or start over. **An approved prototype is never overwritten at all**, it goes back through the lifecycle.
+- **Check `.konteksto/` for existing documents.** Report which of the expected artifacts are present. Never overwrite one silently; ask whether to update in place or start over. **Say what is in `designs/` and leave it alone**, since it is `/dev-design`'s and an approved prototype is never overwritten by anybody.
 
 ### Step 2: Run the design conversation
 
@@ -142,7 +136,6 @@ Steps 2 through 6 here are the outline. That file is the protocol.
 | Stage B, the data model | `internal/design-conversation.md` |
 | Stage C, the stack walk | step 2 below |
 | The adoption baseline | step 2a below, existing codebases only |
-| The page design stage | step 3 below |
 | Stage D, interfaces and value sourcing | `internal/design-conversation.md` |
 | Stages E and F, security and edge cases | `internal/design-conversation.md` |
 | The brownfield audit | step 4 below |
@@ -177,33 +170,25 @@ Stages A, B, D, E, and F of the design conversation happen here too, not only th
 
 **Skip this step entirely on a fresh project, and on our own scaffold.** It applies only when step 1 found a real existing codebase.
 
-Otherwise **read `internal/adoption-baseline.md` and follow it.** It asks two questions and nothing else: whether the surfaces that already exist owe prototypes, and whether the features that are already built appear in the plan.
+Otherwise **read `internal/adoption-baseline.md` and follow it.** It asks one question and nothing else: whether the features that are already built appear in the plan. The default is no.
 
-**It runs before step 3, and that ordering is the point.** Step 3 is what maps flows to surfaces and stamps a status on each one, so a baseline settled after it has already produced the rows it was meant to prevent.
+**The other half of this belongs to `/dev-design`**, which asks whether surfaces that already exist owe prototypes, next to the registry that answer governs. **Do not ask it here**, and do not assume the answer given here applies there. They are two decisions with two defaults, and a user who wants their shipped screens left alone may still want the plan to list what is built.
 
-**The flow to surface mapping in step 3 still runs in full**, whatever the answers are. That file says why.
+The answer is written later, in step 8. Carry it forward with the step 4 findings rather than writing early.
 
-Both answers are written later, in steps 3 and 8. Carry them forward with the step 4 findings rather than writing early.
+### Step 3: Confirm there is a design owner, and do not become one
 
-### Step 3: The design direction
+**Skip this whole step when there is no `app/`.** A backend has no surfaces.
 
-**Skip this whole step when there is no `app/`.** A backend has no art direction. `design.md`, `design-registry.md`, and `.konteksto/designs/` are all skipped together.
+Otherwise there is exactly one thing to do here, and it is not designing anything.
 
-Otherwise **read `internal/design-judgment.md` and `internal/design-direction.md`, and follow both.** The first is the designer posture and its rules. The second is the procedure: taking in what the user supplied, mapping flows to required surfaces, settling the system, building the prototypes, critiquing them, and asking for approval.
+**Confirm the Visual verification section of `tooling.md` will be filled**, per step 5's tooling work and step 7's writing, with a browser automation tool and its install command. `/dev-design` renders every prototype at every breakpoint and every state and cannot start without one, and `/dev-check verify` cannot produce a screenshot without one. **On a project with an `app/` that section is required rather than optional.**
 
-The rules worth seeing from here, because they are the ones that change what this step is.
+**You do not map surfaces, settle a design system, write a prototype, or touch `design-registry.md`.** All of it belongs to `/dev-design`, including on the very first run when none of those files exists. A stack conversation that drifts into deciding what the dashboard looks like has created design intent that nobody designed and nobody approved.
 
-**You produce the designs.** Where the user has none, you design them from the scope. Where they supplied images, you build the HTML equivalent. Their originals are copied to `.konteksto/designs/sources/` first and **never overwritten**, since that artifact is the only thing in the project they actually authored.
+**A missing design never holds up this skill's work.** Write the whole plan regardless: a surface with no approved prototype blocks its own task, not the project.
 
-**Map flows to surfaces, not pages to mockups.** The Pages list holds the screens somebody thought of. The Core User Flow holds what actually happens, and the surface that gets missed is nearly always a failure branch of a step rather than a page. A product designing a dashboard and forgetting the verification screen, the recovery codes, and the wrong code path has designed one surface out of eight.
-
-**On an existing codebase, step 2a already settled which surfaces owe a prototype.** Apply its answer when you stamp the rows, rather than sending a shipped product's entire screen list to `MISSING`.
-
-**A missing design blocks its own task and nothing else.** Write the whole plan regardless. `/dev-develop` stops on the task whose surface has no approved design, exactly like an unratified assumption keeps one task off `DONE` without holding up the project.
-
-**Approval happens in a review session, and this project needs a browser to get one.** You render the proposal at every breakpoint and every required state, collect what it threw while rendering, and put that evidence and the live prototype in front of a person. `internal/design-review.md` defines the session. **Playwright and a browser are required here, not optional**, so settle them during the stack walk and install them before step 3 needs them.
-
-**You may never decide an `APPROVED`.** Set the row to `READY FOR REVIEW`, run the session, and read back what the person chose. You never click a decision yourself. The registry defines what a yes has to look like before you may record one.
+**Name `/dev-design` as the next step in your report**, whenever `app/` exists. It is the one handoff a user can miss, and missing it produces a project with a build plan, no designs, and a first UI task that blocks for reasons nobody expects.
 
 ### Step 4: Audit an existing codebase
 
@@ -286,9 +271,7 @@ Skip the file when nothing this pass settled meets the trigger list. That is a n
 
 **Read `internal/standards.md` before writing `code-standards.md`.** It holds the convention questions, the four architecture style presets in `patterns/`, and the rule that an existing codebase gets its conventions derived from the code rather than recited from memory.
 
-One file at a time, in order: `architecture.md`, `tooling.md`, `design.md`, `design-registry.md`, `code-standards.md`, `library-docs.md`.
-
-`design.md` and `design-registry.md` are written during step 3, alongside the prototypes, since none of the three can be settled without the other two. Skip both on a backend.
+One file at a time, in order: `architecture.md`, `tooling.md`, `code-standards.md`, `library-docs.md`.
 
 **Stamp every document you create.** End each one with a single line:
 
@@ -299,12 +282,6 @@ _Drafted by /dev-architect on <date>. Edited by hand since then, in part or whol
 This exists so a later run, here or in `/dev-sync`, can tell what a tool wrote from what a person wrote, **instead of guessing**. Without it, every skill that maintains these files is left inferring intent from prose style, which it will get wrong.
 
 **The stamp records provenance, not permission.** It never licenses overwriting a line someone edited. A stamped file still gets the same care as an unstamped one.
-
-Skip `design.md` when there is no `app/`. **Never copy token values into `design.md` itself**, which only ever points at where they live, because two copies of a colour drift and the copy in the document is always the one that goes stale.
-
-Fill in its **Where the tokens live** section, which defines the whole token model: the production source, the prototype mirror, and which of them is authoritative when. Follow it as written.
-
-Two things it requires of you here. **Fill in the Production source line even on a greenfield project**, using the path `architecture.md`'s folder structure implies, marked as not created yet, so nothing needs repointing later. And **you may not write that file yourself**, greenfield or otherwise, since it is application code and the guardrail above has no exception for it.
 
 **Write the round cap into `tooling.md`'s Doubt pass rounds section**, using the answer step 6a got, or `3` where no doubt pass ran and nothing was asked. That section is what stops a later run asking the same question again.
 
@@ -318,12 +295,12 @@ For each:
 2. Replace every bracketed placeholder with real content. No literal `<TOKEN>` survives. Check before presenting.
 3. Follow the template's repeat instructions. One section per table, per language, per client, per library. Produce as many as the project needs.
 4. Keep a section marked Optional only when it genuinely applies. Remove it otherwise and say which you removed and why. Never present an empty section as a placeholder.
-5. **Delete every section marked Reference only**, meaning the Worked example at the end of `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `design-registry.md`. Read it, then leave it out of the file you write. Its content is invented, and invented tasks, names, and dates left in a real document send the next session looking for work nobody did.
+5. **Delete every section marked Reference only**, meaning the Worked example at the end of `progress-tracker.md`, `decision-log.md`, and `note-registry.md`. Read it, then leave it out of the file you write. Its content is invented, and invented tasks, names, and dates left in a real document send the next session looking for work nobody did.
 6. Present the file, get approval, then start the next. If a change contradicts an earlier file, go back and fix that file too.
 
 ### Step 8: Write the Stage 2 documents
 
-Only after every **applicable** Stage 1 artifact is approved. Applicable matters: a backend with no `app/` never had `design.md`, `design-registry.md`, or any prototype, and waiting on them would wait forever. Same per file process, in order: `build-plan.md`, `progress-tracker.md`, `decision-log.md`, `note-registry.md`, `ui-registry.md`.
+Only after every Stage 1 artifact is approved. Same per file process, in order: `build-plan.md`, `progress-tracker.md`, `decision-log.md`, `note-registry.md`, `ui-registry.md`.
 
 Extra rules:
 
@@ -369,12 +346,10 @@ It covers confirming the write landed, checking your own work for blank fields, 
 Say all of this:
 
 - The files written, including `docker-compose.yml` and `.env.example` if step 5 wrote them.
-- The optional sections and files skipped, and why, including `design.md` when there is no frontend.
-- The design source: the template chosen and its license, the design provided, or that there was none.
-- **Every review session run**, on a frontend project: the surface, who decided, what they decided, and where the row landed. Say plainly which surfaces were never put in front of anybody, since a prototype nobody reviewed is not a design anybody agreed to.
+- The optional sections and files skipped, and why.
 - Every container in the compose file, its purpose, and the port it is on. Name any stand in service and the real service it stands in for. State what happens to local data between tasks.
 - **Every security finding from the dependency audit**, with its severity and whether the fix became a task. If the user declined an update, say so plainly here as well as recording it, so an accepted risk stays visible.
-- **The adoption baseline, on an existing codebase**: where the design line and the history line landed, and what the baseline does not exempt. Say the exemptions out loud, because a user who took both defaults is usually picturing a wider amnesty than they got.
+- **The adoption baseline, on an existing codebase**: where the history line landed and what it does not exempt. Say the exemptions out loud, because a user who took the default is usually picturing a wider amnesty than they got. Say too that `/dev-design` will ask a separate question about the surfaces.
 - Every skill installed, by name.
 - Every MCP server the user still needs to connect themselves, with the exact command.
 - That no application code was written.
@@ -387,10 +362,7 @@ Then name the next step: a separate request to build the first task in `build-pl
 
 All of these live in this skill's folder, read only when you reach them.
 
-- `internal/design-direction.md`: taking in supplied designs, the flow to surface audit, settling the system, building the prototypes, and the approval ask. Read at step 3, frontend only.
-- `internal/design-judgment.md`: the designer posture, the ten capabilities, the rules that hold on every surface, and the self critique. **Read with `design-direction.md` at step 3**, frontend only, and never on a backend.
-- `internal/design-review.md`: the review session. The two browser contexts and the wall between them, the session workspace, the capture pass, the decision record, and the checks that bind an approval to one revision. Read at step 6 of `design-direction.md`, frontend only.
-- `internal/adoption-baseline.md`: the two questions that decide where this workflow starts on a product that already exists, and what the baseline does not exempt. Read at step 2a, existing codebases only, and before step 3.
+- `internal/adoption-baseline.md`: the history line, meaning whether features already built appear in the plan, and what the baseline does not exempt. Read at step 2a, existing codebases only. The design line is `/dev-design`'s.
 - `internal/brownfield-audit.md`: the structure confirmation, the existing component decision, and the dependency audit. Read at step 4, existing codebases only.
 - `internal/standards.md`: the convention and tooling questions that fill `code-standards.md`, and how to derive conventions from an existing codebase. Read at step 7.
 - `patterns/*.md`: the four architecture style presets. Read only the one the user picks, at write time.

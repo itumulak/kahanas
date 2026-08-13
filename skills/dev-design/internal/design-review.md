@@ -39,7 +39,7 @@ Playwright appears twice in a session, doing two jobs, and **they must never be 
 
 Read the Visual verification section of `tooling.md`. It names the tool, the browser, and the commands, and on a project with an `app/` it is required rather than optional.
 
-**On the first run of `/dev-architect`, that file does not exist yet**, since the documents are written after the design work. Use what the stack walk settled and what step 5 of `design-direction.md` had you fill in, and confirm the tool actually runs before the first session rather than discovering it does not halfway through one. Every run after this reads the file.
+**That file is always written before this skill runs**, since `/dev-architect` completes first and owns it. Missing or empty on a project with an `app/` is a project setup gap rather than something to work around: report it, route to `/dev-architect`, and stop. **Confirm the tool actually runs before the first session**, rather than discovering it does not halfway through one.
 
 **No Playwright and no browser means no review, and the correct move is to stop and say so.** Do not open the file and describe it. Do not screenshot it some other way and call it a review. Report exactly what is missing, the command that installs it, and stop, per Preview and capture failures below.
 
@@ -83,7 +83,7 @@ One disposable directory per session, outside the repository, in the system temp
   "prototypePath": ".konteksto/designs/account-recovery.html",
   "proposalHash": "sha256 of proposal.html, a full hex digest",
   "baselineHash": "sha256 of the canonical file, or null when none exists",
-  "registryRowHash": "sha256 of the registry row text at session start",
+  "registryRowHashes": { "Checkout, cart": "sha256 of that row's text at session start" },
   "dependencyHashes": {},
   "states": ["default", "submitting", "invalid-code"],
   "breakpoints": [{ "name": "desktop", "width": 1440, "height": 900 }],
@@ -92,13 +92,25 @@ One disposable directory per session, outside the repository, in the system temp
 }
 ```
 
-**These hashes are why an approval means one revision and not a moment in time.** The proposal hash says what the person was shown. The baseline hash and the row hash say what the world looked like when they started, so an approval cannot be applied on top of something that moved underneath it. Step 7 checks every one.
+**These hashes are why an approval means one revision and not a moment in time.** The proposal hash says what the person was shown. The baseline hash and the row hashes say what the world looked like when they started, so an approval cannot be applied on top of something that moved underneath it. Step 7 checks every one.
+
+**One entry per row, because a prototype may cover more than one surface.** `surfaces` is a list for the same reason. Find every row in `design-registry.md` whose File column names this prototype, and carry all of them: hashing one row and then stamping all of them at promotion would let two of a checkout's three rows change during a review without anything noticing.
+
+**`states` covers every surface this prototype covers, grouped by surface, and it is a list of addresses rather than a set of words.** A session that captured only the surface somebody reported has put a person in front of one third of what they are about to approve.
+
+**A plain union is wrong when two surfaces use the same word, and they usually do.** A checkout whose cart and payment steps both have a `default` and an `error` state unions down to two names, and `#state=default` can open exactly one composition, so a whole surface goes uncaptured while every row is stamped `APPROVED`. **The deduplication is the bug**, and it is silent, which is the worst kind.
+
+**So on a prototype covering more than one surface, the state names are unique across all of them.** `cart-default` and `payment-default` are two different compositions and get two different addresses, which is what the file actually contains. `design-direction.md` owns that rule as part of the state contract, and `capture.mjs` refuses a duplicate outright rather than deduplicating it, so this fails loudly if it is ever got wrong.
+
+**A surface whose states genuinely cannot be named apart from its siblings' does not belong in a shared file.** `design-registry.md` says so already: where rows need to move independently, they belong in separate files.
+
+**Names must be distinct, and compositions need not be.** The capture pass compares a state only with the other states of its own surface, so two surfaces sharing a standardised loading screen are fine and expected. What is not fine is two states of one surface rendering the same thing, since one of them was never built. **Pass the states grouped by surface** so the pass knows which comparison it is making.
 
 **A prototype is not only its own file, and this is the part that is easy to miss.** It loads `shared/tokens.css` on every project, and it may load fonts, images, or another stylesheet. A token file edited during a review changes what the person is looking at while `proposal.html` hashes identically. **So `dependencyHashes` holds one entry per local file the prototype actually loaded**, keyed by its path under `.konteksto/designs/`, and step 7 checks them with the rest.
 
 **Fill it after the capture pass, not before.** `errors.json` carries a `dependencies` list of every local file the prototype really loaded, which is the honest answer and beats parsing the markup for links: it catches what JavaScript fetched and skips what a commented out tag mentions.
 
-**`states` and `breakpoints` say what this surface requires**, taken from the Required states cell and from `design.md`, and the session refuses to start without them. **They are what the capture pass is graded against, and the capture output is never graded against itself.** A pass run with a shorter list covered everything it attempted and would otherwise report itself complete, while the states the registry says the surface has were never rendered at all.
+**`states` and `breakpoints` say what this prototype requires**, taken from the Required states cells of every surface it covers and from `design.md`, and the session refuses to start without them. **They are what the capture pass is graded against, and the capture output is never graded against itself.** A pass run with a shorter list covered everything it attempted and would otherwise report itself complete, while the states the registry says the surface has were never rendered at all.
 
 **A breakpoint carries its width and height, and all three are checked.** A breakpoint is a size rather than a label, so evidence captured at desktop 320 by 200 says nothing about the desktop layout however it is named. `design.md` holds the real numbers and they travel with the name.
 
@@ -152,7 +164,7 @@ Launch a fresh browser context. Never an existing profile, never a signed in one
 For the surface under review:
 
 1. **Every breakpoint in `design.md`.** That list is the authority and this counts from it, so a project on four breakpoints captures four without anything here being edited.
-2. **Every state in the surface's Required states cell in `design-registry.md`**, activated through the state contract in `design-direction.md` step 5, and screenshotted at every breakpoint.
+2. **Every state in `states`**, meaning the union of the Required states cells of every surface this prototype covers, activated through the state contract in `design-direction.md` step 5, and screenshotted at every breakpoint.
 3. **Console messages, uncaught page errors, failed requests, and error responses**, collected throughout into `errors.json`, each tagged with the state and breakpoint it happened in.
 4. **Every local file the prototype loaded**, which becomes `dependencyHashes` in the manifest.
 
@@ -180,7 +192,7 @@ The page carries the evidence and the decisions, and it is opened by the person,
 
 - the surface name, the prototype path, the registry status, and the proposal hash it is bound to
 - the live proposal in a frame, interactive, at a viewport the person controls, with one control per breakpoint in `design.md`
-- one control per state in the Required states cell
+- one control per state the prototype covers, across every surface it covers
 - a full screen control, which hands the whole viewport to the design and hides the panels, and a control that opens the proposal on its own in a new tab
 - **the breakpoint controls come from `design.md` and are never a fixed set of devices.** That list is the authority, so a project on two breakpoints or four gets exactly those, and hardcoding a desktop, tablet, and phone here would put a second answer beside the one that governs everything else
 - the capture screenshots, and the baseline beside them when a canonical version exists
@@ -233,11 +245,11 @@ The capture findings are not decoration beside the decision, so the server sorts
 
 1. Recompute the working copy hash. It matches `proposalHash` in the decision.
 2. Recompute the canonical file hash. It matches `baselineHash` in the manifest, or both are absent.
-3. Recompute the registry row hash. It matches `registryRowHash` in the manifest.
+3. Recompute every entry in `registryRowHashes`. All match, and no row has appeared or disappeared that points at this prototype.
 4. Recompute every entry in `dependencyHashes`. All match.
 5. `person` is a name, and it is not a model identifier.
 
-**Any check failing stops the approval.** Say which one failed and what it means: the first says the proposal moved after the person looked at it, the fourth says something it renders with did, and the second and third say the world moved underneath the review. Rebase or regenerate the proposal and run a fresh session. **Never record the approval and note the discrepancy.** A stamp that says a person approved something they did not see is the one failure this whole file exists to prevent.
+**Any check failing stops the approval.** Say which one failed and what it means: the first says the proposal moved after the person looked at it, the fourth says something it renders with did, and the second and third say the world moved underneath the review. **A row that appeared pointing at this prototype during the review is that same failure**, since it is a surface nobody captured and nobody looked at, about to be stamped `APPROVED` along with the rest. Rebase or regenerate the proposal and run a fresh session. **Never record the approval and note the discrepancy.** A stamp that says a person approved something they did not see is the one failure this whole file exists to prevent.
 
 Then, in this order:
 
@@ -261,9 +273,22 @@ Hash the canonical file, and compare it to both hashes you already hold. There a
 
 **Keep `decision.json` until this is settled**, which is the one reason to delay a teardown. It is the only record that a person decided, and after step 1 the manifest can no longer prove what they decided about.
 
-**On Request changes:** move the row to `DRAFT`, put the feedback in the Note column, and leave any blocked task blocked. The next approval attempt needs a new session and a new proposal hash.
+**Every decision moves every carried row, not only the one somebody named.** The rows in `registryRowHashes` all point at this prototype, a decision is about the file, and leaving a sibling behind is the same defect whichever way the decision went. An approval that stamped all three and a rejection that moved one would be a registry where two rows still claim a design that was just sent back.
 
-**On Reject:** the canonical file is not touched at all. A new surface goes back to `MISSING` when nothing viable is left and `DRAFT` when something is, and a surface that was already approved stays at `CHANGE REQUIRED` until a replacement exists. The reason goes in the Note column.
+**Re read the registry before any of the three decisions writes anything, and check the current set of rows against `registryRowHashes`.** The approval path already does this as check 3, and the other two need it for the same reason: a review takes as long as a person takes, and the file on disk is not the file the session started with.
+
+| What you find | What it means | Do |
+| --- | --- | --- |
+| the same rows, unchanged | nothing moved | write the decision to all of them |
+| a row that changed | somebody edited it during the review | **stop**, report which row and how, and let a person say which version stands |
+| a row that appeared, pointing at this prototype | a surface joined the file mid review | **stop**. On an approval it was never captured or looked at; on a return it is about to be moved by feedback nobody gave about it |
+| a row that disappeared | a surface left the file mid review | **stop** and report it, rather than writing to a row that is no longer there |
+
+**Writing from the session's own snapshot without looking would be the same class of mistake this whole file exists to prevent**, one step further out: acting on what was true when you started rather than on what is true when you write.
+
+**On Request changes:** move every carried row to `DRAFT`, put the feedback in each Note column, and leave any blocked task blocked. The next approval attempt needs a new session and a new proposal hash.
+
+**On Reject:** the canonical file is not touched at all. Every carried row goes back to `MISSING` where nothing viable is left and `DRAFT` where something is, and any that was already approved stays at `CHANGE REQUIRED` until a replacement exists. The reason goes in each Note column.
 
 ### Where an unapproved revision lives, which is not the session
 
@@ -273,7 +298,7 @@ Hash the canonical file, and compare it to both hashes you already hold. There a
 
 **For a revision of an approved surface, the canonical path is holding the last approved design** and must keep holding it. That revision lives at `.konteksto/designs/drafts/<slug>.html`, and the session copies from there. **On Request changes or Reject, write the working copy back to the draft path before teardown.** On Approve, the draft is promoted to the canonical path and the draft file is removed.
 
-That folder is `/dev-architect`'s like the rest of `designs/`, it is committed like the rest of it, and `/dev-develop` never reads it: a draft is by definition not the approved design, and the registry row points at the canonical path throughout.
+That folder is `/dev-design`'s like the rest of `designs/`, it is committed like the rest of it, and `/dev-develop` never reads it: a draft is by definition not the approved design, and the registry row points at the canonical path throughout.
 
 **There is no `REJECTED` status, deliberately.** The Status column describes where the artifact stands, and rejection is a thing that happened to it. Adding one would mix an event into a state column and leave a row parked at a value nothing moves it out of.
 

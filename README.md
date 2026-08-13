@@ -29,7 +29,8 @@ Every skill answers to `/dev-scope`, `/dev-architect`, and so on.
 | Skill | What it does |
 |---|---|
 | `/dev-scope` | Turns an idea into what the product is: pages, flows, and what is deliberately out of scope. Stays tool agnostic. |
-| `/dev-architect` | Settles the stack, the design direction, the local containers, and the build plan. Makes every tool call there is. |
+| `/dev-architect` | Settles the stack, the local containers, and the build plan. Makes every tool call there is. |
+| `/dev-design` | Designs every surface the flows require, renders each one in a real browser, and gets a person to approve it. Frontend only. |
 | `/dev-develop` | Builds one task from the plan, then stops. Refuses to invent a decision the documents do not record. |
 | `/dev-check` | Two modes. `verify` runs the real app and proves the task works. `review` reads the diff on a different model than wrote it. |
 | `/dev-debug` | Finds the root cause of a bug by evidence, one hypothesis at a time, then makes the smallest fix. |
@@ -43,8 +44,11 @@ Once per project:
 
 ```
 /dev-scope      what the product is
-/dev-architect    how it gets built
+/dev-architect  how it gets built
+/dev-design     how it looks, and a person approves it (frontend only)
 ```
+
+`/dev-design` also runs again whenever a surface needs a new or revised design, which is the one part of the setup that recurs.
 
 Then per task:
 
@@ -54,7 +58,7 @@ Then per task:
 /dev-test            keep it working
 ```
 
-A verify failure goes to `/dev-debug`. Before a merge: `/dev-check review`, then `/dev-document pr`, then `/dev-sync`.
+A verify failure goes to `/dev-debug`, and a surface with no approved design goes to `/dev-design`. Before a merge: `/dev-check review`, then `/dev-document pr`, then `/dev-sync`.
 
 ## What it produces
 
@@ -67,12 +71,12 @@ Thirteen documents in `.konteksto/`, plus the design prototypes:
 │                                    (/dev-scope, /dev-architect adds)
 ├── architecture.md        stack, boundaries, invariants (/dev-architect)
 ├── tooling.md             containers, agent tooling
-├── design.md              the design system (frontend only)
+├── design.md              the design system (frontend only)  (/dev-design)
 ├── design-registry.md     every surface, and whether its design
-│                          is approved (frontend only)
+│                          is approved (frontend only)         (/dev-design)
 ├── designs/               interactive HTML prototypes covering every surface,
 │   ├── sources/           plus the user's own artifacts, never overwritten
-│   └── *.html                                          (/dev-architect)
+│   └── *.html                                          (/dev-design)
 ├── code-standards.md      the conventions every session follows
 ├── library-docs.md        version specific notes
 ├── build-plan.md          the ordered task list
@@ -87,9 +91,9 @@ Thirteen documents in `.konteksto/`, plus the design prototypes:
 
 Three of them describe the same task from three angles, and they stay separate on purpose. The tracker says **where it stands**, one word per cell, scannable a phase at a time. `note-registry.md` says **what was run** and what it showed. `decision-log.md` says **why**, which no command produces and git does not preserve. Watched it happen goes to the registry, concluded it goes to the log.
 
-`design-registry.md` splits between a skill and a person: `/dev-architect` writes every status except `APPROVED`, which only a person decides. A skill may record an approval somebody actually gave, on strict conditions, and may never originate one. It still marks an approved design `CHANGE REQUIRED` when something invalidates it, because noticing a thing has gone stale is an observation and deciding it is fixed is not.
+`design-registry.md` splits between a skill and a person: `/dev-design` writes every status except `APPROVED`, which only a person decides. A skill may record an approval somebody actually gave, on strict conditions, and may never originate one. It still marks an approved design `CHANGE REQUIRED` when something invalidates it, because noticing a thing has gone stale is an observation and deciding it is fixed is not.
 
-**A product that already shipped gets a baseline rather than a backlog.** On an existing codebase `/dev-architect` asks where the line sits: whether the screens that already exist owe prototypes, and whether the features that are already built appear in the plan. The usual answer to both is no, and the work before the line is recorded as such instead of being stamped as though this workflow built it. Everything after the line follows the process in full.
+**A product that already shipped gets a baseline rather than a backlog.** On an existing codebase each skill asks where its own line sits: `/dev-design` asks whether the screens that already exist owe prototypes, and `/dev-architect` asks whether the features that are already built appear in the plan. The usual answer to both is no, and the work before the line is recorded as such instead of being stamped as though this workflow built it. Everything after the line follows the process in full.
 
 All but five have exactly one writer. `progress-tracker.md` splits by column: `/dev-develop` owns the Status of every task, and `/dev-check verify` owns the Verify Check beside it, because "the build is clean" and "somebody watched it work" are different claims and neither skill may make the other's. Both cells carry the model that stamped them and when, and a value that changes is struck through with the new one appended after it, so the whole history stays readable.
 
@@ -97,7 +101,7 @@ All but five have exactly one writer. `progress-tracker.md` splits by column: `/
 
 Both append only files are tables carrying a Timestamp and an **Author**, the exact model identifier that wrote the row. The Actor column beside it, the person, is team only. Author is not: the model changes between sessions when the person does not, and it is what tells a reader how much to trust a six week old row.
 
-`glossary.md` splits differently again, by stage. `/dev-scope` writes the words the user used, `/dev-architect` adds what the design revealed and may sharpen a definition but never rename a term, and every other skill reads it, names what it builds from it, and reports drift without writing.
+`glossary.md` splits differently again, by stage. `/dev-scope` writes the words the user used, `/dev-architect` adds what designing the system revealed and may sharpen a definition but never rename a term, and every other skill reads it, names what it builds from it, and reports drift without writing.
 
 `note-registry.md` is the fourth: three skills append to it, each a different claim. `/dev-develop` says the build is clean, `/dev-check verify` says the behavior was exercised, `/dev-debug` says a bug was proven gone. Every row carries its timestamp and the skill that wrote it, nobody edits anybody else's row, and `/dev-sync` writes none, having run nothing itself.
 
@@ -114,7 +118,7 @@ Plus `docker-compose.yml` and `.env.example` at the root, and a project laid out
 
 ## Ideas it is built on
 
-**No downstream skill may create upstream intent.** `/dev-scope` owns product intent, `/dev-architect` owns technical and design intent, `/dev-develop` implements, `/dev-check` observes. So a builder finding a missing design cannot design it, a checker finding a wrong prototype cannot fix it, and a maintenance pass finding a term in the code cannot make it the project's word. Most of the individual ownership rules below are this one applied to a particular file.
+**No downstream skill may create upstream intent.** `/dev-scope` owns product intent, `/dev-architect` owns technical intent, `/dev-design` owns design intent, `/dev-develop` implements, `/dev-check` observes. So a builder finding a missing design cannot design it, a checker finding a wrong prototype cannot fix it, and a maintenance pass finding a term in the code cannot make it the project's word. Most of the individual ownership rules below are this one applied to a particular file.
 
 **One owner per document.** Two skills writing one file is how a system like this rots. Where a file genuinely has two writers, every side says so.
 
@@ -130,9 +134,9 @@ Plus `docker-compose.yml` and `.env.example` at the root, and a project laid out
 
 **Generated is not applied.** A migration that exists is not a migration that ran, and no type check will tell you the difference.
 
-**A design is approved before it is built, never invented during the build.** `/dev-architect` produces interactive prototypes covering every surface and a person approves them. `/dev-develop` implements it and may not introduce a layout or an interaction of its own. An invented layout looks exactly like a designed one, which is why the usual escape hatch, building on a stated assumption, is withdrawn for visual decisions: an assumption about a retry policy is visibly provisional and a made up screen is not.
+**A design is approved before it is built, never invented during the build.** `/dev-design` produces interactive prototypes covering every surface and a person approves them. `/dev-develop` implements it and may not introduce a layout or an interaction of its own. An invented layout looks exactly like a designed one, which is why the usual escape hatch, building on a stated assumption, is withdrawn for visual decisions: an assumption about a retry policy is visibly provisional and a made up screen is not.
 
-**Approving one means seeing it run.** A project with a frontend needs a browser, because `/dev-architect` renders every proposal at every breakpoint and every state it claims to have, collects what the page threw while rendering, and puts that beside the live prototype for a person to decide on. An approval is the last thing standing between a design and everything built on it, and it should not be given to a file somebody skimmed.
+**Approving one means seeing it run.** A project with a frontend needs a browser, because `/dev-design` renders every proposal at every breakpoint and every state it claims to have, collects what the page threw while rendering, and puts that beside the live prototype for a person to decide on. An approval is the last thing standing between a design and everything built on it, and it should not be given to a file somebody skimmed.
 
 **The surfaces come from the flows, not the page list.** The screen that gets forgotten is almost never a page somebody listed. It is a failure branch of a step: the wrong code, the expired hold, the recovery path. Reading the flows is the only thing that finds those before somebody builds around the hole.
 

@@ -1,6 +1,6 @@
 # The design review harness
 
-Three files `/dev-architect` copies into a review session workspace and runs. **`internal/design-review.md` defines the session and the rules.** This file documents the interfaces only, so a session can be driven without reading the code.
+Three files `/dev-design` copies into a review session workspace and runs. **`internal/design-review.md` defines the session and the rules.** This file documents the interfaces only, so a session can be driven without reading the code.
 
 **Copy them as they are.** Do not regenerate them, and do not improve them in the copy. This is the code path that decides whether an approval is genuine, and a file rewritten from memory each session is a file nobody has ever reviewed twice. Where the harness will not do what a session needs, that is a bug to fix here, once, for every project.
 
@@ -11,10 +11,10 @@ Three files `/dev-architect` copies into a review session workspace and runs. **
 ```text
 <system-temp>/kahanas-design-review-<session-id>/
 ├── prototype/             served on the asset origin, and nothing else is
-│   ├── proposal.html      the working copy under review, written by /dev-architect
+│   ├── proposal.html      the working copy under review, written by /dev-design
 │   ├── baseline.html      the current canonical prototype, when one exists
 │   └── <assets>           whatever the prototype loads, copied in beside it
-├── manifest.json          written by /dev-architect
+├── manifest.json          written by /dev-design
 ├── decision.json          written by server.mjs, on the person's click
 ├── errors.json            written by capture.mjs
 ├── screenshots/           written by capture.mjs
@@ -102,7 +102,13 @@ node capture.mjs \
   --breakpoints desktop:1440x900,tablet:834x1112,phone:390x844
 ```
 
-States come from the surface's Required states cell in `design-registry.md`, in that order, **default first**. Breakpoints come from `design.md`. Neither is guessed here.
+**On a prototype covering several surfaces, group the states by surface**, since a state is only ever compared with its own surface's:
+
+```bash
+  --states "cart:cart-default,cart-error|payment:payment-default,payment-error"
+```
+
+States come from `design-registry.md`, in that order. On a prototype covering several surfaces, pass one group per surface, each holding that row's Required states, since one file is approved once and all its rows move together. **Names must still be unique across the whole file**, because one address opens one composition, and duplicates are refused after slugging so `Cart Default` and `cart-default` cannot resolve to the same screenshot. Breakpoints come from `design.md`. Neither is guessed here.
 
 The URL is the **asset origin**, never the review one. Writes `screenshots/<state>__<breakpoint>.png` and `errors.json`.
 
@@ -110,7 +116,7 @@ The URL is the **asset origin**, never the review one. Writes `screenshots/<stat
 
 **State and breakpoint names are checked before they reach a path.** Both come from documents a person edits, and both name a file, so `../../something` in a registry cell would write outside the session. Unusable names exit 64 rather than being quietly rewritten.
 
-`errors.json` carries the breakpoints, a verdict per state, `dependencies` listing every local file the prototype actually loaded, and every finding tagged with the state and breakpoint it happened in. **`/dev-architect` hashes those dependencies into the manifest**, so a shared token file changing during a review invalidates the approval the same way editing the prototype would.
+`errors.json` carries the breakpoints, a verdict per state, `dependencies` listing every local file the prototype actually loaded, and every finding tagged with the state and breakpoint it happened in. **`/dev-design` hashes those dependencies into the manifest**, so a shared token file changing during a review invalidates the approval the same way editing the prototype would.
 
 **It does not exercise interactions, deliberately.** Driving them would need a second machine readable contract per prototype on top of the state one. The person exercises them in the live frame, which is the one part of a review a person is strictly better at than a script. `design-review.md` step 5 has the reasoning.
 
@@ -135,7 +141,15 @@ Two ways a state fails, and both mark it unreachable.
 
 **It never rendered.** Navigation failed at some breakpoint, so there is nothing to look at. **The default state is not exempt**: a proposal whose only state failed to load would otherwise report itself reachable, and be approvable by acknowledging the navigation failure.
 
-**Or it rendered exactly what the default rendered.** There is no way to ask a prototype whether it honoured a fragment, and a prototype that reported its own state would be reporting rather than demonstrating, so the pass compares what came out. **Two signals, and either one is enough:** the whole document's markup, and the screenshot bytes.
+**Or it rendered exactly what another declared state rendered.** There is no way to ask a prototype whether it honoured a fragment, and a prototype that reported its own state would be reporting rather than demonstrating, so the pass compares what came out. **Two signals, and either one is enough:** the whole document's markup, and the screenshot bytes.
+
+**A state is compared with the other states of its own surface, and nothing else.** Both wider and narrower are wrong, in opposite directions.
+
+Comparing everything against the first state misses a real defect: on a prototype covering several surfaces the first state belongs to some other surface, so `payment-error` rendering `payment-default` differs from `cart-default` and gets called implemented.
+
+Comparing everything against everything blocks correct work, which is worse. **Two surfaces are allowed to look alike.** A standardised loading screen is deliberately the same screen twice, and refusing `payment-loading` for matching `cart-loading` would reject a prototype that is exactly right, with no way around it.
+
+**Both sides of a collision are reported and neither is blamed.** From outside there is no way to tell which of two identical states was never built, and declaration order is a guess rather than evidence.
 
 **Both are needed, and the markup alone is the trap.** A prototype that switches state by setting an attribute on the html element and letting CSS show and hide is an ordinary way to build one, and its body markup is byte identical in every state. Reading only the body reports a correct prototype as unimplemented and blocks its approval. Reading the whole document catches the attribute, and the screenshot catches anything expressed purely in styling.
 
@@ -169,4 +183,4 @@ Served at `/`. Reads everything from `/api/session`, so it needs no arguments an
 - decide anything, or write to `design-registry.md`, or touch `.konteksto/` at all
 - read or write anything outside the session directory
 - open a browser profile that exists, or one that is signed in
-- survive the session, which `/dev-architect` deletes with the directory
+- survive the session, which `/dev-design` deletes with the directory

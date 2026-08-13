@@ -4,7 +4,7 @@
 
 A surface with no approved design is not a gap in the code. It is a product decision nobody has made, and the only reliable way to notice one is to list the surfaces the flows require and check them off against artifacts that exist.
 
-**This is not `ui-registry.md`.** That file inventories components that exist in the code, written by `/dev-develop` as it builds them. This one lists surfaces the product needs, written by `/dev-architect` before anything is built. One looks backward at what was made, the other forward at what is owed.
+**This is not `ui-registry.md`.** That file inventories components that exist in the code, written by `/dev-develop` as it builds them. This one lists surfaces the product needs, written by `/dev-design` before anything is built. One looks backward at what was made, the other forward at what is owed.
 
 ---
 
@@ -56,12 +56,12 @@ And one complex surface may warrant several files. The registry is the mapping, 
 
 | Status | Means | Written by |
 | --- | --- | --- |
-| `MISSING` | the flow requires this surface and no artifact exists | `/dev-architect` |
-| `DRAFT` | an artifact exists and is not finished | `/dev-architect` |
-| `READY FOR REVIEW` | finished, self critiqued, waiting on a person | `/dev-architect` |
-| `CHANGE REQUIRED` | was approved, and something has since made it wrong | `/dev-architect` |
+| `MISSING` | the flow requires this surface and no artifact exists | `/dev-design` |
+| `DRAFT` | an artifact exists and is not finished | `/dev-design` |
+| `READY FOR REVIEW` | finished, self critiqued, waiting on a person | `/dev-design` |
+| `CHANGE REQUIRED` | was approved, and something has since made it wrong | `/dev-design` |
 | `APPROVED` | a person looked at it and accepted it | **only a person decides**, see below |
-| `BASELINE` | the surface existed and was finished before this workflow was adopted, and owes no prototype | `/dev-architect`, on an existing codebase only |
+| `BASELINE` | the surface existed and was finished before this workflow was adopted, and owes no prototype | `/dev-design`, on an existing codebase only |
 
 **No skill may ever originate an approval.** An approval asserts that a human reviewed something. A tool deciding its own would empty the word, and every rule downstream that depends on approval would then depend on nothing. This is the same rule that governs phase checkpoints, for the same reason.
 
@@ -77,9 +77,9 @@ And one complex surface may warrant several files. The registry is the mapping, 
 
 *Keep this section on any project with an `app/`. Delete it on a backend, which has no surfaces and no sessions.*
 
-On a project with a frontend, the yes above is given on a review page, not in conversation. `/dev-architect` renders the proposal at every breakpoint and every required state, collects whatever it threw while doing so, and puts that evidence in front of a person along with the live prototype. They click one of three decisions, and the session writes what they chose to a decision record. The skill reads that record and stamps the row.
+On a project with a frontend, the yes above is given on a review page, not in conversation. `/dev-design` renders the proposal at every breakpoint and every required state, collects whatever it threw while doing so, and puts that evidence in front of a person along with the live prototype. They click one of three decisions, and the session writes what they chose to a decision record. The skill reads that record and stamps the row.
 
-**`internal/design-review.md` in the `/dev-architect` skill defines the session**, meaning the two browser contexts, the decision record, and the checks that bind an approval to one exact revision. Do not restate any of it here.
+**`internal/design-review.md` in the `/dev-design` skill defines the session**, meaning the two browser contexts, the decision record, and the checks that bind an approval to one exact revision. Do not restate any of it here.
 
 Two conditions this file adds, both of which a recorded approval must satisfy:
 
@@ -129,9 +129,9 @@ That is the same test as surface versus state above: would a designer compose th
 
 **A brand new surface is never `BASELINE`**, whatever else on the project is. The baseline is a date, and a surface that did not exist on that date is on the far side of it.
 
-**`/dev-architect` writes this value, and only while settling the baseline.** Nothing later promotes a row into it, since a surface cannot become older than it is.
+**`/dev-design` writes this value, and only while settling the baseline.** Nothing later promotes a row into it, since a surface cannot become older than it is.
 
-**An accessibility departure makes the prototype stale, not the implementation wrong.** When `/dev-develop` has to depart from an approved prototype to meet the contrast or touch target target in `design.md`, the built page is correct and the prototype is now the thing that disagrees with reality. That row moves to `CHANGE REQUIRED`, and `/dev-architect` fixes the prototype to match what shipped. Leaving it at `APPROVED` would mean the next surface inherits the same inaccessible pattern from a document that says somebody blessed it.
+**An accessibility departure makes the prototype stale, not the implementation wrong.** When `/dev-develop` has to depart from an approved prototype to meet the contrast or touch target target in `design.md`, the built page is correct and the prototype is now the thing that disagrees with reality. That row moves to `CHANGE REQUIRED`, and `/dev-design` fixes the prototype to match what shipped. Leaving it at `APPROVED` would mean the next surface inherits the same inaccessible pattern from a document that says somebody blessed it.
 
 ---
 
@@ -166,7 +166,7 @@ The Note is overwritten rather than superseded, because the struck stamps beside
 
 *Purpose: the boundary. Keep this section, since a registry with no stated edge grows into a second progress tracker.*
 
-**No implementation status.** Whether a surface was built, and whether anybody watched it work, are the Status and Verify Check columns of `progress-tracker.md`. This file stops at whether the design is settled. Adding a built or implemented value here would put one fact in two places and make `/dev-develop` a writer on an `/dev-architect` file to record something already recorded.
+**No implementation status.** Whether a surface was built, and whether anybody watched it work, are the Status and Verify Check columns of `progress-tracker.md`. This file stops at whether the design is settled. Adding a built or implemented value here would put one fact in two places and make `/dev-develop` a writer on an `/dev-design` file to record something already recorded.
 
 **`BASELINE` is not the exception it looks like.** It records that no prototype is owed for this surface, which is a fact about the design and belongs here. That it happens to correlate with the surface having been built is a consequence, not the claim, and it is why the value is written once when the line is drawn and never updated as the code changes.
 
@@ -180,9 +180,9 @@ The Note is overwritten rather than superseded, because the struck stamps beside
 
 | Skill | May write | Must not |
 | --- | --- | --- |
-| `/dev-architect` | every row, every Status except `APPROVED`, and an `APPROVED` a person explicitly gave | decide an approval itself, or infer one from a vague yes |
+| `/dev-design` | every row, every Status except `APPROVED`, and an `APPROVED` a person explicitly gave | decide an approval itself, or infer one from a vague yes |
 | a person | anything, including `APPROVED` directly | nothing is off limits, it is their product |
-| `/dev-develop` | nothing | write here. It reports a gap and routes to `/dev-architect` |
+| `/dev-develop` | nothing | write here. It reports a gap and routes to `/dev-design` |
 | `/dev-check` | nothing | write here. It reports a mismatch |
 | `/dev-sync` | nothing | write here, including a row for a surface it found in code |
 

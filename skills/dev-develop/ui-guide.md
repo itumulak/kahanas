@@ -6,7 +6,7 @@ Read the bar below before building anything.
 
 ## Who you are on this track
 
-**A senior frontend engineer implementing an approved design.** Not the designer. `/dev-architect` settled how this product looks and behaves, a person approved it, and your job is to make that real at a high standard.
+**A senior frontend engineer implementing an approved design.** Not the designer. `/dev-design` settled how this product looks and behaves, a person approved it, and your job is to make that real at a high standard.
 
 **Exercise design judgment only to preserve what was approved**, meaning the design system, accessibility, responsive behavior, and implementation quality. Do not introduce a new visual direction, a new layout, a new interaction, a new component behavior, or a product decision. **When the work needs one of those, stop and route the surface back**, per the visual gap rule below.
 
@@ -35,7 +35,7 @@ Where two of those pull against each other, this order settles it:
 
 **Accessibility outranks literal reproduction.** A prototype with a touch target too small to hit, or contrast below the target in `design.md`, is not reproduced faithfully. Fix it, build it correctly, and **say so in the report**.
 
-**A departure like that makes the prototype stale, not your implementation wrong.** Your build is the correct one, and the approved design is now the thing that disagrees with reality. You cannot write `design-registry.md`, so say it plainly under Departures: `/dev-check verify` routes it, and `/dev-architect` moves the row to `CHANGE REQUIRED` and fixes the prototype. **Left unsaid, the next surface inherits the same inaccessible pattern** from a document that still claims somebody approved it.
+**A departure like that makes the prototype stale, not your implementation wrong.** Your build is the correct one, and the approved design is now the thing that disagrees with reality. You cannot write `design-registry.md`, so say it plainly under Departures: `/dev-check verify` routes it, and `/dev-design` moves the row to `CHANGE REQUIRED` and fixes the prototype. **Left unsaid, the next surface inherits the same inaccessible pattern** from a document that still claims somebody approved it.
 
 **Disqualifiers. Any one of these means it is not done, so fix it before reporting:**
 
@@ -56,7 +56,7 @@ Five documents, and they decide different things:
 1. **`design-registry.md`**, first, to find this surface's row. It names the prototype file and says whether it is approved. **Nothing else on this list matters until that row reads `APPROVED`**, or reads `BASELINE`, which the visual gap rule below exempts and which has no prototype to read.
 2. **The approved prototype** at `.konteksto/designs/<surface>.html`. This is the visual and interaction specification for this surface: its layout, hierarchy, spacing, composition, states, and behavior. Render it and look at it rather than reading the markup alone. The Visual verification section of `tooling.md` records the browser, and on a project with an `app/` it is required rather than optional, since the design in front of you could not have been approved without one.
 
-   **Open each state directly rather than clicking towards it.** Every state in the surface's Required states cell is reachable as `<file>.html#state=<name>`, with the registry's spelling lowercased and spaces written as hyphens. `internal/design-direction.md` in `/dev-architect` defines that contract. A state you reached by guessing at a click path is a state you might have half reached.
+   **Open each state directly rather than clicking towards it.** Every state in the surface's Required states cell is reachable as `<file>.html#state=<name>`, with the registry's spelling lowercased and spaces written as hyphens. `internal/design-direction.md` in `/dev-design` defines that contract. A state you reached by guessing at a click path is a state you might have half reached.
 3. **`design.md`**, the design system. Character, the build mandate, composition patterns, component rules, the states vocabulary, breakpoints, and a pointer to where the real tokens live.
 4. **`code-standards.md`**, the Component Structure section, which fixes the internal ordering of a component and the token discipline.
 5. **`ui-registry.md`**, the inventory of components that already exist, with their props and a usage example.
@@ -67,17 +67,17 @@ Five documents, and they decide different things:
 
 **On the first UI task of a greenfield project**, `design.md` names a Production source that does not exist yet. **Create it at exactly that path**, with the values from the prototype mirror it also names, and say so in your report. The path was written to be correct in advance, so do not change it.
 
-`design.md`'s Where the tokens live section defines which file is authoritative from then on. Two consequences for you: **never change a value in the mirror**, and where the two disagree, report it rather than editing either, since everything in `.konteksto/designs/` belongs to `/dev-architect`.
+`design.md`'s Where the tokens live section defines which file is authoritative from then on. Two consequences for you: **never change a value in the mirror**, and where the two disagree, report it rather than editing either, since everything in `.konteksto/designs/` belongs to `/dev-design`.
 
 **Read `ui-registry.md` before building any component.** Extending what is there beats building a near duplicate, and a near duplicate is a review finding. Register anything new the moment you build it.
 
-**No `design.md` at all?** That means either a backend only project, in which case you should not be on this track, or that `/dev-architect` has not run yet. Stop and say so.
+**No `design.md` at all?** That means either a backend only project, in which case you should not be on this track, or that `/dev-design` has not run yet. Stop and say so.
 
 ## The visual gap rule
 
 **What this rule covers, and nothing else: a surface.** It applies on the UI track of a project that has an `app/` and a `design.md`. A backend only project has no prototypes to be missing, and a task with only Logic bullets never reaches this file. Neither is ever blocked by this rule, and a missing design is not a reason to hold up work that displays nothing.
 
-**Stop the affected work and route it back to `/dev-architect` whenever any of these is true:**
+**Stop the affected work and route it back to `/dev-design` whenever any of these is true:**
 
 - this surface has no row in `design-registry.md`, or its row is not `APPROVED`
 - the prototype does not cover a state, an interaction, or a breakpoint this task needs
@@ -184,6 +184,6 @@ Fix what you find. **Where you deliberately departed from the prototype**, meani
 **Data**: <real source bound> | <placeholder, deferred by the plan, wired in task N>
 **Accessibility**: <checklist.md worked through, anything outstanding>
 **Audited**: <what you rendered and compared against the prototype, and what you fixed> | <not rendered, and why>
-**For /dev-architect**: <any gap in the prototype, or a departure the design should absorb> | none
+**For /dev-design**: <any gap in the prototype, or a departure the design should absorb> | none
 **For /dev-check verify**: <the flow steps this surface should now satisfy>
 ```

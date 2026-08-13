@@ -69,7 +69,7 @@ The checklist below is a prompt, not a script. Not all of it applies, and a real
 - **Security and compliance**: personal data, encryption, audit logging, rate limiting, regulatory scope.
 - **Observability**: what gets logged, what is measured, what alerts.
 - **Configuration and secrets**: new environment variables, feature flags, credentials.
-- **The visual surface**, when there is a frontend: what each screen shows and does, its states, its accessibility bar.
+- **The client layer**, when there is a frontend: the framework, the routing shape, the styling library, and how state is handled. Not what any screen looks like, which is `/dev-design`'s.
 - **Discoverability**, for anything publicly indexed: metadata, structured data, social cards, canonical URLs, and whether pages render on the server.
 
 **Your mandate.** You are the engineer accountable if this ships wrong. These documents are what `/dev-develop` builds from, so **any blank dimension becomes a guess partway through a build**. Leaving a gap is the failure mode here, not asking one question too many.
@@ -164,11 +164,15 @@ Walk the rules one at a time. Who may do what, ownership, roles, scoping across 
 
 One case at a time: concurrency, retries, timeouts, partial failure, and the empty, error, and loading states.
 
-### The page design stage, when there is a frontend
+### There is no page design stage here
 
-Insert this between Stage A and Stage D. `SKILL.md` step 3 spells it out in full, and it walks the design source, the page composition, the component inventory, and the asset strategy, one question at a time. It is a stage of this conversation, not a separate phase that happens afterwards.
+**Composition is not settled in this conversation, and asking about it would create design intent this skill does not own.** What a screen shows, how it is composed, which components it uses, and what its states look like all belong to `/dev-design`, which runs after this skill and asks its own questions with the flows in front of it.
 
-**When the visual side is not specified, you extract the page contents from the user. Never invent them.** What goes on a page is something only they know.
+**What you do ask about a frontend is technical**: the client framework, the routing shape, the styling library, and how state is handled. Those fix what a prototype can be implemented with, which is why they are settled first.
+
+**A user who starts describing screens here is not interrupting, they are early.** Write it down, say it will be picked up by `/dev-design`, and carry it forward in your report rather than deciding anything.
+
+**Do not extract page contents here either, and this is the sentence that used to say the opposite.** What goes on a page is something only the user knows, which is exactly why it is asked once, by the skill that will design it, with the flows in front of it. Asking here produces a second set of answers nobody records in a document, and a stack conversation that has quietly decided what a screen contains.
 
 ---
 

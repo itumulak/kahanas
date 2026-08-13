@@ -4,4 +4,4 @@
 interface:
   display_name: "Dev Develop"
   short_description: "Build the next task from the plan, one at a time"
-  default_prompt: "Run the dev-develop skill: read its SKILL.md, then build the next task from .konteksto/build-plan.md following the recorded code standards, implementing any UI from its approved prototype in .konteksto/designs/, and stamp the task DONE in the progress tracker. Stop and route to the dev-architect skill if a load bearing decision is owed or a surface has no approved design."
+  default_prompt: "Run the dev-develop skill: read its SKILL.md, then build the next task from .konteksto/build-plan.md following the recorded code standards, implementing any UI from its approved prototype in .konteksto/designs/, and stamp the task DONE in the progress tracker. Stop and route to the dev-architect skill if a load bearing decision is owed, or to the dev-design skill if a surface has no approved design."
