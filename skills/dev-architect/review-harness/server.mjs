@@ -34,7 +34,7 @@
 
 import { createServer } from "node:http";
 import { readFile, readdir, writeFile, link, unlink, stat } from "node:fs/promises";
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHash } from "node:crypto";
 import { resolve, join, extname, sep } from "node:path";
 
 const DECISIONS = new Set(["approve", "request-changes", "reject"]);
@@ -258,6 +258,21 @@ function approvalGate(errors, screenshots = []) {
   return { blockers, warnings };
 }
 
+// The digest of the evidence exactly as it is on disk. An acknowledgement is a
+// statement about specific findings, so the decision has to name which ones, the
+// same way it names the revision. Without this, a capture pass rerunning between
+// the page loading and the click would have the person acknowledging findings
+// they never saw, and the record would not show it.
+async function evidenceDigest() {
+  try {
+    return createHash("sha256")
+      .update(await readFile(join(ROOT, "errors.json")))
+      .digest("hex");
+  } catch {
+    return null;
+  }
+}
+
 async function listScreenshots() {
   try {
     return (await readdir(join(ROOT, "screenshots")))
@@ -280,6 +295,7 @@ async function sessionState() {
     assetOrigin: ASSET_ORIGIN,
     hasBaseline: await exists(join(PROTOTYPE_ROOT, "baseline.html")),
     gate: approvalGate(errors, screenshots),
+    evidenceHash: await evidenceDigest(),
     decided: decision !== null,
     decision,
   };
@@ -345,6 +361,7 @@ async function postDecision(req, res) {
     });
   }
 
+  let acknowledgedFindings = null;
   if (decision === "approve") {
     const { blockers, warnings } = approvalGate(
       await readJson("errors.json", null),
@@ -356,11 +373,22 @@ async function postDecision(req, res) {
         blockers,
       });
     }
-    if (warnings.length > 0 && payload.acknowledged !== true) {
-      return sendJson(res, 422, {
-        error: "the capture pass recorded findings that have to be acknowledged before approving",
-        warnings,
+    // The evidence must be the evidence the page showed. A capture pass that
+    // reran since then changes what an acknowledgement would mean.
+    if (payload.evidenceHash !== (await evidenceDigest())) {
+      return sendJson(res, 409, {
+        error: "the capture evidence changed since this page loaded, reload before deciding",
       });
+    }
+    if (warnings.length > 0) {
+      if (payload.acknowledged !== true) {
+        return sendJson(res, 422, {
+          error: "the capture pass recorded findings that have to be acknowledged before approving",
+          warnings,
+        });
+      }
+      // Recorded, so a later reader sees what was outstanding and waved through.
+      acknowledgedFindings = warnings;
     }
   }
 
@@ -370,6 +398,8 @@ async function postDecision(req, res) {
     feedback: feedback || null,
     proposalHash: manifest.proposalHash,
     acknowledged: decision === "approve" ? payload.acknowledged === true : null,
+    acknowledgedFindings,
+    evidenceHash: decision === "approve" ? await evidenceDigest() : null,
     decidedAt: new Date().toISOString(),
   };
 

@@ -209,10 +209,15 @@ The capture findings are not decoration beside the decision, so the server sorts
   "decision": "approve",
   "person": "Ian Tumulak",
   "proposalHash": "sha256 the page displayed",
+  "evidenceHash": "sha256 of the capture findings the page displayed",
+  "acknowledged": true,
+  "acknowledgedFindings": ["2 console-error"],
   "feedback": null,
   "decidedAt": "2026-08-13 16:05"
 }
 ```
+
+**`acknowledgedFindings` is what the acknowledgement was about**, and it is in the record rather than only in the session, because the session is deleted and a later reader still needs to know a design was approved with findings outstanding and which ones.
 
 **On Approve, five checks, and every one must pass before a status cell is written:**
 
@@ -234,9 +239,15 @@ Then, in this order:
 
 **Recovering a half finished promotion is its own procedure, and it is not running the session again.** Once step 1 has landed, the canonical file no longer matches `baselineHash`, so check 2 would fail and a fresh session would refuse the approval that already happened. Say what state it is in, and finish it:
 
-1. **Hash the canonical file and compare it to `proposalHash` in `decision.json`.** Equal means step 1 completed and the person's decision still applies to exactly what is on disk.
-2. **Write the stamp**, on every row pointing at that file, using the person and timestamp from `decision.json` rather than the current time. The approval happened when they clicked, not when the retry ran.
-3. **Not equal means step 1 did not complete**, so restore the canonical file from git and run a fresh session. Nothing is approved.
+Hash the canonical file, and compare it to both hashes you already hold. There are three outcomes and only two of them are actionable.
+
+| The canonical file matches | Means | Do |
+| --- | --- | --- |
+| `proposalHash` in `decision.json` | step 1 completed, and the decision still applies to exactly what is on disk | write the stamp, on every row pointing at that file, using the person and timestamp from `decision.json` rather than the current time, since the approval happened when they clicked |
+| `baselineHash` in the manifest | step 1 never ran, so the last approved design is still in place and nothing was lost | run a fresh session. Nothing is approved, and nothing needs restoring |
+| neither | somebody or something else changed the file | **stop, and say so** |
+
+**The third row is why this is a table and not two lines.** A hash that does not match the proposal does not prove the promotion failed. It equally means the promotion worked and the file was edited afterwards, and those need opposite responses. **Never restore from git to resolve it**, which would discard whatever that edit was, possibly a person's work, to fix a problem you have not identified. Report both hashes, what is actually on disk, and let a person say which it is.
 
 **Keep `decision.json` until this is settled**, which is the one reason to delay a teardown. It is the only record that a person decided, and after step 1 the manifest can no longer prove what they decided about.
 

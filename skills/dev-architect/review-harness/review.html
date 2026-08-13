@@ -429,6 +429,9 @@ async function decide(decision) {
       feedback,
       acknowledged,
       proposalHash: session.manifest?.proposalHash ?? null,
+      // The evidence this page actually showed. A capture pass that reran since
+      // then means the acknowledgement would be about findings nobody saw.
+      evidenceHash: session.evidenceHash ?? null,
     }),
   });
   const result = await response.json();

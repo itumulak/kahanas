@@ -74,7 +74,9 @@ The review origin returns 404 for any path under `/prototype`, so the split cann
 
 Then the payload itself: a known decision, a name on approve, feedback on anything else, and a `proposalHash` equal to the manifest's. **The hash is not optional**, which is what stops a page left open from an earlier session deciding this one.
 
-**Approve is gated on the capture evidence, at the endpoint and not only in the page.** A state that did not activate refuses the approval outright with 422. Console errors, page errors, failed requests, error responses, and blocked external requests require `acknowledged: true`, which the page collects with a checkbox naming what was found. Console warnings are shown and gate nothing. A session with no `errors.json` at all is blocked, because no evidence is not clean evidence.
+**Approve is gated on the capture evidence, at the endpoint and not only in the page.** A state that did not activate refuses the approval outright with 422. Console errors, page errors, failed requests, error responses, and blocked external requests require `acknowledged: true`, which the page collects with a checkbox naming what was found. Console warnings are shown and gate nothing. A session with no usable `errors.json` is blocked, because no evidence is not clean evidence.
+
+**An approve also carries `evidenceHash`, the digest of `errors.json` as the page displayed it.** An acknowledgement is a statement about specific findings, so a capture pass rerunning between the page loading and the click makes it a statement about findings nobody saw. The endpoint refuses a stale one, and the recorded decision keeps `acknowledgedFindings` so a later reader knows what was outstanding once the session is gone.
 
 The record is written whole and then linked into place. **`link` fails with `EEXIST` atomically**, so two decisions arriving together cannot both win and a reader never sees half a file. Checking that the target exists and then renaming would lose that race, since rename overwrites.
 
@@ -90,7 +92,11 @@ node capture.mjs \
 
 States come from the surface's Required states cell in `design-registry.md`, in that order, **default first**. Breakpoints come from `design.md`. Neither is guessed here.
 
-The URL is the **asset origin**, never the review one. Writes `screenshots/<state>__<breakpoint>.png` and `errors.json`, and clears `screenshots/` first so a renamed or dropped state cannot leave an image of something the proposal no longer does.
+The URL is the **asset origin**, never the review one. Writes `screenshots/<state>__<breakpoint>.png` and `errors.json`.
+
+**It clears both first**, so a renamed or dropped state cannot leave an image of something the proposal no longer does, and a crash partway through cannot pair new screenshots with the last pass's clean findings. `errors.json` is written whole and renamed, so a crash never leaves a partial record for the approval gate to interpret.
+
+**State and breakpoint names are checked before they reach a path.** Both come from documents a person edits, and both name a file, so `../../something` in a registry cell would write outside the session. Unusable names exit 64 rather than being quietly rewritten.
 
 `errors.json` carries the breakpoints, a verdict per state, `dependencies` listing every local file the prototype actually loaded, and every finding tagged with the state and breakpoint it happened in. **`/dev-architect` hashes those dependencies into the manifest**, so a shared token file changing during a review invalidates the approval the same way editing the prototype would.
 

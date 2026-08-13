@@ -29,8 +29,8 @@
 //      and the end to end suite's base URL, projects, and global setup cannot
 //      reach this pass.
 
-import { mkdir, writeFile, rm } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, writeFile, rm, rename } from "node:fs/promises";
+import { join, resolve, sep } from "node:path";
 import { createHash } from "node:crypto";
 
 function args(argv) {
@@ -99,6 +99,25 @@ try {
 const ORIGIN = new URL(URL_UNDER_CAPTURE).origin;
 const slug = (value) => value.toLowerCase().trim().replace(/\s+/g, "-");
 
+// State names come from a registry cell and breakpoint names from design.md,
+// both of which are documents a person edits, and both end up in a file path
+// here. A cell holding ../../something would write outside the screenshots
+// folder, so the names are checked rather than trusted.
+const SAFE_NAME = /^[a-z0-9][a-z0-9._-]*$/;
+function requireSafeName(kind, original, name) {
+  if (!SAFE_NAME.test(name) || name.includes("..")) {
+    console.error(
+      `capture.mjs: ${kind} name ${JSON.stringify(original)} is not usable in a file name.\n` +
+        "Use letters, digits, hyphens, dots, and underscores."
+    );
+    process.exit(64);
+  }
+  return name;
+}
+
+for (const state of STATES) requireSafeName("state", state, slug(state));
+for (const breakpoint of BREAKPOINTS) requireSafeName("breakpoint", breakpoint.name, breakpoint.name);
+
 // Parse before comparing. A string prefix test passes for
 // http://127.0.0.1:1234@evil.example/, where everything before the at sign is
 // user information and the real host is evil.example, so a prototype could reach
@@ -114,11 +133,23 @@ function isSessionUrl(value) {
 const stateUrl = (state, cacheBust) =>
   `${URL_UNDER_CAPTURE}${URL_UNDER_CAPTURE.includes("?") ? "&" : "?"}_k=${cacheBust}#state=${slug(state)}`;
 
-// Clear anything a previous pass left. A state renamed or dropped between passes
-// would otherwise leave its screenshot behind, and the review page would show a
-// person an image of something the proposal no longer does.
+// Clear everything a previous pass left, findings included. A state renamed or
+// dropped between passes would otherwise leave its screenshot behind, and a
+// crash partway through this pass would leave new screenshots paired with the
+// last pass's clean findings, which reads as a proposal that improved.
 await rm(join(OUT, "screenshots"), { recursive: true, force: true });
+await rm(join(OUT, "errors.json"), { force: true });
 await mkdir(join(OUT, "screenshots"), { recursive: true });
+
+const SHOTS = resolve(join(OUT, "screenshots"));
+function shotPath(state, breakpointName) {
+  const target = resolve(join(SHOTS, `${slug(state)}__${breakpointName}.png`));
+  if (target !== SHOTS && !target.startsWith(SHOTS + sep)) {
+    console.error(`capture.mjs: refusing to write outside the screenshots folder: ${target}`);
+    process.exit(64);
+  }
+  return target;
+}
 
 const findings = [];
 const stateReports = [];
@@ -213,10 +244,7 @@ for (const breakpoint of BREAKPOINTS) {
     const domHash = createHash("sha256").update(html).digest("hex").slice(0, 16);
     domHashes.set(`${breakpoint.name}:${state}`, domHash);
 
-    await page.screenshot({
-      path: join(OUT, "screenshots", `${slug(state)}__${breakpoint.name}.png`),
-      fullPage: true,
-    });
+    await page.screenshot({ path: shotPath(state, breakpoint.name), fullPage: true });
   }
 }
 
@@ -266,21 +294,23 @@ await browser.close();
 
 const failedStates = stateReports.filter((s) => !s.activated);
 
-await writeFile(
-  join(OUT, "errors.json"),
-  JSON.stringify(
-    {
-      capturedAt: new Date().toISOString(),
+// Written whole and then renamed, so a crash never leaves a partial record that
+// the approval gate would have to interpret.
+const report = JSON.stringify(
+  {
+    capturedAt: new Date().toISOString(),
       url: URL_UNDER_CAPTURE,
       breakpoints: BREAKPOINTS,
       states: stateReports,
       dependencies: [...dependencies].sort(),
       findings,
-    },
-    null,
-    2
-  )
+  },
+  null,
+  2
 );
+const staged = join(OUT, `errors.json.${process.pid}.part`);
+await writeFile(staged, report);
+await rename(staged, join(OUT, "errors.json"));
 
 console.log(
   `captured ${STATES.length} states across ${BREAKPOINTS.length} breakpoints, ` +
