@@ -106,9 +106,9 @@ Every user facing choice is an options panel: 2 to 4 concrete options real to th
 | no `design-registry.md` at all | the first run | step 2 |
 | a surface the flows require with no row | an unmapped surface | step 3, for that surface only, then step 4 |
 | a row at `MISSING`, with no prototype file | a design that was never built | step 4, for that surface only |
-| a row at `READY FOR REVIEW`, and nothing new is being asked | a design already finished and waiting on a person | **step 5**, straight to the session |
+| a row at `READY FOR REVIEW`, and nothing new is being asked | a design already finished and waiting on a person | **step 5**, at its session only entry |
 | a row at `READY FOR REVIEW`, and something new is being asked | feedback that arrived after it was finished | step 4a |
-| a row at `DRAFT`, never approved | an unfinished design | step 4a, which is where the feedback is read |
+| a row at `DRAFT` | an unfinished design, whatever its history | step 4a, which is where the feedback is read |
 | a row at `CHANGE REQUIRED` | a revision of an approved design | step 4a |
 | a row currently `APPROVED`, and something concrete is being asked | a revision of an approved design | step 4a |
 | a row currently `APPROVED`, and nothing concrete is being asked | nothing owed | say so and stop |
@@ -123,7 +123,9 @@ Every user facing choice is an options panel: 2 to 4 concrete options real to th
 
 **An approved design with no concrete request is not an invitation to improve it.** A run that opens a settled surface, finds nothing wrong that anybody named, and revises it anyway has originated design intent, which is the one thing this skill may not do on its own. **Vague is not concrete**: "have another look at the dashboard" is a question to ask back, not a change to make.
 
-**This routing test reads the row's current value. The write target test in step 4a reads its whole history, and the two are deliberately different questions.** Should anything be revised is about now. Which file may be written is about whether the canonical file is holding something a person once approved, which a current status cannot tell you.
+**This routing test reads the row's current value, and only that.** A `DRAFT` is a `DRAFT` whether it has been approved before or never, so both go to step 4a. Splitting that row by history left a real state with no route at all: an approved design revised, sent to review, and returned with Request changes sits at `DRAFT` with an approval in its past, and it is the commonest thing this skill will ever be handed.
+
+**The write target test in step 4a reads the whole history instead, and the two are deliberately different questions.** Should anything be revised is about now. Which file may be written is about whether the canonical file is holding something a person once approved, which a current status cannot tell you.
 
 ### Step 2: Settle the design line, on an existing codebase
 
@@ -167,7 +169,15 @@ This is the recurring path, and it runs before any critique or review, because t
 | a `/dev-check verify` off design report | the build and the prototype disagree, and the report says which one it thinks is wrong |
 | the user, directly | ask what is wrong with it before touching anything |
 
-**Then move the rows, before the file changes.** An approved design that is being revised goes to `CHANGE REQUIRED` first, with the reason in its Note, and only then to `DRAFT`. A row already at `DRAFT` stays there and keeps its Note until the revision is done. **Editing the file while a row still reads `APPROVED` means that word is describing something nobody approved**, which is the one thing the lifecycle exists to prevent.
+**Then move the rows, before the file changes.** Every row lands at `DRAFT`, and how it gets there depends on where it started:
+
+| The row reads | Move it | Because |
+| --- | --- | --- |
+| `APPROVED` | to `CHANGE REQUIRED` with the reason in its Note, then to `DRAFT` | the lifecycle records that something invalidated an approval, rather than an approval quietly vanishing |
+| `READY FOR REVIEW` | to `DRAFT` | it claims finished and self critiqued, and it is about to stop being either |
+| `DRAFT` | leave it, and keep its Note | it is already saying what it is |
+
+**Editing the file while a row still reads `APPROVED` or `READY FOR REVIEW` means the registry is describing something that no longer exists.** One claims a person approved this file, the other claims it is finished and waiting on them, and both stop being true the moment you edit it.
 
 **Rows, plural, because a prototype may cover more than one surface.** Find every row in `design-registry.md` whose File column names the file you are about to edit, and move all of them together. `design-registry.md`'s own rule is that a shared file is approved once and every row pointing at it moves together, so revising one surface of a shared checkout and leaving its two siblings at `APPROVED` leaves those two claiming a person approved a file that has since changed underneath them.
 
@@ -193,6 +203,10 @@ This is the recurring path, and it runs before any critique or review, because t
 Then go to step 5. A revision earns the same critique and the same review session as a new design, because it is going to be approved by the same standard.
 
 ### Step 5: Critique, then run the review session
+
+**Arriving from step 1 with an unchanged `READY FOR REVIEW` row? Skip to the session.** Do not critique it again, do not edit it, and do not rewrite its status. The row already says finished and self critiqued, a previous run did that work, and redoing it would change a file a person is waiting to look at and quietly restart the clock on it. Read `internal/design-review.md` and run the session.
+
+**Everything below is for a design that just changed**, meaning one that arrived from step 4 or step 4a.
 
 **Run the self critique in `design-judgment.md` before showing anything**, and say what it found and what you fixed. A first draft that survives its own critique untouched was not really critiqued.
 

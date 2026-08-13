@@ -128,6 +128,10 @@ Opening that address puts the surface in that state directly, on load, with no c
 
 **The controls stay too.** A person reviewing this file should still be able to click through the flow the way a user would, and the fragment is an additional way in rather than a replacement for the design. A prototype whose states are only reachable by fragment has stopped demonstrating its own interactions.
 
+**On a prototype covering more than one surface, every state name is unique across all of them.** One address opens one composition, so a checkout whose cart and payment steps both call a state `default` has two different screens competing for `#state=default`, and one of them simply never renders. Name them `cart-default` and `payment-default` in the Required states cells, which is what the file actually holds.
+
+**This is not a workaround, it is the file being honest about itself.** Two surfaces sharing a prototype are two compositions, and two compositions need two addresses. `capture.mjs` refuses a duplicate state name outright rather than quietly deduplicating it, so getting this wrong stops a session rather than silently leaving a surface unreviewed. **A surface whose states cannot be named apart from its siblings' belongs in its own file**, which `design-registry.md` already offers as the answer whenever rows need to move independently.
+
 **The address is the contract because it survives everything else.** A prototype opened from the filesystem, served by the review session, or loaded by `/dev-check verify` a month later all read the same fragment, and none of them needs a global object, a build step, or an agreement about a function name that a later prototype spells differently.
 
 **Use fixture data and simulated behavior.** Local state, hardcoded rows, a timeout standing in for a request. **Never build a real backend, a real API call, a real database, or real authentication to make a prototype interactive.** That is production code, it is forbidden here, and it is `/dev-develop`'s work.

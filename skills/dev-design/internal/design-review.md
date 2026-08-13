@@ -96,7 +96,13 @@ One disposable directory per session, outside the repository, in the system temp
 
 **One entry per row, because a prototype may cover more than one surface.** `surfaces` is a list for the same reason. Find every row in `design-registry.md` whose File column names this prototype, and carry all of them: hashing one row and then stamping all of them at promotion would let two of a checkout's three rows change during a review without anything noticing.
 
-**`states` is the union of every covered surface's Required states**, and the capture pass renders all of them. A session that captured only the surface somebody reported has put a person in front of one third of what they are about to approve.
+**`states` covers every surface this prototype covers, and it is a list of addresses rather than a set of words.** A session that captured only the surface somebody reported has put a person in front of one third of what they are about to approve.
+
+**A plain union is wrong when two surfaces use the same word, and they usually do.** A checkout whose cart and payment steps both have a `default` and an `error` state unions down to two names, and `#state=default` can open exactly one composition, so a whole surface goes uncaptured while every row is stamped `APPROVED`. **The deduplication is the bug**, and it is silent, which is the worst kind.
+
+**So on a prototype covering more than one surface, the state names are unique across all of them.** `cart-default` and `payment-default` are two different compositions and get two different addresses, which is what the file actually contains. `design-direction.md` owns that rule as part of the state contract, and `capture.mjs` refuses a duplicate outright rather than deduplicating it, so this fails loudly if it is ever got wrong.
+
+**A surface whose states genuinely cannot be named apart from its siblings' does not belong in a shared file.** `design-registry.md` says so already: where rows need to move independently, they belong in separate files.
 
 **A prototype is not only its own file, and this is the part that is easy to miss.** It loads `shared/tokens.css` on every project, and it may load fonts, images, or another stylesheet. A token file edited during a review changes what the person is looking at while `proposal.html` hashes identically. **So `dependencyHashes` holds one entry per local file the prototype actually loaded**, keyed by its path under `.konteksto/designs/`, and step 7 checks them with the rest.
 
@@ -265,9 +271,11 @@ Hash the canonical file, and compare it to both hashes you already hold. There a
 
 **Keep `decision.json` until this is settled**, which is the one reason to delay a teardown. It is the only record that a person decided, and after step 1 the manifest can no longer prove what they decided about.
 
-**On Request changes:** move the row to `DRAFT`, put the feedback in the Note column, and leave any blocked task blocked. The next approval attempt needs a new session and a new proposal hash.
+**Every decision moves every carried row, not only the one somebody named.** The rows in `registryRowHashes` all point at this prototype, a decision is about the file, and leaving a sibling behind is the same defect whichever way the decision went. An approval that stamped all three and a rejection that moved one would be a registry where two rows still claim a design that was just sent back.
 
-**On Reject:** the canonical file is not touched at all. A new surface goes back to `MISSING` when nothing viable is left and `DRAFT` when something is, and a surface that was already approved stays at `CHANGE REQUIRED` until a replacement exists. The reason goes in the Note column.
+**On Request changes:** move every carried row to `DRAFT`, put the feedback in each Note column, and leave any blocked task blocked. The next approval attempt needs a new session and a new proposal hash.
+
+**On Reject:** the canonical file is not touched at all. Every carried row goes back to `MISSING` where nothing viable is left and `DRAFT` where something is, and any that was already approved stays at `CHANGE REQUIRED` until a replacement exists. The reason goes in each Note column.
 
 ### Where an unapproved revision lives, which is not the session
 
