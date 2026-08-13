@@ -83,7 +83,7 @@ One disposable directory per session, outside the repository, in the system temp
   "prototypePath": ".konteksto/designs/account-recovery.html",
   "proposalHash": "sha256 of proposal.html, a full hex digest",
   "baselineHash": "sha256 of the canonical file, or null when none exists",
-  "registryRowHash": "sha256 of the registry row text at session start",
+  "registryRowHashes": { "Checkout, cart": "sha256 of that row's text at session start" },
   "dependencyHashes": {},
   "states": ["default", "submitting", "invalid-code"],
   "breakpoints": [{ "name": "desktop", "width": 1440, "height": 900 }],
@@ -92,13 +92,17 @@ One disposable directory per session, outside the repository, in the system temp
 }
 ```
 
-**These hashes are why an approval means one revision and not a moment in time.** The proposal hash says what the person was shown. The baseline hash and the row hash say what the world looked like when they started, so an approval cannot be applied on top of something that moved underneath it. Step 7 checks every one.
+**These hashes are why an approval means one revision and not a moment in time.** The proposal hash says what the person was shown. The baseline hash and the row hashes say what the world looked like when they started, so an approval cannot be applied on top of something that moved underneath it. Step 7 checks every one.
+
+**One entry per row, because a prototype may cover more than one surface.** `surfaces` is a list for the same reason. Find every row in `design-registry.md` whose File column names this prototype, and carry all of them: hashing one row and then stamping all of them at promotion would let two of a checkout's three rows change during a review without anything noticing.
+
+**`states` is the union of every covered surface's Required states**, and the capture pass renders all of them. A session that captured only the surface somebody reported has put a person in front of one third of what they are about to approve.
 
 **A prototype is not only its own file, and this is the part that is easy to miss.** It loads `shared/tokens.css` on every project, and it may load fonts, images, or another stylesheet. A token file edited during a review changes what the person is looking at while `proposal.html` hashes identically. **So `dependencyHashes` holds one entry per local file the prototype actually loaded**, keyed by its path under `.konteksto/designs/`, and step 7 checks them with the rest.
 
 **Fill it after the capture pass, not before.** `errors.json` carries a `dependencies` list of every local file the prototype really loaded, which is the honest answer and beats parsing the markup for links: it catches what JavaScript fetched and skips what a commented out tag mentions.
 
-**`states` and `breakpoints` say what this surface requires**, taken from the Required states cell and from `design.md`, and the session refuses to start without them. **They are what the capture pass is graded against, and the capture output is never graded against itself.** A pass run with a shorter list covered everything it attempted and would otherwise report itself complete, while the states the registry says the surface has were never rendered at all.
+**`states` and `breakpoints` say what this prototype requires**, taken from the Required states cells of every surface it covers and from `design.md`, and the session refuses to start without them. **They are what the capture pass is graded against, and the capture output is never graded against itself.** A pass run with a shorter list covered everything it attempted and would otherwise report itself complete, while the states the registry says the surface has were never rendered at all.
 
 **A breakpoint carries its width and height, and all three are checked.** A breakpoint is a size rather than a label, so evidence captured at desktop 320 by 200 says nothing about the desktop layout however it is named. `design.md` holds the real numbers and they travel with the name.
 
@@ -152,7 +156,7 @@ Launch a fresh browser context. Never an existing profile, never a signed in one
 For the surface under review:
 
 1. **Every breakpoint in `design.md`.** That list is the authority and this counts from it, so a project on four breakpoints captures four without anything here being edited.
-2. **Every state in the surface's Required states cell in `design-registry.md`**, activated through the state contract in `design-direction.md` step 5, and screenshotted at every breakpoint.
+2. **Every state in `states`**, meaning the union of the Required states cells of every surface this prototype covers, activated through the state contract in `design-direction.md` step 5, and screenshotted at every breakpoint.
 3. **Console messages, uncaught page errors, failed requests, and error responses**, collected throughout into `errors.json`, each tagged with the state and breakpoint it happened in.
 4. **Every local file the prototype loaded**, which becomes `dependencyHashes` in the manifest.
 
@@ -180,7 +184,7 @@ The page carries the evidence and the decisions, and it is opened by the person,
 
 - the surface name, the prototype path, the registry status, and the proposal hash it is bound to
 - the live proposal in a frame, interactive, at a viewport the person controls, with one control per breakpoint in `design.md`
-- one control per state in the Required states cell
+- one control per state the prototype covers, across every surface it covers
 - a full screen control, which hands the whole viewport to the design and hides the panels, and a control that opens the proposal on its own in a new tab
 - **the breakpoint controls come from `design.md` and are never a fixed set of devices.** That list is the authority, so a project on two breakpoints or four gets exactly those, and hardcoding a desktop, tablet, and phone here would put a second answer beside the one that governs everything else
 - the capture screenshots, and the baseline beside them when a canonical version exists
@@ -233,11 +237,11 @@ The capture findings are not decoration beside the decision, so the server sorts
 
 1. Recompute the working copy hash. It matches `proposalHash` in the decision.
 2. Recompute the canonical file hash. It matches `baselineHash` in the manifest, or both are absent.
-3. Recompute the registry row hash. It matches `registryRowHash` in the manifest.
+3. Recompute every entry in `registryRowHashes`. All match, and no row has appeared or disappeared that points at this prototype.
 4. Recompute every entry in `dependencyHashes`. All match.
 5. `person` is a name, and it is not a model identifier.
 
-**Any check failing stops the approval.** Say which one failed and what it means: the first says the proposal moved after the person looked at it, the fourth says something it renders with did, and the second and third say the world moved underneath the review. Rebase or regenerate the proposal and run a fresh session. **Never record the approval and note the discrepancy.** A stamp that says a person approved something they did not see is the one failure this whole file exists to prevent.
+**Any check failing stops the approval.** Say which one failed and what it means: the first says the proposal moved after the person looked at it, the fourth says something it renders with did, and the second and third say the world moved underneath the review. **A row that appeared pointing at this prototype during the review is that same failure**, since it is a surface nobody captured and nobody looked at, about to be stamped `APPROVED` along with the rest. Rebase or regenerate the proposal and run a fresh session. **Never record the approval and note the discrepancy.** A stamp that says a person approved something they did not see is the one failure this whole file exists to prevent.
 
 Then, in this order:
 

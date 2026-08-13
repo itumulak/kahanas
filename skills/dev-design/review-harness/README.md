@@ -102,7 +102,7 @@ node capture.mjs \
   --breakpoints desktop:1440x900,tablet:834x1112,phone:390x844
 ```
 
-States come from the surface's Required states cell in `design-registry.md`, in that order, **default first**. Breakpoints come from `design.md`. Neither is guessed here.
+States come from `design-registry.md`, in that order, **default first**. On a prototype covering several surfaces they are the union of every covered surface's Required states, since one file is approved once and all its rows move together. Breakpoints come from `design.md`. Neither is guessed here.
 
 The URL is the **asset origin**, never the review one. Writes `screenshots/<state>__<breakpoint>.png` and `errors.json`.
 

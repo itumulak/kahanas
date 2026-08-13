@@ -106,15 +106,24 @@ Every user facing choice is an options panel: 2 to 4 concrete options real to th
 | no `design-registry.md` at all | the first run | step 2 |
 | a surface the flows require with no row | an unmapped surface | step 3, for that surface only, then step 4 |
 | a row at `MISSING`, with no prototype file | a design that was never built | step 4, for that surface only |
-| a row at `DRAFT` or `READY FOR REVIEW`, never approved, with a prototype | an unfinished design | step 4a, which is where the feedback is read |
-| a row that carries an `APPROVED` stamp anywhere in its history | a revision of an approved design | step 4a |
+| a row at `READY FOR REVIEW`, and nothing new is being asked | a design already finished and waiting on a person | **step 5**, straight to the session |
+| a row at `READY FOR REVIEW`, and something new is being asked | feedback that arrived after it was finished | step 4a |
+| a row at `DRAFT`, never approved | an unfinished design | step 4a, which is where the feedback is read |
 | a row at `CHANGE REQUIRED` | a revision of an approved design | step 4a |
+| a row currently `APPROVED`, and something concrete is being asked | a revision of an approved design | step 4a |
+| a row currently `APPROVED`, and nothing concrete is being asked | nothing owed | say so and stop |
 | a row at `BASELINE`, and the task recomposes the surface | a surface re entering the lifecycle | step 4, and move the row to `MISSING` first |
 | a row at `BASELINE`, and the task does not recompose it | nothing owed | say so and stop |
 
 **A revision is the common case after the first run**, and it is a different job from designing something new: the surface already has a design, somebody has said what is wrong with it, and the approved file has to keep standing until a replacement is approved.
 
 **`design-registry.md` defines what recomposing means**, and it is a change to layout, hierarchy, or interaction rather than to copy, content, or data. Read it before moving a `BASELINE` row anywhere.
+
+**`READY FOR REVIEW` means finished and self critiqued**, so redesigning it would throw away work somebody already did and put the same file in front of a person a run later. It goes to the session. It comes back to step 4a only when there is something new to act on.
+
+**An approved design with no concrete request is not an invitation to improve it.** A run that opens a settled surface, finds nothing wrong that anybody named, and revises it anyway has originated design intent, which is the one thing this skill may not do on its own. **Vague is not concrete**: "have another look at the dashboard" is a question to ask back, not a change to make.
+
+**This routing test reads the row's current value. The write target test in step 4a reads its whole history, and the two are deliberately different questions.** Should anything be revised is about now. Which file may be written is about whether the canonical file is holding something a person once approved, which a current status cannot tell you.
 
 ### Step 2: Settle the design line, on an existing codebase
 
@@ -158,7 +167,11 @@ This is the recurring path, and it runs before any critique or review, because t
 | a `/dev-check verify` off design report | the build and the prototype disagree, and the report says which one it thinks is wrong |
 | the user, directly | ask what is wrong with it before touching anything |
 
-**Then move the row, before the file changes.** An approved design that is being revised goes to `CHANGE REQUIRED` first, with the reason in its Note, and only then to `DRAFT`. A row already at `DRAFT` stays there and keeps its Note until the revision is done. **Editing the file while the row still reads `APPROVED` means that word is describing something nobody approved**, which is the one thing the lifecycle exists to prevent.
+**Then move the rows, before the file changes.** An approved design that is being revised goes to `CHANGE REQUIRED` first, with the reason in its Note, and only then to `DRAFT`. A row already at `DRAFT` stays there and keeps its Note until the revision is done. **Editing the file while a row still reads `APPROVED` means that word is describing something nobody approved**, which is the one thing the lifecycle exists to prevent.
+
+**Rows, plural, because a prototype may cover more than one surface.** Find every row in `design-registry.md` whose File column names the file you are about to edit, and move all of them together. `design-registry.md`'s own rule is that a shared file is approved once and every row pointing at it moves together, so revising one surface of a shared checkout and leaving its two siblings at `APPROVED` leaves those two claiming a person approved a file that has since changed underneath them.
+
+**Then work from all of those rows, not only the one that was reported.** The revision has to keep satisfying every surface the file covers, and the Required states you carry into the review are the union of theirs. A fix for the payment step that quietly drops the cart's empty state has broken a surface nobody was looking at.
 
 **Then edit the working draft, and work out which file that is from what the canonical file is holding rather than from the row's current status.**
 
