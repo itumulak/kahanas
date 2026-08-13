@@ -10,8 +10,10 @@ Three files `/dev-architect` copies into a review session workspace and runs. **
 
 ```text
 <system-temp>/kahanas-design-review-<session-id>/
-├── proposal.html          the working copy under review, written by /dev-architect
-├── baseline.html          the current canonical prototype, when one exists
+├── prototype/             served on the asset origin, and nothing else is
+│   ├── proposal.html      the working copy under review, written by /dev-architect
+│   ├── baseline.html      the current canonical prototype, when one exists
+│   └── <assets>           whatever the prototype loads, copied in beside it
 ├── manifest.json          written by /dev-architect
 ├── decision.json          written by server.mjs, on the person's click
 ├── errors.json            written by capture.mjs
@@ -21,30 +23,60 @@ Three files `/dev-architect` copies into a review session workspace and runs. **
 └── review.html            copied
 ```
 
-Any asset a prototype loads relatively goes in beside it. Nothing outside this directory is reachable from the session.
+Nothing outside this directory is reachable from the session.
 
 ## `manifest.json`
 
 Written before anything starts. `design-review.md` defines the fields and what the hashes are for. `review.html` reads `surfaces`, `prototypePath`, `status`, `proposalHash`, and `states`.
 
+**`proposalHash` must be a full sha256 hex digest of `prototype/proposal.html`.** The server validates it at startup and exits 65 rather than starting, because a session that cannot bind a decision to a revision is a session whose decisions mean nothing.
+
 ## `server.mjs`
 
 ```bash
-node server.mjs --dir <session directory> [--host 127.0.0.1] [--port 0]
+node server.mjs --dir <session directory> [--host 127.0.0.1]
 ```
 
-Prints `KAHANAS_REVIEW_URL=http://127.0.0.1:<port>/` on startup, which is the line to parse. Port `0` picks an open one, which is the default and the right choice, since a fixed port collides with the product's own dev server.
+Prints two lines to parse:
 
-**It refuses to bind anything but loopback.** The review page carries an approval endpoint, and binding it anywhere reachable puts a write endpoint for a design decision on the network.
+```text
+KAHANAS_REVIEW_URL=http://127.0.0.1:<port>/
+KAHANAS_ASSET_URL=http://127.0.0.1:<other port>/
+```
 
-| Route | Method | Does |
+Both ports are picked open, since a fixed one collides with the product's own dev server. **It refuses to bind anything but loopback**, because the review origin carries an approval endpoint.
+
+### Two origins
+
+A prototype is untrusted code: it may be derived from HTML a user supplied, and it runs unattended during the capture pass. On one origin it could read the review page, lift the session token, and approve itself before anybody saw the design.
+
+| Origin | Serves | Has an API |
 | --- | --- | --- |
-| `/` | GET | serves `review.html` |
-| `/api/session` | GET | the manifest, the capture findings, the screenshot list, whether a baseline exists, and whether a decision was already recorded |
-| `/api/decision` | POST | writes `decision.json`, once |
-| anything else | GET | serves that file from the session directory, and 403 for anything resolving outside it |
+| review | `review.html`, `screenshots/`, `errors.json`, `manifest.json` | yes |
+| asset | `prototype/` and nothing else | no |
 
-**The decision endpoint is the only thing in the harness that writes.** It writes with the `wx` flag, so a second decision fails on the filesystem rather than on a check that could be raced. It rejects an approve with no name, a request changes or reject with no feedback, and any decision carrying a proposal hash the manifest does not hold, which is what stops a page left open from an earlier session deciding this one.
+The review origin returns 404 for any path under `/prototype`, so the split cannot be undone by asking for it the other way.
+
+| Route, review origin | Method | Does |
+| --- | --- | --- |
+| `/` | GET | serves `review.html`, with the token and asset origin substituted in |
+| `/api/session` | GET | the manifest, capture findings, screenshots, asset origin, approval gate, and any decision already made |
+| `/api/decision` | POST | writes `decision.json`, once |
+| anything else | GET | serves that file from the session directory, 403 outside it |
+
+### What the decision endpoint requires
+
+**All three, and a prototype can satisfy none of them:**
+
+1. `Origin` exactly the review origin.
+2. `content-type: application/json`, so a cross origin attempt needs a preflight the server never answers.
+3. `x-kahanas-token` matching the token generated at startup and substituted into `review.html` as it is served.
+
+Then the payload itself: a known decision, a name on approve, feedback on anything else, and a `proposalHash` equal to the manifest's. **The hash is not optional**, which is what stops a page left open from an earlier session deciding this one.
+
+**Approve is gated on the capture evidence, at the endpoint and not only in the page.** A state that did not activate refuses the approval outright with 422. Console errors, page errors, failed requests, error responses, and blocked external requests require `acknowledged: true`, which the page collects with a checkbox naming what was found. Console warnings are shown and gate nothing. A session with no `errors.json` at all is blocked, because no evidence is not clean evidence.
+
+The write is staged to a temporary file and renamed, and refuses when `decision.json` already exists, so a session produces exactly one decision and a reader never sees half of it.
 
 ## `capture.mjs`
 
@@ -58,7 +90,13 @@ node capture.mjs \
 
 States come from the surface's Required states cell in `design-registry.md`, in that order, **default first**. Breakpoints come from `design.md`. Neither is guessed here.
 
-Writes `screenshots/<state>__<breakpoint>.png` and `errors.json`.
+The URL is the **asset origin**, never the review one. Writes `screenshots/<state>__<breakpoint>.png` and `errors.json`, and clears `screenshots/` first so a renamed or dropped state cannot leave an image of something the proposal no longer does.
+
+`errors.json` carries the breakpoints, a verdict per state, `dependencies` listing every local file the prototype actually loaded, and every finding tagged with the state and breakpoint it happened in. **`/dev-architect` hashes those dependencies into the manifest**, so a shared token file changing during a review invalidates the approval the same way editing the prototype would.
+
+**It does not exercise interactions, deliberately.** Driving them would need a second machine readable contract per prototype on top of the state one. The person exercises them in the live frame, which is the one part of a review a person is strictly better at than a script. `design-review.md` step 5 has the reasoning.
+
+**Anything the prototype requests beyond the session is aborted, not merely logged**, and recorded as `external-request`. A prototype renders with no network by construction, so letting a request through would review the design against something that will not be there later. The server sends a matching content security policy, so the person's browser applies the same rule to the live frame.
 
 | Exit code | Means |
 | --- | --- |

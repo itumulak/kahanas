@@ -49,8 +49,10 @@ One disposable directory per session, outside the repository, in the system temp
 
 ```text
 <system-temp>/kahanas-design-review-<session-id>/
-├── proposal.html          the working copy under review
-├── baseline.html          the current canonical prototype, when one exists
+├── prototype/             served on its own origin, nothing else is
+│   ├── proposal.html      the working copy under review
+│   ├── baseline.html      the current canonical prototype, when one exists
+│   └── <assets>           whatever the prototype loads, copied in beside it
 ├── manifest.json          what this session is reviewing
 ├── decision.json          written by the person's click, never by this skill
 ├── errors.json            written by the capture pass
@@ -59,6 +61,8 @@ One disposable directory per session, outside the repository, in the system temp
 ├── capture.mjs            copied from the harness
 └── review.html            copied from the harness
 ```
+
+**The prototype sits in its own folder because it gets its own origin.** Step 4 says why.
 
 **Nothing in it is committed and nothing in it survives the session.** Screenshots and error logs are diagnostic evidence, not the design. A project that genuinely wants them retained says so in `tooling.md`, which is the one place a policy like that belongs.
 
@@ -77,24 +81,51 @@ One disposable directory per session, outside the repository, in the system temp
   "sessionId": "2026-08-13-account-recovery-01",
   "surfaces": ["Account recovery, step 3"],
   "prototypePath": ".konteksto/designs/account-recovery.html",
-  "proposalHash": "sha256 of proposal.html",
+  "proposalHash": "sha256 of proposal.html, a full hex digest",
   "baselineHash": "sha256 of the canonical file, or null when none exists",
   "registryRowHash": "sha256 of the registry row text at session start",
+  "dependencyHashes": {},
   "createdAt": "2026-08-13 15:30",
   "createdByModel": "claude-opus-5"
 }
 ```
 
-**Three hashes, because approval binds to one revision and nothing else.** The proposal hash says what the person was shown. The baseline hash and the row hash say what the world looked like when they started, so an approval cannot be applied on top of something that moved underneath it. Step 7 checks all three.
+**These hashes are why an approval means one revision and not a moment in time.** The proposal hash says what the person was shown. The baseline hash and the row hash say what the world looked like when they started, so an approval cannot be applied on top of something that moved underneath it. Step 7 checks every one.
 
-**No git commit goes in here.** An unrelated commit landing during a review says nothing about whether this design still applies, and binding to one would invalidate a perfectly good approval every time somebody merged a backend fix.
+**A prototype is not only its own file, and this is the part that is easy to miss.** It loads `shared/tokens.css` on every project, and it may load fonts, images, or another stylesheet. A token file edited during a review changes what the person is looking at while `proposal.html` hashes identically. **So `dependencyHashes` holds one entry per local file the prototype actually loaded**, keyed by its path under `.konteksto/designs/`, and step 7 checks them with the rest.
+
+**Fill it after the capture pass, not before.** `errors.json` carries a `dependencies` list of every local file the prototype really loaded, which is the honest answer and beats parsing the markup for links: it catches what JavaScript fetched and skips what a commented out tag mentions.
+
+**A git commit is deliberately not one of these.** It looked like the obvious way to notice the world moving, and it is the wrong instrument: an unrelated backend merge during a review would void a perfectly good approval, while a token file edited without a commit would slip past it. Hash what the design is actually made of.
 
 ### 4. Serve it
 
+`server.mjs` does this, and the rules it holds up are here because they are the reason it is shaped the way it is.
+
 - **Bind to loopback.** Never `0.0.0.0`, and never a public interface. The review page is a local tool and it carries an approval endpoint.
-- **Pick an open port dynamically**, and report it, since a fixed port collides on a machine already running the product.
+- **Pick open ports dynamically**, and report them, since a fixed port collides on a machine already running the product.
 - **Serve the session directory only.** No path outside it is reachable, including the repository.
 - **One endpoint that writes anything: the decision endpoint**, which accepts a decision and writes `decision.json` once. It writes nothing else, anywhere, and it refuses a second write, so a session can produce exactly one decision.
+
+### The prototype gets its own origin, and this is not a detail
+
+**A prototype is untrusted code.** It may be derived from HTML a user supplied, which is the one artifact in the project nobody here wrote, and it runs unattended during the capture pass with nobody watching what it does.
+
+On one origin with the review page, a prototype could read that page, lift the session token out of it, and post its own approval before a person ever saw the design. That is not a far fetched attack. It is four lines of JavaScript in a file this workflow deliberately treats as a starting point rather than a reviewed artifact.
+
+**So the session runs two origins from one process.** The review origin serves the review page, the evidence, and the decision endpoint, and never serves the prototype. The prototype origin serves the prototype and whatever it loads, and has no endpoint on it at all.
+
+The decision endpoint then accepts a request only when three things hold, and a prototype can satisfy none of them:
+
+1. **The `Origin` header is exactly the review origin.** A prototype is not on it.
+2. **The content type is `application/json`**, so any cross origin attempt needs a preflight, which the server never answers.
+3. **The session token matches.** It is generated per session and substituted into the review page as it is served, so it exists nowhere the prototype origin can read.
+
+**The review page frames the prototype sandboxed**, and keeps `allow-same-origin`, which is safe here only because the origins already differ: the frame keeps the prototype origin, so a prototype that wants storage still works and still cannot reach the review page.
+
+**Every response carries a content security policy that permits nothing off origin.** The capture pass aborts external requests outright, and this is the same rule expressed so the person's browser applies it too. Without it a prototype behaves one way while nobody is watching and another way during the review, which is exactly the wrong way round.
+
+**None of this stops the process that started the server.** It holds the filesystem and could write `decision.json` directly. That is the convention above, said plainly.
 
 Serving over HTTP is for the review page and the decision endpoint, which need an origin and a server. **It changes nothing about what a prototype may require.** The rule in `design-direction.md` step 5 still holds in full: every prototype opens on its own from the filesystem, with no install, no build step, no dev server, and no network. A prototype that only works under the review server has failed that rule and is not ready to be reviewed.
 
@@ -112,8 +143,14 @@ For the surface under review:
 
 1. **Every breakpoint in `design.md`.** That list is the authority and this counts from it, so a project on four breakpoints captures four without anything here being edited.
 2. **Every state in the surface's Required states cell in `design-registry.md`**, activated through the state contract in `design-direction.md` step 5, and screenshotted at every breakpoint.
-3. **Every interaction the flow names**, exercised: the buttons that do something, the forms that validate, the menus that open, the destructive actions that confirm.
-4. **Console messages, uncaught page errors, and failed requests**, collected throughout into `errors.json`, each tagged with the state and breakpoint it happened in.
+3. **Console messages, uncaught page errors, failed requests, and error responses**, collected throughout into `errors.json`, each tagged with the state and breakpoint it happened in.
+4. **Every local file the prototype loaded**, which becomes `dependencyHashes` in the manifest.
+
+**The capture pass does not exercise interactions, and that is deliberate rather than missing.** Driving them would need every prototype to declare its buttons and flows in a machine readable contract, which is a second contract to write, keep true, and review, on top of the state one. **The person exercises the interactions**, in the live frame, by clicking the thing they are being asked to approve. That is why the live proposal is the review surface and the screenshots are supporting evidence, and it is the one part of a review a person is strictly better at than a script.
+
+**What the pass owes is the evidence a person cannot gather by clicking**: every breakpoint and every state rendered without them resizing a window thirty times, and the errors a prototype threw while looking perfectly fine.
+
+**A prototype must render with no network, so the pass aborts anything off session rather than noting it.** Letting it through would review the design against something that will not be there later, and would let an untrusted prototype talk to whatever it liked while nobody was watching. Each blocked request is recorded, so nothing disappears quietly.
 
 **A state that will not activate is a defect in the proposal, not a note on the review.** Fix the prototype and start the session again. A row cannot honestly reach `READY FOR REVIEW` while a state the registry says it has cannot be reached, and asking a person to approve a surface whose error state nobody has ever seen is asking them to approve a claim rather than a design.
 
@@ -139,6 +176,22 @@ The page carries the evidence and the decisions, and it is opened by the person,
 
 **It offers exactly three decisions: Approve, Request changes, and Reject.** Approve requires the person's name and shows the proposal hash it is approving. Request changes and Reject both require written feedback, because a returned design with no reason is a design that comes back the same.
 
+### What the evidence costs before Approve is available
+
+The capture findings are not decoration beside the decision, so the server sorts them into two kinds and enforces both. The page shows them and the endpoint checks them again, because a gate that only exists in a page is a gate that a reloaded page loses.
+
+| Kind | What happens |
+| --- | --- |
+| **A state that did not activate** | Approve is refused outright, in the page and at the endpoint |
+| **Console errors, page errors, failed requests, error responses, blocked external requests** | Approve needs an explicit acknowledgement naming what was found |
+| **Console warnings** | shown, and nothing more |
+
+**A state that did not activate blocks because there is nothing there to approve.** The registry says the surface has that state, and the prototype does not implement it, so the person cannot have looked at it whatever they believe. That is the same claim as the row not being ready for review at all.
+
+**Everything else is acknowledged rather than blocked, and that is a real choice.** A prototype with a noisy console can still be the right design, and only a person can say. Blocking on every finding would make the honest move be to silence the console, which buys nothing and hides the next real error. **Acknowledging is recorded in the decision**, so a later reader can see the design was approved with findings outstanding and what they were.
+
+**A capture pass that never ran blocks too.** No evidence is not clean evidence.
+
 **Then this skill waits.** It does not open the review page, poll the DOM of it, or reach the decision endpoint. It waits for `decision.json` to appear.
 
 **Where the person cannot reach the server**, most often because this session runs somewhere their browser does not, say so plainly and stop. They approve by editing the registry row themselves, which the registry has always permitted, and which needs no new rule and no workaround from you.
@@ -157,32 +210,45 @@ The page carries the evidence and the decisions, and it is opened by the person,
 }
 ```
 
-**On Approve, four checks, and every one must pass before a status cell is written:**
+**On Approve, five checks, and every one must pass before a status cell is written:**
 
 1. Recompute the working copy hash. It matches `proposalHash` in the decision.
 2. Recompute the canonical file hash. It matches `baselineHash` in the manifest, or both are absent.
 3. Recompute the registry row hash. It matches `registryRowHash` in the manifest.
-4. `person` is a name, and it is not a model identifier.
+4. Recompute every entry in `dependencyHashes`. All match.
+5. `person` is a name, and it is not a model identifier.
 
-**Any check failing stops the approval.** Say which one failed and what it means: the first says the proposal moved after the person looked at it, the second and third say the world moved underneath the review. Rebase or regenerate the proposal and run a fresh session. **Never record the approval and note the discrepancy.** A stamp that says a person approved something they did not see is the one failure this whole file exists to prevent.
+**Any check failing stops the approval.** Say which one failed and what it means: the first says the proposal moved after the person looked at it, the fourth says something it renders with did, and the second and third say the world moved underneath the review. Rebase or regenerate the proposal and run a fresh session. **Never record the approval and note the discrepancy.** A stamp that says a person approved something they did not see is the one failure this whole file exists to prevent.
 
 Then, in this order:
 
-1. Copy the working copy to `.konteksto/designs/<slug>.html`.
+1. Write the working copy to `.konteksto/designs/<slug>.html`, **as a temporary file in that folder followed by a rename**, so a reader never sees a half written prototype and a crash leaves either the old file or the new one.
 2. Stamp `APPROVED, <person>, <timestamp>` on every registry row pointing at that file, per the registry's own rules for a shared prototype.
 3. Confirm both landed, and report exactly what did if only one did.
 
-**The order matters and no transaction is needed.** The registry is the authority on whether a design is approved. A file written with no stamp beside it is a file nobody approved, which is a safe and readable state and is corrected by running the step again. A stamp with no file behind it is not. Write the file first, always.
+**The order matters, and no transaction across the two is needed.** The registry is the authority on whether a design is approved. A file written with no stamp beside it is a file nobody approved, which is a safe and readable state, and running the step again fixes it. A stamp with no file behind it is not safe: it claims an approved design that is not there. **Write the file first, always**, and the ordering does the work a rollback would, without a rollback that could itself fail halfway.
 
 **On Request changes:** move the row to `DRAFT`, put the feedback in the Note column, and leave any blocked task blocked. The next approval attempt needs a new session and a new proposal hash.
 
 **On Reject:** the canonical file is not touched at all. A new surface goes back to `MISSING` when nothing viable is left and `DRAFT` when something is, and a surface that was already approved stays at `CHANGE REQUIRED` until a replacement exists. The reason goes in the Note column.
 
+### Where an unapproved revision lives, which is not the session
+
+**The working copy is a copy, so it must not be the only place a revision exists.** Deleting the session with the teardown would otherwise throw away the exact thing the person just asked to have changed, and the feedback would arrive attached to nothing.
+
+**For a new surface, the draft already has a home**: `.konteksto/designs/<slug>.html`, with the row at `DRAFT`. There is no approved file to protect, so the session copies from the canonical path and a non approve decision needs nothing preserved.
+
+**For a revision of an approved surface, the canonical path is holding the last approved design** and must keep holding it. That revision lives at `.konteksto/designs/drafts/<slug>.html`, and the session copies from there. **On Request changes or Reject, write the working copy back to the draft path before teardown.** On Approve, the draft is promoted to the canonical path and the draft file is removed.
+
+That folder is `/dev-architect`'s like the rest of `designs/`, it is committed like the rest of it, and `/dev-develop` never reads it: a draft is by definition not the approved design, and the registry row points at the canonical path throughout.
+
 **There is no `REJECTED` status, deliberately.** The Status column describes where the artifact stands, and rejection is a thing that happened to it. Adding one would mix an event into a state column and leave a row parked at a value nothing moves it out of.
 
 ### 8. Tear down
 
-Stop the server, close every browser context, and delete the session directory. Report where the screenshots were, and that they are gone.
+**Preserve the revision first**, per Where an unapproved revision lives above. Nothing else in the session is worth keeping.
+
+Then stop both servers, close every browser context, and delete the session directory. Report where the screenshots were, and that they are gone.
 
 **A session that ends any other way, including a crash, leaves the registry exactly where it was.** Nothing is half approved, because the only write happens in step 7 and it happens after every check. Sessions are disposable and are not resumed.
 

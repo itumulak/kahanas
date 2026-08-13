@@ -1,24 +1,56 @@
 #!/usr/bin/env node
 // Kahanas design review session server.
 //
-// Serves one disposable review session on a loopback address and accepts exactly
-// one decision from the person reviewing it. Node standard library only, so it
-// runs anywhere Node runs and adds nothing to the project it is reviewing.
+// Serves one disposable review session on loopback and accepts exactly one
+// decision from the person reviewing it. Node standard library only, so it runs
+// anywhere Node runs and adds nothing to the project it is reviewing.
 //
 // Usage:
-//   node server.mjs --dir <session directory> [--host 127.0.0.1] [--port 0]
+//   node server.mjs --dir <session directory> [--host 127.0.0.1]
 //
-// Prints one machine readable line on startup:
+// Prints two machine readable lines on startup:
 //   KAHANAS_REVIEW_URL=http://127.0.0.1:<port>/
+//   KAHANAS_ASSET_URL=http://127.0.0.1:<other port>/
 //
-// See README.md in this folder, and internal/design-review.md for the rules
-// this file exists to hold up.
+// TWO ORIGINS, AND THE REASON THEY ARE TWO
+//
+// A prototype is untrusted code. It may be derived from HTML a user supplied,
+// and it runs unattended during the capture pass. On one origin it could read
+// the review page, lift the session token out of it, and post its own approval
+// before a person ever saw the design.
+//
+// So the prototype gets its own origin with no API on it at all, and the
+// decision endpoint accepts a request only when all three hold:
+//
+//   1. Origin is exactly the review origin. A prototype is not on it.
+//   2. Content type is application/json, so any cross origin attempt needs a
+//      preflight, which this server never answers.
+//   3. The session token matches. It is injected into review.html at serve time
+//      and exists nowhere the prototype origin can read.
+//
+// None of that stops the process that started this server from posting a
+// decision itself. Nothing can. See internal/design-review.md, which says so
+// plainly rather than claiming a guarantee this cannot keep.
 
 import { createServer } from "node:http";
-import { readFile, readdir, writeFile, stat } from "node:fs/promises";
+import { readFile, readdir, writeFile, rename, stat } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import { resolve, join, extname, sep } from "node:path";
 
 const DECISIONS = new Set(["approve", "request-changes", "reject"]);
+const SHA256 = /^[a-f0-9]{64}$/i;
+
+// Findings that a person has to acknowledge before approving. A console warning
+// is not on the list: prototypes log, and a gate that fires on everything is a
+// gate that gets clicked through without reading.
+const MUST_ACKNOWLEDGE = new Set([
+  "console-error",
+  "page-error",
+  "request-failed",
+  "response-error",
+  "external-request",
+  "navigation-failed",
+]);
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -54,12 +86,13 @@ if (!opts.dir) {
 }
 
 const ROOT = resolve(opts.dir);
+const PROTOTYPE_ROOT = join(ROOT, "prototype");
 const HOST = opts.host ?? "127.0.0.1";
-const PORT = Number(opts.port ?? 0);
+const TOKEN = randomUUID();
 
 if (HOST !== "127.0.0.1" && HOST !== "::1" && HOST !== "localhost") {
-  // The review page carries an approval endpoint. Binding it anywhere reachable
-  // puts a write endpoint for a design decision on the network.
+  // The review origin carries an approval endpoint. Binding it anywhere
+  // reachable puts a write endpoint for a design decision on the network.
   console.error(`server.mjs: refusing to bind ${HOST}, loopback only`);
   process.exit(64);
 }
@@ -72,31 +105,64 @@ async function readJson(name, fallback = null) {
   }
 }
 
-async function exists(name) {
+async function exists(path) {
   try {
-    await stat(join(ROOT, name));
+    await stat(path);
     return true;
   } catch {
     return false;
   }
 }
 
-// Resolve a request path to a file inside the session directory, or null.
-// Anything that escapes the directory resolves to null rather than being served.
-function safePath(urlPath) {
+// The manifest is what binds an approval to one revision, so a session with a
+// broken one must not start rather than start and accept a decision bound to
+// nothing.
+const manifest = await readJson("manifest.json", null);
+if (!manifest) {
+  console.error("server.mjs: manifest.json is missing or is not valid JSON");
+  process.exit(65);
+}
+if (!SHA256.test(String(manifest.proposalHash ?? ""))) {
+  console.error(
+    "server.mjs: manifest.proposalHash must be a full sha256 hex digest of the working copy"
+  );
+  process.exit(65);
+}
+if (!(await exists(join(PROTOTYPE_ROOT, "proposal.html")))) {
+  console.error(`server.mjs: ${join(PROTOTYPE_ROOT, "proposal.html")} does not exist`);
+  process.exit(65);
+}
+
+// Resolve a request path to a file inside one root, or null. Anything escaping
+// that root resolves to null rather than being served.
+function safePath(root, urlPath) {
   const decoded = decodeURIComponent(urlPath.split("?")[0].split("#")[0]);
-  const target = resolve(join(ROOT, decoded === "/" ? "review.html" : decoded));
-  if (target !== ROOT && !target.startsWith(ROOT + sep)) return null;
+  const target = resolve(join(root, decoded));
+  if (target !== root && !target.startsWith(root + sep)) return null;
   return target;
 }
 
-function send(res, status, body, type = "text/plain; charset=utf-8") {
+// A prototype renders with no network, and the capture pass enforces that by
+// aborting anything off session. The person's browser has no such interception,
+// so the same rule is served as a policy the browser applies. Without it a
+// prototype behaves one way while nobody is watching and another way during the
+// review, which is the wrong way round.
+//
+// The two origins need different policies, and getting this wrong is quiet: a
+// review origin that does not name the asset origin under frame-src blocks its
+// own live frame, and the page still looks like it is working.
+const BASE_CSP = "default-src 'self' 'unsafe-inline' data: blob:; form-action 'self'; base-uri 'none'";
+const csp = (kind) =>
+  kind === "review"
+    ? `${BASE_CSP}; frame-src ${ASSET_ORIGIN}`
+    : `${BASE_CSP}; frame-ancestors ${REVIEW_ORIGIN}`;
+
+function send(res, status, body, type = "text/plain; charset=utf-8", kind = "review") {
   res.writeHead(status, {
     "content-type": type,
-    // The session serves only its own files and talks only to itself.
-    "content-security-policy": "default-src 'self' 'unsafe-inline' data: blob:",
     "cache-control": "no-store",
     "x-content-type-options": "nosniff",
+    "content-security-policy": csp(kind),
   });
   res.end(body);
 }
@@ -105,8 +171,53 @@ function sendJson(res, status, value) {
   send(res, status, JSON.stringify(value, null, 2), MIME[".json"]);
 }
 
+async function serveFile(res, root, urlPath, kind, fallback = null) {
+  const target = safePath(root, urlPath === "/" && fallback ? fallback : urlPath);
+  if (!target) return send(res, 403, "outside the session directory", undefined, kind);
+  let body;
+  try {
+    body = await readFile(target);
+  } catch {
+    return send(res, 404, "not found", undefined, kind);
+  }
+  return send(
+    res,
+    200,
+    body,
+    MIME[extname(target).toLowerCase()] ?? "application/octet-stream",
+    kind
+  );
+}
+
+// What a person has to clear before approving.
+//
+// A state that did not activate is a blocker: the prototype does not implement
+// something the registry says the surface has, so there is nothing to approve.
+// Everything else is acknowledged rather than blocked, because a prototype with
+// a noisy console can still be the right design and only a person can say.
+function approvalGate(errors) {
+  const blockers = [];
+  const warnings = [];
+
+  if (!errors) {
+    blockers.push("no capture pass has run for this session, so there is no evidence to review");
+    return { blockers, warnings };
+  }
+
+  for (const state of errors.states ?? []) {
+    if (!state.activated) blockers.push(`state did not activate: ${state.state}`);
+  }
+
+  const counts = {};
+  for (const finding of errors.findings ?? []) {
+    if (MUST_ACKNOWLEDGE.has(finding.kind)) counts[finding.kind] = (counts[finding.kind] ?? 0) + 1;
+  }
+  for (const [kind, n] of Object.entries(counts)) warnings.push(`${n} ${kind}`);
+
+  return { blockers, warnings };
+}
+
 async function sessionState() {
-  const manifest = await readJson("manifest.json", {});
   const errors = await readJson("errors.json", null);
   const decision = await readJson("decision.json", null);
 
@@ -123,7 +234,9 @@ async function sessionState() {
     manifest,
     errors,
     screenshots,
-    hasBaseline: await exists("baseline.html"),
+    assetOrigin: ASSET_ORIGIN,
+    hasBaseline: await exists(join(PROTOTYPE_ROOT, "baseline.html")),
+    gate: approvalGate(errors),
     decided: decision !== null,
     decision,
   };
@@ -140,9 +253,23 @@ async function readBody(req, limit = 256 * 1024) {
   return Buffer.concat(chunks).toString("utf8");
 }
 
-// The one endpoint that writes anything. It writes decision.json once and then
-// refuses, so a session can produce exactly one decision.
+// The one endpoint in the harness that writes anything.
 async function postDecision(req, res) {
+  // Guard 1: the review origin, which no prototype is on.
+  if (req.headers.origin !== REVIEW_ORIGIN) {
+    return sendJson(res, 403, {
+      error: "a decision is posted from the review page, and this request was not",
+    });
+  }
+  // Guard 2: forces a preflight on any cross origin attempt, which is never answered.
+  if (!String(req.headers["content-type"] ?? "").startsWith("application/json")) {
+    return sendJson(res, 415, { error: "a decision is posted as application/json" });
+  }
+  // Guard 3: the token exists only where the prototype origin cannot read it.
+  if (req.headers["x-kahanas-token"] !== TOKEN) {
+    return sendJson(res, 403, { error: "this session token is wrong or missing" });
+  }
+
   let payload;
   try {
     payload = JSON.parse(await readBody(req));
@@ -167,41 +294,58 @@ async function postDecision(req, res) {
     return sendJson(res, 400, { error: `${decision} requires feedback` });
   }
 
-  // A page left open from an earlier session must not be able to decide this one.
-  const manifest = await readJson("manifest.json", {});
-  if (manifest.proposalHash && payload.proposalHash !== manifest.proposalHash) {
+  // The revision is not optional. A decision carrying no hash, or a hash this
+  // session does not hold, is a decision about something else.
+  if (payload.proposalHash !== manifest.proposalHash) {
     return sendJson(res, 409, {
-      error:
-        "this page is bound to a different proposal than the session holds, reload before deciding",
+      error: "this page is bound to a different revision than the session holds, reload before deciding",
     });
+  }
+
+  if (decision === "approve") {
+    const { blockers, warnings } = approvalGate(await readJson("errors.json", null));
+    if (blockers.length > 0) {
+      return sendJson(res, 422, {
+        error: "this proposal is not in a state that can be approved",
+        blockers,
+      });
+    }
+    if (warnings.length > 0 && payload.acknowledged !== true) {
+      return sendJson(res, 422, {
+        error: "the capture pass recorded findings that have to be acknowledged before approving",
+        warnings,
+      });
+    }
   }
 
   const record = {
     decision,
     person: person || null,
     feedback: feedback || null,
-    proposalHash: manifest.proposalHash ?? null,
+    proposalHash: manifest.proposalHash,
+    acknowledged: decision === "approve" ? payload.acknowledged === true : null,
     decidedAt: new Date().toISOString(),
   };
 
+  const target = join(ROOT, "decision.json");
+  const staged = `${target}.${randomUUID()}.part`;
   try {
-    // wx fails if the file exists, which is the whole guarantee: one decision.
-    await writeFile(join(ROOT, "decision.json"), JSON.stringify(record, null, 2), {
-      flag: "wx",
-    });
-  } catch (err) {
-    if (err.code === "EEXIST") {
-      return sendJson(res, 409, {
-        error: "this session already recorded a decision",
-      });
+    if (await exists(target)) {
+      return sendJson(res, 409, { error: "this session already recorded a decision" });
     }
+    // Staged, then renamed, so a reader never sees a half written decision.
+    await writeFile(staged, JSON.stringify(record, null, 2));
+    await rename(staged, target);
+  } catch (err) {
     return sendJson(res, 500, { error: `could not write decision: ${err.message}` });
   }
 
   return sendJson(res, 201, record);
 }
 
-const server = createServer(async (req, res) => {
+// The review origin. Serves the review page, the evidence, and the one endpoint.
+// It never serves the prototype.
+const reviewServer = createServer(async (req, res) => {
   try {
     const url = req.url ?? "/";
 
@@ -210,35 +354,58 @@ const server = createServer(async (req, res) => {
     }
 
     if (url === "/api/decision") {
-      if (req.method !== "POST") {
-        return sendJson(res, 405, { error: "decisions are posted" });
-      }
+      if (req.method !== "POST") return sendJson(res, 405, { error: "decisions are posted" });
       return await postDecision(req, res);
     }
 
-    if (req.method !== "GET" && req.method !== "HEAD") {
-      return send(res, 405, "method not allowed");
+    if (req.method !== "GET" && req.method !== "HEAD") return send(res, 405, "method not allowed");
+
+    // The prototype lives on the other origin, and serving it here as well would
+    // hand it back the same origin this split exists to take away.
+    if (/^\/prototype(\/|$)/.test(url)) {
+      return send(res, 404, "the prototype is served on the asset origin");
     }
 
-    const target = safePath(url);
-    if (!target) return send(res, 403, "outside the session directory");
-
-    let body;
-    try {
-      body = await readFile(target);
-    } catch {
-      return send(res, 404, "not found");
+    if (url === "/" || url.startsWith("/review.html")) {
+      const page = await readFile(join(ROOT, "review.html"), "utf8");
+      return send(
+        res,
+        200,
+        page
+          .replaceAll("__KAHANAS_TOKEN__", TOKEN)
+          .replaceAll("__KAHANAS_ASSET_ORIGIN__", ASSET_ORIGIN),
+        MIME[".html"]
+      );
     }
 
-    return send(res, 200, body, MIME[extname(target).toLowerCase()] ?? "application/octet-stream");
+    return await serveFile(res, ROOT, url, "review");
   } catch (err) {
     return send(res, 500, `session server error: ${err.message}`);
   }
 });
 
-server.listen(PORT, HOST, () => {
-  const { port } = server.address();
-  console.log(`KAHANAS_REVIEW_URL=http://${HOST}:${port}/`);
-  console.log(`Serving ${ROOT}`);
-  console.log("Waiting for a decision. Stop with Ctrl C.");
+// The asset origin. Serves the prototype and whatever it loads, and nothing else.
+// There is no API here to reach.
+const assetServer = createServer(async (req, res) => {
+  try {
+    if (req.method !== "GET" && req.method !== "HEAD")
+      return send(res, 405, "method not allowed", undefined, "asset");
+    return await serveFile(res, PROTOTYPE_ROOT, req.url ?? "/", "asset", "/proposal.html");
+  } catch (err) {
+    return send(res, 500, `asset server error: ${err.message}`, undefined, "asset");
+  }
 });
+
+let REVIEW_ORIGIN = "";
+let ASSET_ORIGIN = "";
+
+await new Promise((done) => assetServer.listen(0, HOST, done));
+await new Promise((done) => reviewServer.listen(0, HOST, done));
+
+ASSET_ORIGIN = `http://${HOST}:${assetServer.address().port}`;
+REVIEW_ORIGIN = `http://${HOST}:${reviewServer.address().port}`;
+
+console.log(`KAHANAS_REVIEW_URL=${REVIEW_ORIGIN}/`);
+console.log(`KAHANAS_ASSET_URL=${ASSET_ORIGIN}/`);
+console.log(`Serving ${ROOT}`);
+console.log("Waiting for a decision. Stop with Ctrl C.");

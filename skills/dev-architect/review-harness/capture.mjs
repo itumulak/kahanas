@@ -96,6 +96,7 @@ try {
   }
 }
 
+const ORIGIN = new URL(URL_UNDER_CAPTURE).origin;
 const slug = (value) => value.toLowerCase().trim().replace(/\s+/g, "-");
 const stateUrl = (state, cacheBust) =>
   `${URL_UNDER_CAPTURE}${URL_UNDER_CAPTURE.includes("?") ? "&" : "?"}_k=${cacheBust}#state=${slug(state)}`;
@@ -128,23 +129,51 @@ const browser = await chromium.launch();
 const context = await browser.newContext({ ignoreHTTPSErrors: false });
 const page = await context.newPage();
 
+// Requests this pass aborted, and the local files it actually loaded.
+const blocked = new Set();
+const dependencies = new Set();
+
 page.on("console", (msg) => {
   if (msg.type() === "error" || msg.type() === "warning") {
     record(`console-${msg.type()}`, msg.text());
   }
 });
 page.on("pageerror", (err) => record("page-error", err.message, err.stack ?? null));
-page.on("requestfailed", (req) =>
-  record("request-failed", req.url(), req.failure()?.errorText ?? null)
-);
+page.on("requestfailed", (req) => {
+  // Anything this pass aborted deliberately is already recorded as an external
+  // request, so recording it twice would only pad the findings.
+  if (blocked.has(req.url())) return;
+  record("request-failed", req.url(), req.failure()?.errorText ?? null);
+});
 
-// A prototype has no backend by construction, so anything it reached for that is
-// not a local file is a dependency it is not allowed to have.
-page.on("request", (req) => {
-  const url = req.url();
-  if (!/^(https?:\/\/(127\.0\.0\.1|localhost|\[::1\])|data:|blob:|about:)/.test(url)) {
-    record("external-request", url, "a prototype must render with no network");
+// A request that arrived and answered with an error is a failure too, and it
+// never reaches requestfailed. A prototype loading a stylesheet that 404s looks
+// fine in the markup and wrong on the screen.
+page.on("response", (res) => {
+  if (res.status() >= 400) record("response-error", `${res.status()} ${res.url()}`);
+});
+
+// Every local file the prototype actually loaded. /dev-architect hashes these
+// along with the working copy, so a shared token file or an asset changing
+// during a review invalidates the approval the same way editing the prototype
+// would.
+page.on("response", (res) => {
+  if (res.status() < 400 && res.url().startsWith(ORIGIN)) {
+    dependencies.add(new URL(res.url()).pathname.split("?")[0]);
   }
+});
+
+// A prototype has no backend by construction and must render with no network, so
+// anything it reaches for beyond this session is aborted rather than merely
+// noted. Letting it through would mean the design was reviewed against
+// something that will not be there later, and would let an untrusted prototype
+// talk to whatever it liked while nobody was watching.
+await page.route("**/*", (route) => {
+  const url = route.request().url();
+  if (url.startsWith(ORIGIN) || /^(data:|blob:|about:)/.test(url)) return route.continue();
+  blocked.add(url);
+  record("external-request", url, "blocked, a prototype must render with no network");
+  return route.abort();
 });
 
 let bust = 0;
@@ -212,6 +241,7 @@ await writeFile(
       url: URL_UNDER_CAPTURE,
       breakpoints: BREAKPOINTS,
       states: stateReports,
+      dependencies: [...dependencies].sort(),
       findings,
     },
     null,
