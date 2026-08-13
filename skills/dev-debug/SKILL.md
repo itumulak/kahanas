@@ -27,7 +27,7 @@ A structured root cause investigation, not guess and check. Bugs are found by a 
 The whole chain, once per project then once per task:
 
 ```
-/dev-scope  →  /dev-architect  →  /dev-develop  →  /dev-check verify  →  /dev-test
+/dev-scope  →  /dev-architect  →  /dev-design  →  /dev-develop  →  /dev-check verify  →  /dev-test
 ```
 
 `/dev-debug` when verify fails. `/dev-check review`, `/dev-document pr`, and `/dev-sync` before a merge.
@@ -47,7 +47,7 @@ Those two are different claims and both are needed. The decision row is **why** 
 
 **`progress-tracker.md` is not yours at all.** Leave the Status column to `/dev-develop`, the Verify Check column and its Note to `/dev-check verify`, and the checkpoint rows to neither. A `FAILED` verify stays `FAILED` until `/dev-check verify` runs again and supersedes it, which is the point: you fixed the cause, and somebody still has to watch the behavior work.
 
-**Never writes** a feature, a refactor of unrelated code, or any of the design documents. If the bug turns out to be a flawed decision rather than a coding mistake, say so and point at `/dev-architect`. Papering over a wrong design with a code patch buys one day and costs many.
+**Never writes** a feature, a refactor of unrelated code, or any of the design documents. If the bug turns out to be a flawed decision rather than a coding mistake, say so and point at its owner: `/dev-architect` for a technical one, `/dev-design` for a visual one. Papering over a wrong design with a code patch buys one day and costs many.
 
 ---
 
@@ -108,7 +108,7 @@ Do not fix the symptom by clamping the null. Fix the cause, which is whatever ma
 
 Follow `code-standards.md` and the code around it. Resist scope creep: no opportunistic refactor rides along with a bug fix, because it makes the fix impossible to review and impossible to revert cleanly.
 
-**A fix that requires changing a design document is not a fix you make here.** Stop and route to `/dev-architect`.
+**A fix that requires changing a design document is not a fix you make here.** Stop and route to its owner, `/dev-architect` or `/dev-design`.
 
 ### Step 6: Verify and protect
 
@@ -135,7 +135,7 @@ For an investigation that is not trivial, spawn a subagent so the iterative tool
 **Regression test**: <added inline | case handed to /dev-test>
 **Siblings**: <the same cause found elsewhere, fixed or reported | none found>
 **Recorded**: <the row appended to decision-log.md, and the row appended to note-registry.md>
-**Deeper issue**: <a design document this proves wrong, run /dev-architect | none>
+**Deeper issue**: <a document this proves wrong, run /dev-architect or /dev-design | none>
 ```
 
 If the cause turns out to be a flawed decision rather than a coding mistake, **lead with that**. The right fix is a design change, and a code patch on top of a wrong decision just moves the bug somewhere harder to find.

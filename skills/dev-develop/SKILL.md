@@ -1,7 +1,7 @@
 ---
 name: dev-develop
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion
-description: "Run /dev-develop to build the next task from .konteksto/build-plan.md, or a named one. Reads the architecture and code standards, implements UI from the approved design prototype rather than composing one, builds, then stamps the task DONE in the progress tracker. If a load bearing decision is owed and no document records it, or a surface has no approved design, it stops and routes you to /dev-architect instead of inventing one."
+description: "Run /dev-develop to build the next task from .konteksto/build-plan.md, or a named one. Reads the architecture and code standards, implements UI from the approved design prototype rather than composing one, builds, then stamps the task DONE in the progress tracker. If a load bearing decision is owed and no document records it it stops and routes you to /dev-architect, and if a surface has no approved design it routes you to /dev-design, instead of inventing either."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -20,14 +20,14 @@ It decides nothing load bearing. That is what the gate in step 1 is for.
 
 ## Where this sits
 
-**Before this:** `/dev-architect`, which settled the design and wrote the plan.
+**Before this:** `/dev-architect`, which settled the stack and wrote the plan, and on a project with an `app/` also `/dev-design`, which got every surface approved.
 
 **After this:** `/dev-check verify`, which proves the task actually works. A failure there goes to `/dev-debug`.
 
 The whole chain, once per project then once per task:
 
 ```
-/dev-scope  →  /dev-architect  →  /dev-develop  →  /dev-check verify  →  /dev-test
+/dev-scope  →  /dev-architect  →  /dev-design  →  /dev-develop  →  /dev-check verify  →  /dev-test
 ```
 
 `/dev-debug` when verify fails. `/dev-check review`, `/dev-document pr`, and `/dev-sync` before a merge.
@@ -50,7 +50,7 @@ The whole chain, once per project then once per task:
 
 **Never writes:**
 
-- `project-overview.md`, `architecture.md`, `code-standards.md`, `glossary.md`, `library-docs.md`, `tooling.md`, `design.md`, `build-plan.md`. If the build proves one of them wrong, stop and say so. Changing the design mid build is `/dev-architect`'s call, not something to fix quietly in passing.
+- `project-overview.md`, `architecture.md`, `code-standards.md`, `glossary.md`, `library-docs.md`, `tooling.md`, `design.md`, `build-plan.md`. If the build proves one of them wrong, stop and say so. Changing one mid build is its owner's call, not something to fix quietly in passing: `/dev-architect` for the technical documents, `/dev-design` for `design.md`.
 - **`glossary.md` in particular is read every task and written never.** It has two writers, `/dev-scope` and `/dev-architect`, and adding a term here would make a third. Name what you build from it, and report a term it is missing rather than coining one in code, because a word that reaches the codebase first becomes the real name whatever the document says.
 - `docker-compose.yml`. `/dev-architect` owns it. A missing service is a reason to stop and report, not to add one.
 
@@ -136,7 +136,7 @@ A decision is also owed when you would otherwise invent:
 
 - A library, provider, or integration `code-standards.md` does not list.
 - A data model or a column `architecture.md`'s schema does not have.
-- A whole page's composition, or any part of one, that no approved prototype settles. On a project with an `app/`, composition is `/dev-architect`'s decision and arrives as an approved file in `.konteksto/designs/`.
+- A whole page's composition, or any part of one, that no approved prototype settles. On a project with an `app/`, composition is `/dev-design`'s decision and arrives as an approved file in `.konteksto/designs/`. That one routes to `/dev-design` rather than `/dev-architect`, and `ui-guide.md`'s visual gap rule handles it.
 - A behavior a flow step constrains but no document defines.
 
 **What counts as a local detail instead.** Only a choice among options the documents already permit: a variable name, a loop shape, which existing helper to call. **The moment a choice fixes where a value comes from, or changes a behavior the flows constrain, it is load bearing however small it looks.**
@@ -158,16 +158,18 @@ When unsure, treat it as owed. Building an unnoticed decision is the expensive f
 
 **Something owed.** Do not guess and do not silently stop. Ask, naming the specific choice:
 
-1. **Design it first** (recommended): stop here and run `/dev-architect`. Nothing is built.
+1. **Settle it first** (recommended): stop here and run `/dev-architect`, or `/dev-design` when what is missing is a surface's composition. Nothing is built.
 2. **No decision needed**: the user judges it genuine wiring. Proceed to `flow/build.md`.
 3. **Build on a stated assumption**: proceed, but first append the assumption to `decision-log.md`, marked `assumed, not yet ratified`. The task gets built but **its Status cannot go to `DONE`** until `/dev-architect` confirms it. Say this plainly in your report.
 
-On **Design it first**, end with:
+On **Settle it first**, end with:
 
 > Run this next, then come back:
 > ```
 > /dev-architect
 > ```
+>
+> Or `/dev-design`, when the missing decision is what a surface looks like.
 > Settle this first: <the specific choice>. Then run `/dev-develop` again and I will build to it.
 
 **Option 3 is not available for a visual gap**, meaning something owed about how a surface looks or behaves. Only 1 and 2 exist, and the task goes `BLOCKED` with the surface named in its Note. **`ui-guide.md` defines what counts as one, what it stops, and why**, including the case where a task is half logic. Read it before applying this on a UI task.

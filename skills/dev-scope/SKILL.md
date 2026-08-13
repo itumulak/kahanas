@@ -22,12 +22,12 @@ It does not answer how. Stack, structure, conventions, tooling, and the build or
 
 **Before this:** nothing. This is the front door.
 
-**After this:** `/dev-architect`, which designs how it gets built.
+**After this:** `/dev-architect`, which settles how it gets built, and then `/dev-design` on a project with a frontend, which settles how it looks.
 
 The whole chain, once per project then once per task:
 
 ```
-/dev-scope  →  /dev-architect  →  /dev-develop  →  /dev-check verify  →  /dev-test
+/dev-scope  →  /dev-architect  →  /dev-design  →  /dev-develop  →  /dev-check verify  →  /dev-test
 ```
 
 `/dev-debug` when verify fails. `/dev-check review`, `/dev-document pr`, and `/dev-sync` before a merge. One rule matters here: **`/dev-scope` owns the what and stays tool agnostic. `/dev-architect` owns the how and makes every tool call.**
@@ -236,4 +236,4 @@ Report:
 - Whether you ran the interview in `interview.md`, and if you did, which assumption it overturned. A first answer the user later corrected is worth passing on, since `/dev-architect` will otherwise rediscover the same wrong idea from the same starting point.
 - That you wrote nothing else.
 
-Then name the next step: run `/dev-architect` to design the stack and the build.
+Then name the next step: run `/dev-architect` to settle the stack and the build. On a product with screens, say that `/dev-design` follows it and designs every surface.

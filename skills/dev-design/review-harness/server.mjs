@@ -129,7 +129,7 @@ if (!SHA256.test(String(manifest.proposalHash ?? ""))) {
   process.exit(65);
 }
 // The states and breakpoints this surface requires, taken from the registry and
-// design.md by /dev-architect. They are what the capture pass is graded against,
+// design.md by /dev-design. They are what the capture pass is graded against,
 // so a session without them cannot tell a complete pass from a short one.
 if (!Array.isArray(manifest.states) || manifest.states.length === 0) {
   console.error("server.mjs: manifest.states must list the states this surface requires");

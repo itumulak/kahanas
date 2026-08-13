@@ -35,9 +35,10 @@ These keep the skill from sprawling, which is the failure mode for anything that
 | Correct a registry entry whose props no longer match the code | ✅ corrects | `/dev-sync` |
 | Add a dependency to `library-docs.md` that the manifest gained | ✅ adds a stub, flags it for detail | `/dev-sync` |
 | Add or change a term in `glossary.md`, including one the code plainly uses | ❌ reports it, as a rejected word or a missing one | `/dev-scope` or `/dev-architect` |
-| Add a row or change a status in `design-registry.md`, or edit anything in `designs/` | ❌ reports the mismatch | `/dev-architect`, and a person for `APPROVED` |
+| Add a row or change a status in `design-registry.md`, or edit anything in `designs/` | ❌ reports the mismatch | `/dev-design`, and a person for `APPROVED` |
 | Add a task or reorder `build-plan.md` | ❌ leaves alone | `/dev-architect` |
-| Edit `architecture.md`, `code-standards.md`, `design.md`, or `tooling.md` | ❌ flags as stale | `/dev-architect` |
+| Edit `architecture.md`, `code-standards.md`, or `tooling.md` | ❌ flags as stale | `/dev-architect` |
+| Edit `design.md` | ❌ flags as stale | `/dev-design` |
 | Edit `project-overview.md` | ❌ flags as stale | `/dev-scope` |
 | Clear a task built on an unratified assumption | ❌ flags as decision debt | `/dev-architect` |
 | Add or rewrite any row in `note-registry.md` | ❌ leaves alone | `/dev-develop`, `/dev-check`, `/dev-debug` |
@@ -48,7 +49,7 @@ These keep the skill from sprawling, which is the failure mode for anything that
 | Rewrite a line a person wrote by hand | ❌ flags the conflict | the person |
 | Correct a fact in a still stamped document | ✅ corrects surgically | `/dev-sync` |
 
-**How to tell what a person wrote.** Every document `/dev-architect` creates ends with a drafted by line. Use it:
+**How to tell what a person wrote.** Every document `/dev-architect` or `/dev-design` creates ends with a drafted by line. Use it:
 
 - **The stamp is still there**: the untouched parts are a tool's work. Correct a wrong fact surgically, and leave the stamp in place.
 - **The stamp is gone**: a person has taken the file over. **Add a missing fact only. Never rewrite an existing line**, and route anything that would change existing prose to a flag instead.
@@ -70,7 +71,7 @@ The stamp records provenance, not permission. It never licenses overwriting a li
 The whole chain, once per project then once per task:
 
 ```
-/dev-scope  →  /dev-architect  →  /dev-develop  →  /dev-check verify  →  /dev-test
+/dev-scope  →  /dev-architect  →  /dev-design  →  /dev-develop  →  /dev-check verify  →  /dev-test
 ```
 
 `/dev-debug` when verify fails. `/dev-check review`, `/dev-document pr`, and `/dev-sync` before a merge.

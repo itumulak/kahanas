@@ -149,6 +149,16 @@ That is not busywork. A remembered gotcha and a verified one look identical on t
 
 Nothing. 0.4.0 changed how the instructions are written and not what they produce.
 
+### Coming from 0.5.0 or earlier: design is now `/dev-design`
+
+**No document changes, and that is the whole migration.** `design.md`, `design-registry.md`, and everything in `designs/` keep their paths, their shapes, and their contents. What changed is which skill writes them.
+
+Reinstalling the skills, which you have already done above, is all that is required. Two things worth knowing afterwards:
+
+**Run `/dev-design` rather than `/dev-architect` for anything visual.** A new surface, a revision, a design a build made stale, or a visual gap `/dev-develop` reported. `/dev-architect` no longer writes any of the three design artifacts and will tell you so.
+
+**On an existing codebase, the adoption baseline is now two questions with two owners.** `/dev-architect` asks whether features already built appear in the plan, and `/dev-design` asks whether surfaces that already exist owe prototypes. If you already answered both under an older version, your documents already record the answers and nothing re asks them.
+
 ### Coming from 0.5.0 or earlier, on a project with an `app/`
 
 Nothing here is a document migration, and all of it is frontend only. A backend with no `app/` skips this section entirely.

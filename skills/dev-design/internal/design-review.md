@@ -39,7 +39,7 @@ Playwright appears twice in a session, doing two jobs, and **they must never be 
 
 Read the Visual verification section of `tooling.md`. It names the tool, the browser, and the commands, and on a project with an `app/` it is required rather than optional.
 
-**On the first run of `/dev-architect`, that file does not exist yet**, since the documents are written after the design work. Use what the stack walk settled and what step 5 of `design-direction.md` had you fill in, and confirm the tool actually runs before the first session rather than discovering it does not halfway through one. Every run after this reads the file.
+**That file is always written before this skill runs**, since `/dev-architect` completes first and owns it. Missing or empty on a project with an `app/` is a project setup gap rather than something to work around: report it, route to `/dev-architect`, and stop. **Confirm the tool actually runs before the first session**, rather than discovering it does not halfway through one.
 
 **No Playwright and no browser means no review, and the correct move is to stop and say so.** Do not open the file and describe it. Do not screenshot it some other way and call it a review. Report exactly what is missing, the command that installs it, and stop, per Preview and capture failures below.
 
@@ -273,7 +273,7 @@ Hash the canonical file, and compare it to both hashes you already hold. There a
 
 **For a revision of an approved surface, the canonical path is holding the last approved design** and must keep holding it. That revision lives at `.konteksto/designs/drafts/<slug>.html`, and the session copies from there. **On Request changes or Reject, write the working copy back to the draft path before teardown.** On Approve, the draft is promoted to the canonical path and the draft file is removed.
 
-That folder is `/dev-architect`'s like the rest of `designs/`, it is committed like the rest of it, and `/dev-develop` never reads it: a draft is by definition not the approved design, and the registry row points at the canonical path throughout.
+That folder is `/dev-design`'s like the rest of `designs/`, it is committed like the rest of it, and `/dev-develop` never reads it: a draft is by definition not the approved design, and the registry row points at the canonical path throughout.
 
 **There is no `REJECTED` status, deliberately.** The Status column describes where the artifact stands, and rejection is a thing that happened to it. Adding one would mix an event into a state column and leave a row parked at a value nothing moves it out of.
 

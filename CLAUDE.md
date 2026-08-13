@@ -7,7 +7,8 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | Skill | Owns | Answers |
 | --- | --- | --- |
 | `/dev-scope` | `project-overview.md`, and `glossary.md` | What the product is, what its parts are called, and whether a team builds it |
-| `/dev-architect` | `architecture.md`, `tooling.md`, `design.md`, `design-registry.md`, `.konteksto/designs/`, `code-standards.md`, `library-docs.md`, `build-plan.md`, additions to `glossary.md`, plus the starting state of `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `ui-registry.md` | How it gets built, and how it looks |
+| `/dev-architect` | `architecture.md`, `tooling.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, additions to `glossary.md`, plus the starting state of `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `ui-registry.md` | How it gets built |
+| `/dev-design` | `design.md`, `design-registry.md`, `.konteksto/designs/` | How it looks, and whether a person approved it |
 | `/dev-develop` | the code, every column of `progress-tracker.md` except Verify Check, all of `ui-registry.md`, a clean build row in `note-registry.md`, and a `decision-log.md` row when there was one | Builds it |
 | `/dev-check` | `.konteksto/reviews/`, the Verify Check column in `progress-tracker.md`, plus one `note-registry.md` row on a verify pass | Confirms it actually works |
 | `/dev-debug` | the minimal fix, a cause row in `decision-log.md`, and a fix confirmed row in `note-registry.md` | Finds out why it does not |
@@ -15,9 +16,9 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | `/dev-document` | `CHANGELOG.md`, `.konteksto/releases/`, `.konteksto/postmortems/` | Explains it to people |
 | `/dev-sync` | corrections to `progress-tracker.md` and `ui-registry.md` from repo evidence | Makes the documents true again |
 
-Thirteen documents in all, plus the design prototypes. `design.md` and `design-registry.md` are the optional ones, skipped together with `.konteksto/designs/` for a backend with no `app/`.
+`design.md` and `design-registry.md` are the optional ones, skipped together with `.konteksto/designs/` for a backend with no `app/`, which is the same condition under which `/dev-design` does not run at all.
 
-**The usual loop:** `/dev-scope` once, `/dev-architect` once, then per task `/dev-develop`, `/dev-check verify`, `/dev-test`. A verify failure goes to `/dev-debug`. Before a merge, `/dev-check review`, then `/dev-document pr`, then `/dev-sync`.
+**The usual loop:** `/dev-scope` once, `/dev-architect` once, `/dev-design` once for the first pass of surfaces and again whenever one needs a new or revised design, then per task `/dev-develop`, `/dev-check verify`, `/dev-test`. A verify failure goes to `/dev-debug`, and a visual gap goes to `/dev-design`. Before a merge, `/dev-check review`, then `/dev-document pr`, then `/dev-sync`.
 
 **Do not write a document count into a skill's instructions.** The number above is here, in the overview, where a person maintaining the set will see it. A count written beside a list inside a procedure is wrong the first time anybody extends the list, and this project has already shipped that bug twice.
 
@@ -28,13 +29,16 @@ Thirteen documents in all, plus the design prototypes. `design.md` and `design-r
 | Skill | Owns | May never create |
 | --- | --- | --- |
 | `/dev-scope` | product intent | — |
-| `/dev-architect` | technical and design intent | product intent |
+| `/dev-architect` | technical intent | product or design intent |
+| `/dev-design` | design intent | product or technical intent |
 | `/dev-develop` | implementation | design or product intent |
 | `/dev-check` | observations | any intent at all |
 | `/dev-test` | regression protection | any intent at all |
 | `/dev-sync` | corrections the repo proves | any intent at all |
 
 Most of the individual rules below are this one rule applied to a particular file. `/dev-develop` finding a missing design cannot design it. `/dev-check` finding a wrong prototype cannot fix it. `/dev-sync` finding a term in the code cannot make it the project's word. `/dev-architect` finding a product requirement cannot add it to the scope.
+
+**`/dev-architect` and `/dev-design` are peers, not a chain.** Both sit downstream of `/dev-scope` and neither is downstream of the other, which is why the table gives each of them the other's intent in its may never column. `/dev-design` works inside the technical constraints and may not add a dependency or change the application structure to suit a design, and `/dev-architect` may not decide what a screen looks like while settling the stack. Each routes to the other.
 
 **When a new rule is needed, check whether this already covers it.** A rule derived from the invariant needs no separate justification and will not drift out of step with the others.
 
@@ -65,9 +69,10 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 | The bar for `DONE` | `code-standards.md` |
 | What a baseline surface is, and what ends it | `design-registry.md` |
 | What a baseline task is, and why it is not `DONE` | `progress-tracker.md` |
-| The two questions that place the baseline | `dev-architect/internal/adoption-baseline.md` |
-| What a review session is, and the wall between its two browsers | `dev-architect/internal/design-review.md` |
-| How a prototype state is reached from outside | `dev-architect/internal/design-direction.md` |
+| The question that places the design baseline | `dev-design/internal/adoption-baseline.md` |
+| The question that places the history baseline | `dev-architect/internal/adoption-baseline.md` |
+| What a review session is, and the wall between its two browsers | `dev-design/internal/design-review.md` |
+| How a prototype state is reached from outside | `dev-design/internal/design-direction.md` |
 
 **This overview and `README.md` are the exception, and they still may not carry specifics.** Their job is orientation for somebody maintaining the skills, so they say what a rule is for and why it exists. They do not restate its exact conditions, values, or counts, because a summary that carries operational detail is just another copy waiting to go stale.
 
@@ -75,7 +80,7 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 
 ## Design
 
-**Design is decided upstream and never invented during a build.** `/dev-architect` produces interactive HTML prototypes in `.konteksto/designs/` covering every surface, a person approves them, and `/dev-develop` implements them. **Coverage is the rule, not one file per surface**: several steps of a checkout may share one prototype, and one complicated screen may need several, with `design-registry.md` holding the mapping either way.
+**Design is decided upstream and never invented during a build.** `/dev-design` produces interactive HTML prototypes in `.konteksto/designs/` covering every surface, a person approves them, and `/dev-develop` implements them. **Coverage is the rule, not one file per surface**: several steps of a checkout may share one prototype, and one complicated screen may need several, with `design-registry.md` holding the mapping either way.
 
 **A surface is a distinct user context, and its states are not more surfaces.** `design-registry.md` draws the line, and it exists because without it a six entity product produces eighty rows nobody reads.
 
@@ -91,13 +96,13 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 
 **No skill may originate an approval, and a skill may record one a person actually gave.** Deciding and writing down are different acts, and making somebody hand edit markdown after saying yes is ceremony rather than safety. `design-registry.md` sets the conditions a yes has to meet. A skill writes every other status including `CHANGE REQUIRED`, because noticing a design has gone stale is an observation while deciding it is fixed is not.
 
-**Approval is an executable step on a project with a frontend, not a message asking somebody to look at a file.** `/dev-architect` renders each proposal at every breakpoint and every state it claims to have, collects what the page threw while doing it, and puts that evidence beside the live prototype for a person to decide on. A browser is required there for exactly that reason: the last thing standing between a design and every surface built on it is a person actually seeing it. `design-review.md` holds the session.
+**Approval is an executable step on a project with a frontend, not a message asking somebody to look at a file.** `/dev-design` renders each proposal at every breakpoint and every state it claims to have, collects what the page threw while doing it, and puts that evidence beside the live prototype for a person to decide on. A browser is required there for exactly that reason: the last thing standing between a design and every surface built on it is a person actually seeing it. `design-review.md` holds the session.
 
 **The browser a skill drives and the browser a person decides in are different browsers, and that rule is a convention rather than a guarantee.** A process holding a browser handle can click any button in it, so the wall between the two contexts is worth precisely what the Assigned column is worth: an instruction agents follow and a record people can audit. It is stated that way everywhere it appears, because a guarantee the system cannot keep is worse than no guarantee at all, and an approval is the last place to start overclaiming.
 
-**A codebase that shipped before this workflow gets a baseline, not a backlog.** `/dev-architect` asks two questions on an existing project, before it maps a single surface: do the screens that already exist owe prototypes, and do the features already built appear in the plan. The default on both is no. Work before the line is recorded as predating the workflow, and everything after it follows the process in full, so a new page still needs a prototype and still needs a person to approve it.
+**A codebase that shipped before this workflow gets a baseline, not a backlog.** Two questions are asked on an existing project, one each: `/dev-design` asks whether the screens that already exist owe prototypes, before it maps a single surface, and `/dev-architect` asks whether the features already built appear in the plan. The default on both is no, and each is asked next to the artifact its answer governs, since a user may well want one and not the other. Work before the line is recorded as predating the workflow, and everything after it follows the process in full, so a new page still needs a prototype and still needs a person to approve it.
 
-**The baseline is a date, and it is never a verdict.** A baseline row says nobody owes a design, not that anybody reviewed one, and it never satisfies a rule asking for `APPROVED`. A baseline task is not `DONE`, because `DONE` claims a build this workflow ran and watched come back clean. Collapsing either into its neighbour is the same failure as a fabricated note row: it reads exactly like a real one to the next session. `design-registry.md` and `progress-tracker.md` each define their own value, and `dev-architect/internal/adoption-baseline.md` holds the questions.
+**The baseline is a date, and it is never a verdict.** A baseline row says nobody owes a design, not that anybody reviewed one, and it never satisfies a rule asking for `APPROVED`. A baseline task is not `DONE`, because `DONE` claims a build this workflow ran and watched come back clean. Collapsing either into its neighbour is the same failure as a fabricated note row: it reads exactly like a real one to the next session. `design-registry.md` and `progress-tracker.md` each define their own value, and each skill's own `internal/adoption-baseline.md` holds its question.
 
 **An accessibility departure makes the prototype stale, not the implementation wrong.** The build is correct and the approved design is what now disagrees with reality, so it is the design that gets fixed. Unrouted, the next surface inherits the same inaccessible pattern from a document still claiming somebody blessed it. `design-registry.md` holds the routing.
 
@@ -149,7 +154,7 @@ The stamp records provenance, not permission. It never licenses overwriting some
 
 **`/dev-sync` escalates, and never arbitrates.** One task with note rows from two actors is reported with every actor and branch named, and there it stops. Choosing which branch survives, or resolving the conflict, is a person's call: from the outside two branches on one task look identical whether one supersedes the other or both hold work someone needs.
 
-One rule holds the split together: **`/dev-scope` owns the what and never names a tool. `/dev-architect` owns the how and makes every tool call.**
+One rule holds the split together: **`/dev-scope` owns the what and never names a tool. `/dev-architect` owns the how and makes every tool call.** `/dev-design` names no tool either, and installs nothing, including the browser its own review sessions run on. A second skill reaching for a package manager would be a second answer to what this project is built with.
 
 Projects consume this through `.konteksto/`, filled from `templates/`. A template is read, never edited in place.
 
@@ -163,8 +168,12 @@ skills/dev-<name>/
 ├── agents/
 │   └── openai.yaml       required, interface metadata for Codex
 ├── modes/                optional, one file per mode when the skill routes
+├── internal/             optional, procedure files read at a named step
+├── templates/            optional, one per document the skill writes
 └── *.md                  optional, bundled files read on demand
 ```
+
+**A skill may ship executable files, and `/dev-design`'s `review-harness/` is the only one that does.** It is there because the code decides whether an approval is genuine, and a file regenerated from memory each session is a file nobody has ever reviewed twice. **Anything shipped that way needs a test suite in `scripts/`**, run by `npm test`, which stays in this repository rather than travelling into the projects that install the skill.
 
 **Every skill carries the `dev-` prefix in three places**, and they must agree: the folder name, the `name:` frontmatter inside `SKILL.md`, and every reference to it in any document. The registry keys on the frontmatter name, so a folder and a name that disagree install something the agent then cannot find. The local installer refuses that case, which is the check that catches it.
 

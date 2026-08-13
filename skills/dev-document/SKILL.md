@@ -35,7 +35,7 @@ Every sentence traces to something that actually happened: a commit, a diff, a l
 The whole chain, once per project then once per task:
 
 ```
-/dev-scope  →  /dev-architect  →  /dev-develop  →  /dev-check verify  →  /dev-test
+/dev-scope  →  /dev-architect  →  /dev-design  →  /dev-develop  →  /dev-check verify  →  /dev-test
 ```
 
 `/dev-debug` when verify fails. `/dev-check review`, `/dev-document pr`, and `/dev-sync` before a merge.
@@ -44,7 +44,7 @@ The whole chain, once per project then once per task:
 
 The PR text, `CHANGELOG.md`, `.konteksto/releases/`, and `.konteksto/postmortems/`. Nothing else.
 
-**Never writes** code, tests, or any of the nine `.konteksto` design documents. A change that makes a design document wrong is `/dev-architect`'s to fix, and worth saying in your report.
+**Never writes** code, tests, or any of the `.konteksto` documents. A change that makes one wrong is its owner's to fix, `/dev-architect` or `/dev-design`, and worth saying in your report.
 
 ## Asks vs acts
 

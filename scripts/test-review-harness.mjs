@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 
-const HARNESS = join(dirname(fileURLToPath(import.meta.url)), "..", "skills", "dev-architect", "review-harness");
+const HARNESS = join(dirname(fileURLToPath(import.meta.url)), "..", "skills", "dev-design", "review-harness");
 
 let passed = 0;
 const failures = [];

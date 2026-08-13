@@ -240,7 +240,7 @@ page.on("response", (res) => {
   if (res.status() >= 400) record("response-error", `${res.status()} ${res.url()}`);
 });
 
-// Every local file the prototype actually loaded. /dev-architect hashes these
+// Every local file the prototype actually loaded. /dev-design hashes these
 // along with the working copy, so a shared token file or an asset changing
 // during a review invalidates the approval the same way editing the prototype
 // would.

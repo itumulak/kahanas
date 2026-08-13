@@ -14,7 +14,7 @@
 | this file | the design system: character, tokens, states, breakpoints, component rules. Governs every prototype and every built page. |
 | `.konteksto/designs/<surface>.html` | how one surface looks and behaves. Governs the implementation of that surface. |
 
-**A prototype never overrides a flow.** Where an approved prototype contradicts `project-overview.md`, that is a defect in one of them, and it goes back to `/dev-architect` rather than being resolved at build time.
+**A prototype never overrides a flow.** Where an approved prototype contradicts `project-overview.md`, that is a defect in one of them, and it goes back to `/dev-design` to fix the prototype or to `/dev-scope` to fix the flow, rather than being resolved at build time.
 
 **This file wins over a prototype on anything cross page**, meaning tokens, breakpoints, and the meaning of a state. A prototype wins on the layout, hierarchy, spacing, and composition of its own surface, which is exactly what this file does not describe.
 
