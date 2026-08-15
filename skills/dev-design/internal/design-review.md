@@ -43,11 +43,13 @@ Playwright appears twice in a session, doing two jobs, and **they must never be 
 
 **That file is always written before this skill runs**, since `/dev-architect` completes first and owns it. Missing or empty on a project with an `app/` is a project setup gap rather than something to work around: report it, route to `/dev-architect`, and stop.
 
-**Then run the probe**, from the project root:
+**Then run the probe**, passing the Package root that section records:
 
 ```bash
-node <skill folder>/review-harness/preflight.mjs
+node <skill folder>/review-harness/preflight.mjs --project <package root>
 ```
+
+**Pass the same `--project` to `capture.mjs` in step 5.** A probe that proved one directory and a capture pass that searched another proves nothing about the run that matters.
 
 | It exits | Means | Do |
 | --- | --- | --- |
@@ -75,7 +77,16 @@ node <skill folder>/review-harness/preflight.mjs
 
 **The reverse holds too, and matters as much.** A filled Visual verification section with a probe that fails is not a working setup, whatever the document says. The document records a decision, and only the probe knows whether the machine can honour it.
 
-**The probe resolves Playwright from the project root and not from beside the harness**, which is why it can answer this at all. A skill installed for the person rather than the project sits outside the project entirely, and a plain import from there searches the home directory and stops, reporting a project with a perfectly good Playwright as having none. `review-harness/resolve-playwright.mjs` holds that rule, and `capture.mjs` resolves the same way for the same reason.
+**The probe resolves Playwright from a recorded root and not from beside the harness**, which is why it can answer this at all. Node resolves a bare import by walking upward from the importing file, and the harness is not where the project's packages are. Two layouts break that walk, and both are ordinary:
+
+| Layout | What the upward walk does | Answer |
+| --- | --- | --- |
+| the skill installed for the person, in the home directory | walks the home directory and stops, never entering the project | resolve from the project instead, which the probe does by default |
+| the documents at the top of a workspace and the npm package one level down | walks above the package and never below it | pass that directory as the Package root |
+
+**The second one is the trap, because the project looks fine from every other angle.** The end to end suite runs, the browser is downloaded, and the review still reports Playwright as missing. **Confirming one consumer never proves the other**, and the tempting fix is a second install at the top purely to sit on the search path, which buys a duplicate to keep in version step with the real one. Record the package root instead.
+
+`review-harness/resolve-playwright.mjs` holds that rule, and `capture.mjs` resolves the same way for the same reason.
 
 ### 2. Build the session workspace
 
@@ -107,7 +118,7 @@ One disposable directory per session, outside the repository, in the system temp
 
 **Run the harness in place, out of this skill's own `review-harness/` folder, and copy nothing.** Pass it the session directory as an argument. `review-harness/README.md` documents what each file takes.
 
-**Copying the code into the session would break it, and the reason is worth knowing rather than rediscovering.** Node resolves an import by looking beside the importing file and then upwards, so `capture.mjs` running from a temporary directory looks in `/tmp` and then `/` for Playwright, finds nothing, and exits 69 on a project that has it installed perfectly well. Run in place, it looks upward from the skill folder, reaches the project root, and finds it.
+**Copying the code into the session would break it**, because `capture.mjs` imports its sibling `resolve-playwright.mjs` and a partial copy has no sibling to import. **How it then finds Playwright is a separate question from where it runs**, and step 1 answers it: from the recorded package root, rather than by walking up from wherever the file happens to sit.
 
 **Do not regenerate the harness, and do not edit it for one session.** It is the part of this session that decides whether an approval is genuine, and a file rewritten from memory each time is a file nobody has ever reviewed twice. A harness that is actually wrong is a bug to fix in this repository, where the fix is read once and then applies to every project. Where it will not do what a session needs, say so and stop.
 

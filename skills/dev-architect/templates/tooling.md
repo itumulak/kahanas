@@ -78,15 +78,20 @@ Whoever builds a task follows this and nothing else. A build never drops a local
 | Tool | <BROWSER_AUTOMATION_TOOL, DEFAULT_PLAYWRIGHT> |
 | Browser | <BROWSER_AND_HOW_IT_IS_INSTALLED, DEFAULT_CHROMIUM> |
 | Install | `<EXACT_COMMAND_THAT_INSTALLS_THE_TOOL_AND_ITS_BROWSER>` |
+| Package root | <THE_DIRECTORY_WHOSE_PACKAGE_JSON_HAS_PLAYWRIGHT, OR: the project root> |
 | Check | `<EXACT_COMMAND_THAT_PROVES_THE_TOOL_AND_ITS_BROWSER_BOTH_WORK>` |
 | Review command | `<COMMAND_THAT_STARTS_A_DESIGN_REVIEW_SESSION>` |
 | Capture command | `<COMMAND_THAT_RENDERS_A_ROUTE_AND_WRITES_AN_IMAGE>` |
 | Output | <WHERE_THE_IMAGES_LAND> |
 
+**The Package root row exists because the project root and the package root are not always the same directory**, and where they differ nothing can work it out on its own. A workspace holding `.konteksto/` at the top and the actual npm package one level down, as its own repository, puts Playwright somewhere no search from the top will ever reach: it is below rather than above. **Record that directory here, and every session passes it as `--project`.** Where they are the same directory, which is the usual case, write the project root and it costs nothing.
+
+**Do not solve this with a second install at the top instead.** A `package.json` at the project root whose only purpose is to put `node_modules` on a search path is a second copy of Playwright to keep in step with the first, and a version drift between them is a review running against a browser the product never uses. One install, named here.
+
 **The Check row is a command that fails when the setup is broken, and it is not the install command run twice.** A package manager reports success for a package whose browser binary was never downloaded, so an install that returned zero proves less than it looks like it does. On the default answer the check is `/dev-design`'s own probe, which resolves the package from the project root and then launches the browser:
 
 ```bash
-node <skill folder>/dev-design/review-harness/preflight.mjs
+node <skill folder>/dev-design/review-harness/preflight.mjs --project <PACKAGE_ROOT>
 ```
 
 **Run it once here, after installing, and record what it printed.** `/dev-design` runs the same probe before every session, and a project where the first run of it happens in front of a person waiting to approve a design is a project that discovers its own setup problem at the worst moment.

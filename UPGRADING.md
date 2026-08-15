@@ -162,13 +162,19 @@ Reinstalling the skills, which you have already done above, is all that is requi
 
 ### Coming from 0.6.0, on a project with an `app/`
 
-**One document change, and it takes a minute.** The Visual verification section of `tooling.md` gained a Check row: the command that proves the tool and its browser both work, which is not the install command. On the default answer it is the probe that ships with `/dev-design`:
+**Two rows to add to the Visual verification section of `tooling.md`, and one workaround to delete.**
+
+**Check**, the command that proves the tool and its browser both work, which is not the install command. On the default answer it is the probe that ships with `/dev-design`:
 
 ```bash
-node <skill folder>/dev-design/review-harness/preflight.mjs
+node <skill folder>/dev-design/review-harness/preflight.mjs --project <package root>
 ```
 
-**Run it once now.** It exits 0 when the package resolves from your project and the browser launches, 69 when no Playwright is reachable, and 70 when the browser was never downloaded. A project whose end to end suite works can still fail it, which is the point: an install for a test runner is not a design review setup.
+**Run it once now.** It exits 0 when the package resolves and the browser launches, 69 when no Playwright is reachable, and 70 when the browser was never downloaded. A project whose end to end suite works can still fail it, which is the point: an install for a test runner is not a design review setup.
+
+**Package root**, the directory whose `package.json` has Playwright. Write the project root where they are the same, which is the usual case. **Write the real one where a workspace holds `.konteksto/` at the top and the npm package one level down**, because Playwright is then below the project root and nothing above it will ever find it.
+
+**Then delete the workaround, if you built one.** A `package.json` at the project root that exists only to put `node_modules` on the harness's search path, with its own copy of Playwright, was the way through this under 0.6.0. It is no longer needed, and it costs something to keep: two installs to hold at the same version, and a review running against a browser the product never uses if they drift. Point `--project` at the package that was always the real one, confirm the probe exits 0, then remove the extra `package.json` and its `node_modules`.
 
 **Nothing else needs doing.** Sessions now stop themselves and are stopped with a file rather than a signal, and that is entirely inside the harness you reinstalled.
 

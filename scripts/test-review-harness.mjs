@@ -526,8 +526,9 @@ await check("an unreachable Playwright names every place it looked", async () =>
     message = missingPlaywrightMessage(err, empty);
   }
   if (message === null) return;
-  assert(message.includes(empty), "the message does not say which project root it searched");
+  assert(message.includes(empty), "the message does not say which package root it searched");
   assert(message.includes("/dev-architect"), "the message does not route the install anywhere");
+  assert(message.includes("--project"), "the message does not cover a package below the root");
 });
 
 await check("preflight reports one of its three answers, and says which", async () => {
@@ -537,7 +538,8 @@ await check("preflight reports one of its three answers, and says which", async 
     assert(/KAHANAS_PREFLIGHT=ok/.test(result.out), `a pass without its marker: ${output}`);
     assert(/KAHANAS_BROWSER=chromium /.test(result.out), "a pass that never launched a browser");
   } else if (result.code === 69) {
-    assert(/Project root searched/.test(result.err), `69 without a searched root: ${output}`);
+    assert(/Package root searched/.test(result.err), `69 without a searched root: ${output}`);
+    assert(/--project/.test(result.err), "69 without the answer for a package below the root");
   } else if (result.code === 70) {
     assert(/browser|Node/.test(result.err), `70 without a reason: ${output}`);
   } else {

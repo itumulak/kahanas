@@ -14,7 +14,9 @@ The programs `/dev-design` runs to hold a review session. **`internal/design-rev
 
 **Copying breaks it.** Node resolves an import by looking beside the importing file and then upwards, so a copy in a temporary directory has neither its own sibling modules nor a `node_modules` above it.
 
-**Playwright is resolved from the project root rather than by that upward search**, which is what lets the harness sit outside the project it is reviewing. A skill installed for the person lives in the home directory, and an upward search from there reports a project with a working Playwright as having none. `resolve-playwright.mjs` asks the project first and falls back to the ambient search.
+**Playwright is resolved from a package root passed in, rather than by that upward search**, which is what lets the harness sit outside the project it is reviewing. Two ordinary layouts break the search, in opposite directions: a skill installed for the person lives in the home directory and the walk never enters the project, and a workspace with its npm package one level down puts Playwright below the root rather than above it. `resolve-playwright.mjs` asks that root first and falls back to the ambient search.
+
+**Pass `--project` to both `preflight.mjs` and `capture.mjs`, with the same value.** It defaults to the working directory, which is right whenever the project root is also the package root. The Visual verification section of `tooling.md` records it when they differ.
 
 **Do not regenerate them and do not edit them for one session.** This is the code path that decides whether an approval is genuine, and a file rewritten from memory each time is a file nobody has ever reviewed twice. Where the harness will not do what a session needs, that is a bug to fix here, once, for every project.
 
@@ -41,7 +43,7 @@ Nothing outside this directory is reachable from the session.
 ## `preflight.mjs`
 
 ```bash
-node preflight.mjs [--project <project root, default cwd>]
+node preflight.mjs [--project <package root, default cwd>]
 ```
 
 Run it before building a session. It settles two of the three facts behind "Playwright is installed", and a project can hold either without the other.

@@ -5,7 +5,7 @@
 // review is about to happen: can this machine actually run a review here.
 //
 // Usage:
-//   node preflight.mjs [--project <project root, default cwd>]
+//   node preflight.mjs [--project <package root, default cwd>]
 //
 // Exit codes:
 //   0  everything a session needs is here
@@ -20,7 +20,8 @@
 //
 //   1. The Node package resolves from this project. A project on Playwright's
 //      Python binding has a working end to end suite and nothing this harness
-//      can import.
+//      can import, and so does a workspace whose npm package sits one level
+//      below the root this was pointed at.
 //   2. Chromium is actually downloaded. `npm install` gets the package and not
 //      the browser, and a CI image often has the reverse.
 //   3. tooling.md records it as this project's visual verification tool. That

@@ -30,6 +30,17 @@ function fromProject(projectRoot, name) {
   }
 }
 
+// THE PROJECT ROOT IS NOT ALWAYS THE PACKAGE ROOT
+//
+// A workspace may hold the workflow's documents at the top and the actual npm
+// package one level down, as its own repository. Playwright then lives in a
+// directory that is neither beside this file nor above the project root, and
+// no amount of walking finds it, because it is below.
+//
+// That is a layout decision rather than something to guess at, so the project
+// records it and passes it in. Guessing would mean descending into a tree to
+// look for a node_modules, which in a monorepo finds several and picks wrong.
+
 // Returns { chromium, from, package } or throws an Error carrying `searched`,
 // so a caller can say exactly where it looked rather than only that it failed.
 export async function loadChromium(projectRoot = process.cwd()) {
@@ -67,11 +78,21 @@ export async function loadChromium(projectRoot = process.cwd()) {
 export function missingPlaywrightMessage(err, projectRoot) {
   return [
     "Playwright is not installed where the review harness can reach it.",
-    `  Project root searched: ${projectRoot}`,
+    `  Package root searched: ${projectRoot}`,
     ...(err.searched ?? []).map((line) => `  tried ${line}`),
     "",
-    "  /dev-architect owns every install in this workflow. Route it there rather",
-    "  than installing from a design session. The command it records is usually:",
+    "  Two different things cause this, and they have different answers.",
+    "",
+    "  It is installed, in a package below this root. A workspace holding the",
+    "  documents at the top and the npm package one level down puts Playwright",
+    "  somewhere no upward search reaches. Pass that directory:",
+    "    --project <the directory whose package.json has Playwright>",
+    "  and record it as the Package root in the Visual verification section of",
+    "  tooling.md, so every session after this one passes it too.",
+    "",
+    "  It is not installed at all. /dev-architect owns every install in this",
+    "  workflow, so route it there rather than installing from a design session.",
+    "  The command it records is usually:",
     "    npm install --save-dev playwright && npx playwright install chromium",
   ].join("\n");
 }
