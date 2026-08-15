@@ -123,6 +123,8 @@ Both ports are picked open, since a fixed one collides with the product's own de
 | `redirect: "error"` | a permitted target that bounces elsewhere would undo every check above |
 | a capped response body | a rogue service on a loopback port can stream for as long as the timeout allows |
 
+**The probe asks `/api/claim`, which is why that endpoint exists.** Reading the claim id out of `/api/session` downloads the whole evidence set to look at one field, and the cap then turns a large session into a false verdict: seventy kilobytes of console error was enough to report a live server as crashed and send somebody to build a fresh session while a real review was on screen in front of a person. **A bounded read is only safe when the answer is bounded too.**
+
 **Every argument is checked**, and three things are errors rather than defaults: a flag with no value, an empty value, and **a flag the program does not take**. `--project` with nothing after it, and `--projec /path`, both used to fall back to the working directory, which is the worst thing that flag can do: the caller named a package root, it went missing in the shell or in a typo, and the run captured against a different Playwright than it was told to. The misspelling is the harder one to catch by eye, because the command line looks right. Exit 64, and the message lists the flags that program actually takes.
 
 ### Stopping it, without signalling anything
@@ -152,6 +154,7 @@ The review origin returns 404 for any path under `/prototype`, so the split cann
 | Route, review origin | Method | Does |
 | --- | --- | --- |
 | `/` | GET | serves `review.html`, with the token and asset origin substituted in |
+| `/api/claim` | GET | this server's claim id, and nothing else |
 | `/api/session` | GET | the manifest, capture findings, screenshots, asset origin, approval gate, and any decision already made |
 | `/api/decision` | POST | writes `decision.json`, once |
 | anything else | GET | serves that file from the session directory, 403 outside it |

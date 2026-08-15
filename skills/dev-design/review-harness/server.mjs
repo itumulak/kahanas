@@ -271,7 +271,7 @@ const LOOPBACK = new Set(["127.0.0.1", "::1", "localhost"]);
 function safeClaimUrl(reviewUrl) {
   let url;
   try {
-    url = new URL("/api/session", reviewUrl);
+    url = new URL("/api/claim", reviewUrl);
   } catch {
     return null;
   }
@@ -283,7 +283,15 @@ function safeClaimUrl(reviewUrl) {
 }
 
 // A rogue service on a loopback port could stream for as long as the timeout
-// allows, and res.json() would hold all of it. A claim id is a few dozen bytes.
+// allows, and res.json() would hold all of it.
+//
+// **The cap is why the probe has an endpoint of its own.** Asking /api/session
+// for a claim id downloads the whole evidence set to read one field, and a
+// session with a large finding in it then exceeds any cap worth having. That is
+// not a hypothetical either: seventy kilobytes of console error was enough to
+// report a live server as crashed and send somebody to build a fresh session
+// while a real review was on screen in front of a person. /api/claim answers
+// with one field, so a bounded read and a complete answer are the same thing.
 async function readCapped(res, limit = 64 * 1024) {
   const reader = res.body?.getReader();
   if (!reader) return null;
@@ -574,9 +582,6 @@ async function sessionState() {
 
   return {
     manifest,
-    // Read by another server deciding whether this session is already claimed,
-    // never by the review page. Not a secret, and not the decision token.
-    claimId: CLAIM_ID,
     errors: evidence.parsed,
     screenshots,
     assetOrigin: ASSET_ORIGIN,
@@ -726,6 +731,13 @@ async function postDecision(req, res) {
 const reviewServer = createServer(async (req, res) => {
   try {
     const url = req.url ?? "/";
+
+    // Answers one question and carries nothing else, so another server deciding
+    // whether this session is claimed reads a few dozen bytes rather than the
+    // whole evidence set. It is read by that server and never by the review page.
+    if (url === "/api/claim" && req.method === "GET") {
+      return sendJson(res, 200, { claimId: CLAIM_ID });
+    }
 
     if (url === "/api/session" && req.method === "GET") {
       return sendJson(res, 200, await sessionState());

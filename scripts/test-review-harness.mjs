@@ -809,6 +809,31 @@ await check("a claim answering for another session is not this session's server"
   assert(/nothing is answering/.test(result.err), `error said: ${result.err.trim()}`);
 });
 
+await check("a session with a large finding is still recognised as live", async () => {
+  // The probe reads with a cap, so asking /api/session for a claim id made the
+  // answer's size depend on the evidence. Seventy kilobytes of console error was
+  // enough to report a live server as crashed and send somebody to build a fresh
+  // session while a real review was on screen. /api/claim carries one field.
+  const session = await makeSession();
+  cleanups.push(session.dir);
+  const server = await startServer(session.dir);
+  await writeEvidence(session, server, {
+    findings: [{ kind: "console-error", state: "default", breakpoint: "desktop", message: "x".repeat(70 * 1024) }],
+  });
+
+  // Big enough that a capped read of the full session state cannot complete.
+  const state = await (await fetch(`${server.review}/api/session`)).text();
+  assert(state.length > 64 * 1024, `session state is only ${state.length} bytes, so this proves nothing`);
+
+  const result = await run(join(HARNESS, "server.mjs"), ["--dir", session.dir], session.dir);
+  server.stop();
+  equal(result.code, 65, "exit code");
+  assert(
+    /already answering/.test(result.err),
+    `a live server was not recognised: ${result.err.trim()}`
+  );
+});
+
 await check("two sessions on one proposal do not claim each other", async () => {
   // A content hash asks "is a server serving this same file", which two
   // sessions reviewing the same prototype both answer yes to. This session then
