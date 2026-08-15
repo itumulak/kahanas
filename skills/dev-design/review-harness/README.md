@@ -77,6 +77,12 @@ npm test
 
 `scripts/test-review-harness.mjs` in this repository, not shipped with the skill. Playwright is optional: without it the browser cases are skipped and the server cases still run in full.
 
+```bash
+npm run test:browser
+```
+
+**The same suite with the skip turned into a failure**, which is what CI runs. A silent skip is right on a contributor's machine and wrong in CI, where it lets a change to the capture pass, the resolver, or the browser path go green without any of them ever running.
+
 ## `server.mjs`
 
 ```bash
@@ -95,6 +101,10 @@ Both ports are picked open, since a fixed one collides with the product's own de
 
 **One server per session.** A second one on the same directory exits 65 rather than serving one review on four ports. So does a session that already recorded a decision, since a decision cannot be replaced and the page would only ever be refused.
 
+**The claim is atomic**, taken by creating `server.json` with an exclusive create before any port is bound. Checking whether the file exists and then writing it leaves a window both racers pass: eight simultaneous starts on one directory left four servers running, each believing it was alone. A claim left behind by a crash is reported and never cleaned up automatically, because sessions are disposable and building a fresh one is always available, while deleting a claim that turns out to be live is not undoable.
+
+**Every argument is checked, and a flag with no value is an error rather than a default.** `--project` with nothing after it used to read as "not given" and fall back to the working directory, which is the worst thing that flag can do: the caller said which package root to use, the value went missing in the shell, and the run captured against a different Playwright than it was told to. Exit 64.
+
 ### Stopping it, without signalling anything
 
 **Create a file named `stop` in the session directory.** The server checks twice a second and exits. That is the whole procedure, and it needs no process id, no shell, and no signal.
@@ -106,7 +116,7 @@ Both ports are picked open, since a fixed one collides with the product's own de
 | `--exit-after-decision` | 300 seconds | stay up after a decision |
 | `--max-minutes` | 240 minutes | no maximum lifetime |
 
-`server.json`, written on startup and removed on exit, carries the pid, both origins, and the path of the stop file. **It exists so a caller can tell a live session from a finished one**, not so anybody can signal the pid inside it. A stored pid is a number that was true once: the process may have exited, and the number may since have been reused by something unrelated. Killing by that number checks nothing and reports success either way.
+`server.json`, written on startup and removed on exit, carries the pid, both origins, and the path of the stop file. **It exists so a caller can tell a live session from a finished one**, not so anybody can signal the pid inside it. **It is removed after both listeners have closed and immediately before the process exits**, so teardown reading its absence as "the server is finished" is reading it correctly. A stored pid is a number that was true once: the process may have exited, and the number may since have been reused by something unrelated. Killing by that number checks nothing and reports success either way.
 
 ### Two origins
 

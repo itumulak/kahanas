@@ -18,6 +18,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
+import { Agent, get } from "node:http";
 
 const HARNESS = join(dirname(fileURLToPath(import.meta.url)), "..", "skills", "dev-design", "review-harness");
 
@@ -641,6 +642,119 @@ await check("a second server on one session is refused", async () => {
   server.stop();
 });
 
+await check("eight simultaneous starts leave exactly one server", async () => {
+  // Reading server.json and then writing it passed this with four survivors:
+  // every racer read the file before any of them had written it. The claim is
+  // taken with an atomic create, so the filesystem picks one winner.
+  const session = await makeSession();
+  cleanups.push(session.dir);
+
+  const children = Array.from({ length: 8 }, () =>
+    spawn(process.execPath, [join(HARNESS, "server.mjs"), "--dir", session.dir], {
+      cwd: session.dir,
+      stdio: ["ignore", "pipe", "pipe"],
+    })
+  );
+  for (const child of children) running.add(child);
+
+  const outputs = children.map(() => ({ out: "", err: "" }));
+  children.forEach((child, i) => {
+    child.stdout.on("data", (d) => (outputs[i].out += d));
+    child.stderr.on("data", (d) => (outputs[i].err += d));
+  });
+
+  const settled = await Promise.all(
+    children.map(
+      (child, i) =>
+        new Promise((done) => {
+          const timer = setInterval(() => {
+            if (/KAHANAS_ASSET_URL=/.test(outputs[i].out)) {
+              clearInterval(timer);
+              done("started");
+            }
+          }, 30);
+          child.on("close", () => {
+            clearInterval(timer);
+            done("exited");
+          });
+          setTimeout(() => {
+            clearInterval(timer);
+            done(/KAHANAS_ASSET_URL=/.test(outputs[i].out) ? "started" : "exited");
+          }, 6000);
+        })
+    )
+  );
+
+  const started = settled.filter((s) => s === "started").length;
+  for (const child of children) {
+    child.kill();
+    running.delete(child);
+  }
+  equal(started, 1, "servers that started");
+
+  const refused = outputs.filter((o) => /already running|is already there/.test(o.err)).length;
+  equal(refused, 7, "starts refused with a reason");
+});
+
+await check("nothing is serving once the marker is gone", async () => {
+  // Teardown reads server.json disappearing as the server being finished, so
+  // this guards that meaning: keep alive sockets held open, stop, and the
+  // origin must be dead the moment the marker vanishes.
+  //
+  // **It does not by itself catch the ordering it was written for.** Removing
+  // the marker before closing also passes, because close stops accepting
+  // immediately even though its callback comes later. What the old ordering
+  // actually cost was measured rather than asserted: with three keep alive
+  // sockets held, the marker was gone 10.7ms before the process ended, against
+  // 2.8ms once the close is awaited first. A timing assertion that tight would
+  // be flaky, so the invariant is tested and the margin is not.
+  const session = await makeSession();
+  cleanups.push(session.dir);
+  const server = await startServer(session.dir);
+
+  // Hold keep alive sockets open, as the review page does. fetch cannot do
+  // this, so the raw client is the only way to reproduce the case that matters.
+  const url = new URL(server.review);
+  const agent = new Agent({ keepAlive: true, maxSockets: 4 });
+  await Promise.all(
+    [0, 1, 2].map(
+      () =>
+        new Promise((done, fail) => {
+          const req = get(
+            { host: url.hostname, port: url.port, path: "/api/session", agent },
+            (res) => {
+              res.resume();
+              res.on("end", done);
+            }
+          );
+          req.on("error", fail);
+        })
+    )
+  );
+
+  await writeFile(join(session.dir, "stop"), "");
+
+  let markerGone = false;
+  const started = Date.now();
+  while (Date.now() - started < 8000) {
+    if (!(await readFile(join(session.dir, "server.json")).catch(() => null))) {
+      markerGone = true;
+      break;
+    }
+    await new Promise((r) => setTimeout(r, 5));
+  }
+  assert(markerGone, "server.json was still there after the stop file");
+
+  // The instant the marker is gone, nothing may still be accepting requests.
+  const stillServing = await fetch(`${server.review}/api/session`)
+    .then(() => true)
+    .catch(() => false);
+  agent.destroy?.();
+  assert(!stillServing, "the review origin still answered after the marker was removed");
+
+  equal(await waitForExit(server.child), 0, "exit code");
+});
+
 await check("a session that already decided will not be served again", async () => {
   const session = await makeSession();
   cleanups.push(session.dir);
@@ -675,6 +789,19 @@ try {
   } catch {
     playwright = false;
   }
+}
+
+// A skip is the right default on a contributor's machine and the wrong default
+// in CI, where a silent skip lets a change to the capture pass, the resolver, or
+// the browser path go green without any of them ever running. `--require-playwright`
+// turns the skip into a failure, and the workflow in .github uses it.
+const REQUIRE_PLAYWRIGHT = process.argv.includes("--require-playwright");
+if (!playwright && REQUIRE_PLAYWRIGHT) {
+  process.stdout.write(
+    "\n  FAIL Playwright is required for this run and is not installed\n" +
+      "       npm install --no-save playwright && npx playwright install --with-deps chromium\n"
+  );
+  process.exit(1);
 }
 
 const captureSession = await makeSession();
@@ -893,7 +1020,10 @@ document.documentElement.dataset.state=(location.hash.match(/state=([\\w-]+)/)||
 stopEverything();
 for (const dir of cleanups) await rm(dir, { recursive: true, force: true });
 
-process.stdout.write(`\n${passed} passed, ${failures.length} failed\n`);
+process.stdout.write(
+  `\n${passed} passed, ${failures.length} failed` +
+    `${playwright ? "" : ", browser cases skipped without Playwright"}\n`
+);
 if (failures.length > 0) {
   for (const failure of failures) process.stdout.write(`  ${failure.name}: ${failure.message}\n`);
   process.exit(1);

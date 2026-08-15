@@ -38,18 +38,10 @@
 // is the exact failure this exists to catch.
 
 import { loadChromium, missingPlaywrightMessage } from "./resolve-playwright.mjs";
+import { parseArgsOrExit } from "./args.mjs";
 import { resolve } from "node:path";
 
-function args(argv) {
-  const out = {};
-  for (let i = 2; i < argv.length; i += 2) {
-    const key = argv[i]?.replace(/^--/, "");
-    if (key) out[key] = argv[i + 1];
-  }
-  return out;
-}
-
-const opts = args(process.argv);
+const opts = parseArgsOrExit(process.argv, "preflight.mjs");
 const PROJECT_ROOT = resolve(opts.project ?? process.cwd());
 
 const major = Number(process.versions.node.split(".")[0]);

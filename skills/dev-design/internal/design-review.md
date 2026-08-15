@@ -367,7 +367,7 @@ That folder is `/dev-design`'s like the rest of `designs/`, it is committed like
 **So the server stops itself, and the whole of teardown is three ordinary file operations:**
 
 1. **Create an empty file named `stop` inside the session directory.** The server checks for it twice a second and exits. Use the ordinary file writing tool rather than a shell command, since there is nothing here that needs a shell.
-2. **Wait for `server.json` to disappear.** The server writes it on startup and removes it on the way out, so its absence is the server saying it has gone. Give it a few seconds.
+2. **Wait for `server.json` to disappear.** The server writes it on startup and removes it after both listeners are closed and immediately before it exits, so its absence is the server saying it has finished rather than that it has started stopping. Give it a few seconds.
 3. **Delete the session directory**, and report where the screenshots were and that they are gone.
 
 **A file named `stop` can only ever affect this session.** It names a directory rather than a number, an unrelated process has no idea it exists, and the worst outcome of getting the path wrong is a file in the wrong folder.

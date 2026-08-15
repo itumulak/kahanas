@@ -34,17 +34,9 @@ import { mkdir, writeFile, rm, rename } from "node:fs/promises";
 import { join, resolve, sep } from "node:path";
 import { createHash } from "node:crypto";
 import { loadChromium, missingPlaywrightMessage } from "./resolve-playwright.mjs";
+import { parseArgsOrExit } from "./args.mjs";
 
-function args(argv) {
-  const out = {};
-  for (let i = 2; i < argv.length; i += 2) {
-    const key = argv[i]?.replace(/^--/, "");
-    if (key) out[key] = argv[i + 1];
-  }
-  return out;
-}
-
-const opts = args(process.argv);
+const opts = parseArgsOrExit(process.argv, "capture.mjs");
 for (const required of ["url", "out"]) {
   if (!opts[required]) {
     console.error(`capture.mjs: --${required} is required`);

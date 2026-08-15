@@ -14,6 +14,8 @@ Three gaps found by running `/dev-design` on a real project: it could not tell a
 
 - **A Check row in the Visual verification section of `tooling.md`**, holding the command that proves the tool and its browser both work. The install command returning zero was being read as evidence of a working setup, and it is not.
 
+- **Continuous integration, with a job that requires Playwright.** The suite skips its browser cases when Playwright is absent, which is right on a contributor's machine and wrong in CI, where it let a change to the capture pass, the resolver, or the browser path go green without any of them running. `npm run test:browser` turns that skip into a failure, and the workflow runs both that and the plain suite, since the harness has to work with nothing installed beside it.
+
 ### Changed
 
 - **A review session ends by creating a file, not by killing a process.** Writing `stop` in the session directory stops the server, which also exits on its own a few minutes after a decision and again after a maximum lifetime, so an abandoned review no longer leaves a server holding a port. **A stored process id is a number that was true once**: the process may have exited and the number may since have been reused, and killing by it checks nothing and reports success either way. The server publishes `server.json` while it runs and removes it on exit, so a caller can tell a live session from a finished one without going near a signal.
@@ -29,6 +31,12 @@ Three gaps found by running `/dev-design` on a real project: it could not tell a
 - **A server refuses to serve a session that already recorded a decision**, and refuses to be the second server on one session directory. Both put a live approval page in front of somebody whose click can only be refused.
 
 ### Fixed
+
+- **Two servers could start on one session directory.** The one server check read `server.json` and then wrote it, and every racer read it before any of them had written. Eight simultaneous starts left four servers running, each believing it was alone. The claim is now taken with an atomic exclusive create before any port is bound, so the filesystem picks one winner however many arrive together. A claim left behind by a crash is reported rather than cleaned up automatically, since building a fresh session is always available and deleting a claim that turns out to be live is not undoable.
+
+- **`server.json` is removed after both listeners close**, not before them. Teardown reads that file disappearing as the server being finished, and it was being removed while both listeners were still draining. With keep alive connections held open, as the review page holds them, the marker was gone for around ten milliseconds while the process was still shutting down.
+
+- **A flag with no value is an error rather than a default.** `--project` with nothing after it read as "not given" and fell back to the working directory, which is the worst available behaviour for that flag: the caller said which package root to use, the value went missing in the shell, and the run validated and captured against a different Playwright than it was told to. Every program in the harness now exits 64 on a dangling or empty argument.
 
 - **Deleting a session directory now has rules**, because a wrong path there removes somebody's work. The path is never built by expanding a variable that could be empty, and the directory is confirmed to hold this session's `manifest.json` before it goes.
 

@@ -54,10 +54,11 @@
 // plainly rather than claiming a guarantee this cannot keep.
 
 import { createServer } from "node:http";
-import { readFile, readdir, writeFile, link, unlink, stat } from "node:fs/promises";
+import { readFile, readdir, writeFile, link, unlink, stat, open } from "node:fs/promises";
 import { randomUUID, createHash } from "node:crypto";
 import { resolve, join, extname, sep, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgsOrExit } from "./args.mjs";
 
 const DECISIONS = new Set(["approve", "request-changes", "reject"]);
 const SHA256 = /^[a-f0-9]{64}$/i;
@@ -92,16 +93,7 @@ const MIME = {
   ".txt": "text/plain; charset=utf-8",
 };
 
-function args(argv) {
-  const out = {};
-  for (let i = 2; i < argv.length; i += 2) {
-    const key = argv[i]?.replace(/^--/, "");
-    if (key) out[key] = argv[i + 1];
-  }
-  return out;
-}
-
-const opts = args(process.argv);
+const opts = parseArgsOrExit(process.argv, "server.mjs");
 if (!opts.dir) {
   console.error("server.mjs: --dir <session directory> is required");
   process.exit(64);
@@ -215,12 +207,25 @@ if (!(await exists(join(PROTOTYPE_ROOT, "proposal.html")))) {
 
 // One server per session. Two of them would serve one directory on four ports,
 // and the caller would then have two pids for one review and no way to tell
-// which page a person is actually looking at. Signal 0 sends nothing and only
-// asks whether the pid is alive, so a session left behind by a crash starts
-// normally and a live one is refused.
+// which page a person is actually looking at.
+//
+// THE CLAIM IS ATOMIC, AND READING FIRST WOULD NOT BE
+//
+// Checking whether server.json exists and then writing it leaves a window
+// between the two, and both racers pass the check. That is not theoretical:
+// six simultaneous starts on one session directory left four servers running,
+// each believing it was the only one.
+//
+// `wx` creates the file and fails with EEXIST if it is already there, in one
+// operation the filesystem serialises, so exactly one starter wins however
+// many arrive together.
+//
+// The claim is taken before the ports are bound, so a loser never reaches a
+// listen call, and it is released on every path out of here.
 function pidIsAlive(pid) {
   if (!Number.isInteger(pid) || pid <= 0) return false;
   try {
+    // Signal 0 sends nothing and only asks whether the pid exists.
     process.kill(pid, 0);
     return true;
   } catch (err) {
@@ -228,19 +233,37 @@ function pidIsAlive(pid) {
   }
 }
 
-const previous = await readJson("server.json", null);
-if (previous && pidIsAlive(previous.pid)) {
+let claim;
+try {
+  claim = await open(SERVER_FILE, "wx");
+} catch (err) {
+  if (err.code !== "EEXIST") throw err;
+  const previous = await readJson("server.json", null);
+  const alive = previous && pidIsAlive(previous.pid);
   console.error(
-    `server.mjs: a server for this session is already running as pid ${previous.pid} on ${previous.reviewUrl}.\n` +
-      `  Stop it by creating ${STOP_FILE}, or delete ${SERVER_FILE} if you know that process is gone.`
+    alive
+      ? `server.mjs: a server for this session is already running as pid ${previous.pid} on ${previous.reviewUrl}.\n` +
+          `  Stop it by creating ${STOP_FILE}.`
+      : `server.mjs: ${SERVER_FILE} is already there, so this session is claimed.\n` +
+          `  Nothing is listening on it, so it was most likely left behind by a crash.\n` +
+          `  Sessions are disposable and are not resumed: build a fresh one, or delete that\n` +
+          `  file yourself if you are certain no server is using this directory.`
   );
   process.exit(65);
+}
+
+// Anything failing between here and a successful listen has to give the claim
+// back, or a retry finds a session claimed by a process that never started.
+async function releaseClaim() {
+  await claim.close().catch(() => {});
+  await unlink(SERVER_FILE).catch(() => {});
 }
 
 // A decision that already exists cannot be replaced, so serving the session
 // again would put a live approval page in front of somebody whose click can
 // only ever be refused.
 if (await exists(join(ROOT, "decision.json"))) {
+  await releaseClaim();
   console.error(
     "server.mjs: this session already recorded a decision, so there is nothing left to decide"
   );
@@ -647,8 +670,23 @@ const assetServer = createServer(async (req, res) => {
 let REVIEW_ORIGIN = "";
 let ASSET_ORIGIN = "";
 
-await new Promise((done) => assetServer.listen(0, HOST, done));
-await new Promise((done) => reviewServer.listen(0, HOST, done));
+// A port already taken, or a host the machine will not bind, has to give the
+// claim back. Left behind, it reads exactly like a live session and blocks
+// every retry on a directory nothing is serving.
+try {
+  await new Promise((done, fail) => {
+    assetServer.once("error", fail);
+    assetServer.listen(0, HOST, done);
+  });
+  await new Promise((done, fail) => {
+    reviewServer.once("error", fail);
+    reviewServer.listen(0, HOST, done);
+  });
+} catch (err) {
+  await releaseClaim();
+  console.error(`server.mjs: could not listen on ${HOST}: ${err.message}`);
+  process.exit(70);
+}
 
 // An IPv6 literal has to be bracketed in a URL, or http://::1:41655 is nonsense
 // that every origin comparison then fails against.
@@ -656,8 +694,9 @@ const HOST_IN_URL = HOST.includes(":") ? `[${HOST}]` : HOST;
 ASSET_ORIGIN = `http://${HOST_IN_URL}:${assetServer.address().port}`;
 REVIEW_ORIGIN = `http://${HOST_IN_URL}:${reviewServer.address().port}`;
 
-await writeFile(
-  SERVER_FILE,
+// Written through the handle that claimed the file, so the claim and the thing
+// it publishes are the same file and never two.
+await claim.writeFile(
   JSON.stringify(
     {
       pid: process.pid,
@@ -672,6 +711,7 @@ await writeFile(
     2
   )
 );
+await claim.close();
 
 let stopping = false;
 let watcher = null;
@@ -680,16 +720,37 @@ async function shutdown(reason) {
   stopping = true;
   if (watcher) clearInterval(watcher);
   console.log(`KAHANAS_STOPPING=${reason}`);
+
+  // Both listeners fully closed BEFORE the file goes.
+  //
+  // Teardown waits for server.json to disappear and then deletes the session
+  // directory. Removing it first would announce a stopped server while this
+  // one was still accepting requests, and the directory would go out from
+  // under a live process. The marker is the last thing to go, so its absence
+  // means what teardown reads it as meaning.
+  await Promise.race([
+    Promise.all(
+      [reviewServer, assetServer].map(
+        (server) =>
+          new Promise((done) => {
+            server.close(done);
+            // A browser holding a keep alive connection would otherwise keep an
+            // abandoned session running for as long as that tab stays open.
+            server.closeAllConnections?.();
+          })
+      )
+    ),
+    // A socket that will not die must not strand the marker forever. Exiting
+    // is imminent either way, which closes every listener the hard way.
+    new Promise((done) => setTimeout(done, 3000)),
+  ]);
+
+  // Removed last, and followed immediately by the exit rather than by waiting
+  // for the event loop to drain. Teardown treats this file disappearing as the
+  // server being finished, so every instruction that runs after it here is a
+  // moment where that is not quite true yet.
   await unlink(SERVER_FILE).catch(() => {});
-  for (const server of [reviewServer, assetServer]) {
-    server.close();
-    // A browser holding a keep alive connection would otherwise keep an
-    // abandoned session running for as long as that tab stays open.
-    server.closeAllConnections?.();
-  }
-  // Last resort, in case something else is holding the event loop open. Unref
-  // so it never delays an exit that is already happening on its own.
-  setTimeout(() => process.exit(0), 2000).unref();
+  process.exit(0);
 }
 
 const startedAtMs = Date.now();
