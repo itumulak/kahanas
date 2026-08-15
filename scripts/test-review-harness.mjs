@@ -17,8 +17,8 @@ import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
-import { createHash } from "node:crypto";
-import { Agent, get } from "node:http";
+import { createHash, randomUUID } from "node:crypto";
+import { Agent, get, createServer } from "node:http";
 
 const HARNESS = join(dirname(fileURLToPath(import.meta.url)), "..", "skills", "dev-design", "review-harness");
 
@@ -808,6 +808,128 @@ await check("a claim answering for another session is not this session's server"
   equal(result.code, 65, "exit code");
   assert(/nothing is answering/.test(result.err), `error said: ${result.err.trim()}`);
 });
+
+await check("two sessions on one proposal do not claim each other", async () => {
+  // A content hash asks "is a server serving this same file", which two
+  // sessions reviewing the same prototype both answer yes to. This session then
+  // reported the other session's server as its own, and the stop file written
+  // here would not stop it: the pid mistake again in different clothes. Identity
+  // is a claim id minted per server, so only the process that wrote this file
+  // can answer with what is in it.
+  const mine = await makeSession();
+  const twin = await makeSession();
+  cleanups.push(mine.dir, twin.dir);
+  equal(sha256(mine.html), sha256(twin.html), "the two proposals are identical");
+
+  const other = await startServer(twin.dir);
+  const theirClaim = JSON.parse(await readFile(join(twin.dir, "server.json"), "utf8"));
+  assert(theirClaim.claimId, "the claim publishes no id to compare");
+
+  // The claim this session holds points at the twin's live server, and carries
+  // its own id, exactly as a crash plus a port reuse would leave it.
+  await writeFile(
+    join(mine.dir, "server.json"),
+    JSON.stringify({ claimId: randomUUID(), pid: process.pid, reviewUrl: `${other.review}/` })
+  );
+
+  const result = await run(join(HARNESS, "server.mjs"), ["--dir", mine.dir], mine.dir);
+  other.stop();
+  equal(result.code, 65, "exit code");
+  assert(/nothing is answering/.test(result.err), `error said: ${result.err.trim()}`);
+});
+
+// server.json decides where this fetch goes, so anybody who can write it could
+// otherwise use this process to reach a cloud metadata address or a service only
+// this machine can see.
+//
+// **Each case here counts requests at a decoy rather than reading the exit
+// code.** Asserting only that the start was refused proves nothing: an
+// unreachable address refuses the start too, so the test would pass with the
+// guard deleted. Pointing the forbidden URL at something local that counts what
+// arrives is the only way to tell "never asked" from "asked and got nothing".
+
+// A decoy that records what reaches it, and never answers anything usable.
+async function decoyServer(handler) {
+  const hits = [];
+  const server = createServer((req, res) => {
+    hits.push(req.url);
+    handler(req, res);
+  });
+  await new Promise((done) => server.listen(0, "127.0.0.1", done));
+  return { hits, port: server.address().port, close: () => server.close() };
+}
+
+async function startWithClaim(session, reviewUrl) {
+  await writeFile(
+    join(session.dir, "server.json"),
+    JSON.stringify({ claimId: randomUUID(), pid: process.pid, reviewUrl })
+  );
+  return run(join(HARNESS, "server.mjs"), ["--dir", session.dir], session.dir);
+}
+
+await check("credentials in a claim url are refused before the request", async () => {
+  // This one passes with the guard removed as well, because fetch itself
+  // refuses to build a request from a URL carrying credentials. The guard stays
+  // anyway: it is one line, it holds if that behaviour ever changes, and the
+  // check reads as deliberate rather than as an accident of the http client.
+  const session = await makeSession();
+  cleanups.push(session.dir);
+  const decoy = await decoyServer((req, res) => res.end("{}"));
+
+  const result = await startWithClaim(
+    session,
+    `http://user:pass@127.0.0.1:${decoy.port}/`
+  );
+  decoy.close();
+
+  equal(result.code, 65, "exit code");
+  equal(decoy.hits.length, 0, "requests that reached the decoy");
+});
+
+await check("a claim that redirects is not followed", async () => {
+  const session = await makeSession();
+  cleanups.push(session.dir);
+
+  // Where a redirect would land. Nothing may ever arrive here.
+  const target = await decoyServer((req, res) => res.end("{}"));
+  const redirector = await decoyServer((req, res) => {
+    res.writeHead(302, { location: `http://127.0.0.1:${target.port}/api/session` });
+    res.end();
+  });
+
+  const result = await startWithClaim(session, `http://127.0.0.1:${redirector.port}/`);
+  redirector.close();
+  target.close();
+
+  equal(result.code, 65, "exit code");
+  equal(redirector.hits.length, 1, "requests to the claim url itself");
+  equal(target.hits.length, 0, "requests that followed the redirect");
+});
+
+// These three cannot be pointed at a decoy, since the whole point is that the
+// host is not one this machine serves. They assert the refusal and that it came
+// without waiting on a network round trip, which is weaker: an unreachable
+// address refuses the start too.
+//
+// **On a machine with no route out, only the link local one discriminates**,
+// because it hangs until the timeout rather than failing fast. The other two
+// would catch a missing guard on a networked machine and pass either way here.
+// Said plainly so nobody later reads a green run as proof the guard is exercised.
+for (const [name, reviewUrl] of [
+  ["a link local claim is refused", "http://169.254.169.254/latest/meta-data/"],
+  ["a public host claim is refused", "http://example.com/"],
+  ["a non http claim is refused", "https://127.0.0.1:8443/"],
+]) {
+  await check(name, async () => {
+    const session = await makeSession();
+    cleanups.push(session.dir);
+    const started = Date.now();
+    const result = await startWithClaim(session, reviewUrl);
+    equal(result.code, 65, "exit code");
+    assert(/nothing is answering/.test(result.err), `error said: ${result.err.trim()}`);
+    assert(Date.now() - started < 1400, "the claim url looks like it was actually requested");
+  });
+}
 
 await check("a session that already decided will not be served again", async () => {
   const session = await makeSession();

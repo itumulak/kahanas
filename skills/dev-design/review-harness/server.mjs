@@ -141,6 +141,12 @@ const STOP_FILE = join(ROOT, "stop");
 const SERVER_FILE = join(ROOT, "server.json");
 const HOST = opts.host ?? "127.0.0.1";
 const TOKEN = randomUUID();
+// Identifies this server, and is deliberately not TOKEN. TOKEN is a secret that
+// gates the decision endpoint and goes only into the review page as it is
+// served. CLAIM_ID is an identifier, published to anyone who can reach the
+// review origin, and it settles one question: is the server answering here the
+// one that wrote this session's claim file.
+const CLAIM_ID = randomUUID();
 
 if (HOST !== "127.0.0.1" && HOST !== "::1" && HOST !== "localhost") {
   // The review origin carries an approval endpoint. Binding it anywhere
@@ -227,6 +233,7 @@ if (!(await exists(join(PROTOTYPE_ROOT, "proposal.html")))) {
 //
 // The claim is taken before the ports are bound, so a loser never reaches a
 // listen call, and it is released on every path out of here.
+//
 // WHY THE CLAIM IS PROBED AND NOT PID CHECKED
 //
 // A pid proves something exists, never that it is the thing you meant. Pids are
@@ -235,20 +242,80 @@ if (!(await exists(join(PROTOTYPE_ROOT, "proposal.html")))) {
 // answers yes. The advice that follows is then actively wrong: it tells somebody
 // to create a stop file and wait, and no server will ever read it.
 //
-// So the claim is asked to prove itself instead. A live server answers on its
-// own review origin and reports the proposal hash it is serving, and only a
-// server holding this session can do both.
-async function claimIsLive(previous) {
-  if (!previous?.reviewUrl) return false;
+// So the claim is asked to prove itself instead. Two things make that safe, and
+// both are here because the obvious version of this check is wrong.
+//
+// THE URL COMES OUT OF A FILE, SO IT IS NOT A URL TO BE TRUSTED
+//
+// Handing `server.json`'s `reviewUrl` straight to fetch makes this process a
+// request forwarder for whoever can write that file: a cloud metadata address,
+// a service that is only reachable from this machine, a redirect to somewhere
+// else entirely. It is a small window, since writing there already needs the
+// session directory, but this is the code path that decides whether an approval
+// is genuine and it should not be the weakest thing in the room.
+//
+// So the probe accepts plain HTTP on loopback with no credentials in it,
+// refuses to follow a redirect at all, and stops reading after a small body.
+//
+// A CONTENT HASH IS NOT A SESSION
+//
+// Comparing the proposal hash asks "is a server serving this same file", which
+// two sessions reviewing the same prototype both answer yes to. This session
+// would then report the other session's server as its own, and the stop file
+// somebody wrote here would not stop it: the pid mistake again, wearing a
+// different hat. So each server mints a claim id at startup, writes it into its
+// own claim, and returns it. Only the process that wrote this file can answer
+// with what is in it.
+const LOOPBACK = new Set(["127.0.0.1", "::1", "localhost"]);
+
+function safeClaimUrl(reviewUrl) {
+  let url;
   try {
-    const res = await fetch(new URL("/api/session", previous.reviewUrl), {
+    url = new URL("/api/session", reviewUrl);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "http:") return null;
+  if (url.username !== "" || url.password !== "") return null;
+  // `new URL("http://[::1]:1/")` keeps the brackets on hostname.
+  if (!LOOPBACK.has(url.hostname.replace(/^\[|\]$/g, ""))) return null;
+  return url;
+}
+
+// A rogue service on a loopback port could stream for as long as the timeout
+// allows, and res.json() would hold all of it. A claim id is a few dozen bytes.
+async function readCapped(res, limit = 64 * 1024) {
+  const reader = res.body?.getReader();
+  if (!reader) return null;
+  const chunks = [];
+  let size = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.length;
+    if (size > limit) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+async function claimIsLive(previous) {
+  if (!previous?.claimId) return false;
+  const url = safeClaimUrl(previous.reviewUrl);
+  if (!url) return false;
+  try {
+    const res = await fetch(url, {
       signal: AbortSignal.timeout(1500),
+      redirect: "error",
+      headers: { accept: "application/json" },
     });
     if (!res.ok) return false;
-    const state = await res.json();
-    // Something else may have taken that port since. A server answering with
-    // another session's proposal is not this session's server.
-    return state?.manifest?.proposalHash === manifest.proposalHash;
+    const body = await readCapped(res);
+    if (body === null) return false;
+    return JSON.parse(body)?.claimId === previous.claimId;
   } catch {
     return false;
   }
@@ -507,6 +574,9 @@ async function sessionState() {
 
   return {
     manifest,
+    // Read by another server deciding whether this session is already claimed,
+    // never by the review page. Not a secret, and not the decision token.
+    claimId: CLAIM_ID,
     errors: evidence.parsed,
     screenshots,
     assetOrigin: ASSET_ORIGIN,
@@ -736,6 +806,7 @@ REVIEW_ORIGIN = `http://${HOST_IN_URL}:${reviewServer.address().port}`;
 await claim.writeFile(
   JSON.stringify(
     {
+      claimId: CLAIM_ID,
       pid: process.pid,
       dir: ROOT,
       reviewUrl: `${REVIEW_ORIGIN}/`,

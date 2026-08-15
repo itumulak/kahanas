@@ -103,13 +103,25 @@ Both ports are picked open, since a fixed one collides with the product's own de
 
 **The claim is atomic**, taken by creating `server.json` with an exclusive create before any port is bound. Checking whether the file exists and then writing it leaves a window both racers pass: eight simultaneous starts on one directory left four servers running, each believing it was alone. A claim left behind by a crash is reported and never cleaned up automatically, because sessions are disposable and building a fresh one is always available, while deleting a claim that turns out to be live is not undoable.
 
-**An existing claim is asked to prove itself, rather than checked by pid.** A pid proves something exists and never that it is the thing you meant, and pids are reused, so a claim left by a crash can name a number the machine has since given to something unrelated. Asking whether that number is alive answers yes, and the advice that followed was then actively wrong: create a stop file and wait, with no server there to read one. So the claim is probed on its own review origin, and it counts as live only when the server answering reports **this session's** proposal hash. Three outcomes, because the right move differs in each:
+**An existing claim is asked to prove itself, rather than checked by pid.** A pid proves something exists and never that it is the thing you meant, and pids are reused, so a claim left by a crash can name a number the machine has since given to something unrelated. Asking whether that number is alive answers yes, and the advice that followed was then actively wrong: create a stop file and wait, with no server there to read one. So the claim is probed on its own review origin. Three outcomes, because the right move differs in each:
 
 | What the probe finds | Means | Says |
 | --- | --- | --- |
 | this session's server answering | a real review is running | stop it with the stop file |
 | the claim file still empty | a server is binding its ports right now, or died before it finished | look again in a moment |
-| nothing answering, or another session answering | left behind, or that port belongs to something else now | build a fresh session, and a stop file will not clear this |
+| nothing answering, or another server answering | left behind, or that port belongs to something else now | build a fresh session, and a stop file will not clear this |
+
+**Identity is a claim id, not the proposal hash.** Each server mints one at startup, writes it into its own claim, and returns it from `/api/session`. A content hash asks "is a server serving this same file", which two sessions reviewing one prototype both answer yes to, so a session would report the other session's server as its own and the stop file written here would not stop it: the pid mistake in different clothes. **The claim id is an identifier and not the decision token**, which stays secret and goes only into the review page.
+
+**The claim url is constrained before it is fetched, because it comes out of a file.** Handing it straight to `fetch` makes this process a request forwarder for whoever can write that file: a cloud metadata address, a service only this machine can reach, or a redirect to either. It is a narrow window, since writing there already needs the session directory, and this is still the code path that decides whether an approval is genuine.
+
+| Required | Why |
+| --- | --- |
+| `http:` only | there is nothing to negotiate on loopback, and it removes a whole class of target |
+| a loopback host | the server only ever binds one, so anything else was not written by a server |
+| no credentials in the url | nothing here authenticates, so their only use is reaching something that does |
+| `redirect: "error"` | a permitted target that bounces elsewhere would undo every check above |
+| a capped response body | a rogue service on a loopback port can stream for as long as the timeout allows |
 
 **Every argument is checked**, and three things are errors rather than defaults: a flag with no value, an empty value, and **a flag the program does not take**. `--project` with nothing after it, and `--projec /path`, both used to fall back to the working directory, which is the worst thing that flag can do: the caller named a package root, it went missing in the shell or in a typo, and the run captured against a different Playwright than it was told to. The misspelling is the harder one to catch by eye, because the command line looks right. Exit 64, and the message lists the flags that program actually takes.
 
