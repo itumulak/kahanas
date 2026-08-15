@@ -7,11 +7,32 @@
 //
 // Usage:
 //   node server.mjs --dir <session directory> [--host 127.0.0.1]
+//                   [--exit-after-decision <seconds>] [--max-minutes <n>]
 //
 // Prints two machine readable lines on startup:
 //   KAHANAS_REVIEW_URL=http://127.0.0.1:<port>/
 //   KAHANAS_ASSET_URL=http://127.0.0.1:<other port>/
 //
+// HOW IT STOPS, AND WHY IT STOPS ITSELF
+//
+// Nothing should ever have to find this process and signal it. A caller that
+// hunts a pid out of a file and kills it is one stale entry away from killing
+// something else, and that is not a hypothetical: it is how a review teardown
+// turns into an incident. So there are three ways this exits and none of them
+// is somebody else's kill:
+//
+//   1. A decision was recorded, after a grace period for the person to finish
+//      reading the evidence.
+//   2. A file named `stop` appeared in the session directory. Creating a file
+//      is something every caller can already do, it names this session and
+//      nothing else, and it cannot reach any other process on the machine.
+//   3. The session hit its maximum lifetime, so an abandoned review does not
+//      leave a server holding a port for the rest of the week.
+//
+// `server.json` in the session directory carries the pid and both origins while
+// this runs, and is removed on the way out. It exists so a caller can tell a
+// live session from a finished one without parsing stdout, not so anybody can
+// signal the pid inside it.
 // TWO ORIGINS, AND THE REASON THEY ARE TWO
 //
 // A prototype is untrusted code. It may be derived from HTML a user supplied,
@@ -86,6 +107,31 @@ if (!opts.dir) {
   process.exit(64);
 }
 
+// Zero means never, for both of these, which is why the floor is zero rather
+// than one: a caller that wants a session to stay up says so with a number
+// instead of learning a separate flag.
+function duration(value, fallback, flag, unit) {
+  if (value === undefined) return fallback;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0) {
+    console.error(`server.mjs: ${flag} must be a number of ${unit}, zero or more, zero meaning never`);
+    process.exit(64);
+  }
+  return n;
+}
+
+// Long enough that a person who has just decided can finish reading the
+// findings, short enough that a decided session does not sit there for a day.
+const EXIT_AFTER_DECISION = duration(
+  opts["exit-after-decision"],
+  300,
+  "--exit-after-decision",
+  "seconds"
+);
+// A review takes as long as a person takes, so this is a leak guard rather than
+// a deadline. It ends a session nobody came back to.
+const MAX_MINUTES = duration(opts["max-minutes"], 240, "--max-minutes", "minutes");
+
 const ROOT = resolve(opts.dir);
 // The review page is read from this file's own folder, never from the session.
 // The harness runs in place out of the skill, and the session directory holds
@@ -94,6 +140,8 @@ const ROOT = resolve(opts.dir);
 // directory has no node_modules above it.
 const HARNESS = dirname(fileURLToPath(import.meta.url));
 const PROTOTYPE_ROOT = join(ROOT, "prototype");
+const STOP_FILE = join(ROOT, "stop");
+const SERVER_FILE = join(ROOT, "server.json");
 const HOST = opts.host ?? "127.0.0.1";
 const TOKEN = randomUUID();
 
@@ -162,6 +210,40 @@ if (
 }
 if (!(await exists(join(PROTOTYPE_ROOT, "proposal.html")))) {
   console.error(`server.mjs: ${join(PROTOTYPE_ROOT, "proposal.html")} does not exist`);
+  process.exit(65);
+}
+
+// One server per session. Two of them would serve one directory on four ports,
+// and the caller would then have two pids for one review and no way to tell
+// which page a person is actually looking at. Signal 0 sends nothing and only
+// asks whether the pid is alive, so a session left behind by a crash starts
+// normally and a live one is refused.
+function pidIsAlive(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (err) {
+    return err.code === "EPERM";
+  }
+}
+
+const previous = await readJson("server.json", null);
+if (previous && pidIsAlive(previous.pid)) {
+  console.error(
+    `server.mjs: a server for this session is already running as pid ${previous.pid} on ${previous.reviewUrl}.\n` +
+      `  Stop it by creating ${STOP_FILE}, or delete ${SERVER_FILE} if you know that process is gone.`
+  );
+  process.exit(65);
+}
+
+// A decision that already exists cannot be replaced, so serving the session
+// again would put a live approval page in front of somebody whose click can
+// only ever be refused.
+if (await exists(join(ROOT, "decision.json"))) {
+  console.error(
+    "server.mjs: this session already recorded a decision, so there is nothing left to decide"
+  );
   process.exit(65);
 }
 
@@ -499,6 +581,13 @@ async function postDecision(req, res) {
     return sendJson(res, 500, { error: `could not write decision: ${err.message}` });
   }
 
+  // A session with a decision in it has done its job. It closes itself after a
+  // grace period, so nobody has to find this process and signal it, and so a
+  // machine running reviews all week is not running a server for each of them.
+  if (EXIT_AFTER_DECISION > 0) {
+    setTimeout(() => shutdown("a decision was recorded"), EXIT_AFTER_DECISION * 1000).unref();
+  }
+
   return sendJson(res, 201, record);
 }
 
@@ -567,7 +656,68 @@ const HOST_IN_URL = HOST.includes(":") ? `[${HOST}]` : HOST;
 ASSET_ORIGIN = `http://${HOST_IN_URL}:${assetServer.address().port}`;
 REVIEW_ORIGIN = `http://${HOST_IN_URL}:${reviewServer.address().port}`;
 
+await writeFile(
+  SERVER_FILE,
+  JSON.stringify(
+    {
+      pid: process.pid,
+      dir: ROOT,
+      reviewUrl: `${REVIEW_ORIGIN}/`,
+      assetUrl: `${ASSET_ORIGIN}/`,
+      startedAt: new Date().toISOString(),
+      stopFile: STOP_FILE,
+      maxMinutes: MAX_MINUTES,
+    },
+    null,
+    2
+  )
+);
+
+let stopping = false;
+let watcher = null;
+async function shutdown(reason) {
+  if (stopping) return;
+  stopping = true;
+  if (watcher) clearInterval(watcher);
+  console.log(`KAHANAS_STOPPING=${reason}`);
+  await unlink(SERVER_FILE).catch(() => {});
+  for (const server of [reviewServer, assetServer]) {
+    server.close();
+    // A browser holding a keep alive connection would otherwise keep an
+    // abandoned session running for as long as that tab stays open.
+    server.closeAllConnections?.();
+  }
+  // Last resort, in case something else is holding the event loop open. Unref
+  // so it never delays an exit that is already happening on its own.
+  setTimeout(() => process.exit(0), 2000).unref();
+}
+
+const startedAtMs = Date.now();
+watcher = setInterval(async () => {
+  if (stopping) return;
+  if (await exists(STOP_FILE)) return shutdown("a stop file appeared in the session directory");
+  if (MAX_MINUTES > 0 && Date.now() - startedAtMs > MAX_MINUTES * 60_000) {
+    return shutdown(`the session reached its maximum lifetime of ${MAX_MINUTES} minutes`);
+  }
+}, 500);
+
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.on(signal, () => {
+    shutdown(`received ${signal}`);
+  });
+}
+
 console.log(`KAHANAS_REVIEW_URL=${REVIEW_ORIGIN}/`);
 console.log(`KAHANAS_ASSET_URL=${ASSET_ORIGIN}/`);
 console.log(`Serving ${ROOT}`);
-console.log("Waiting for a decision. Stop with Ctrl C.");
+console.log(`Stop it by creating ${STOP_FILE}, rather than by signalling pid ${process.pid}.`);
+console.log(
+  EXIT_AFTER_DECISION > 0
+    ? `It also stops ${EXIT_AFTER_DECISION} seconds after a decision is recorded.`
+    : "It will not stop itself when a decision is recorded."
+);
+console.log(
+  MAX_MINUTES > 0
+    ? `It stops either way after ${MAX_MINUTES} minutes.`
+    : "It has no maximum lifetime, so it runs until it is stopped."
+);

@@ -74,6 +74,8 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 | The question that places the design baseline | `dev-design/internal/adoption-baseline.md` |
 | The question that places the history baseline | `dev-architect/internal/adoption-baseline.md` |
 | What a review session is, and the wall between its two browsers | `dev-design/internal/design-review.md` |
+| What proves a browser can actually review a design | `dev-design/internal/design-review.md` |
+| How a review session is stopped, and why never by signalling it | `dev-design/internal/design-review.md` |
 | How a prototype state is reached from outside | `dev-design/internal/design-direction.md` |
 
 **This overview and `README.md` are the exception, and they still may not carry specifics.** Their job is orientation for somebody maintaining the skills, so they say what a rule is for and why it exists. They do not restate its exact conditions, values, or counts, because a summary that carries operational detail is just another copy waiting to go stale.

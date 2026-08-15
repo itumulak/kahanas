@@ -160,6 +160,18 @@ Reinstalling the skills, which you have already done above, is all that is requi
 
 **On an existing codebase, the adoption baseline is now two questions with two owners.** `/dev-architect` asks whether features already built appear in the plan, and `/dev-design` asks whether surfaces that already exist owe prototypes. If you already answered both under an older version, your documents already record the answers and nothing re asks them.
 
+### Coming from 0.6.0, on a project with an `app/`
+
+**One document change, and it takes a minute.** The Visual verification section of `tooling.md` gained a Check row: the command that proves the tool and its browser both work, which is not the install command. On the default answer it is the probe that ships with `/dev-design`:
+
+```bash
+node <skill folder>/dev-design/review-harness/preflight.mjs
+```
+
+**Run it once now.** It exits 0 when the package resolves from your project and the browser launches, 69 when no Playwright is reachable, and 70 when the browser was never downloaded. A project whose end to end suite works can still fail it, which is the point: an install for a test runner is not a design review setup.
+
+**Nothing else needs doing.** Sessions now stop themselves and are stopped with a file rather than a signal, and that is entirely inside the harness you reinstalled.
+
 ### Coming from 0.5.0 or earlier, on a project with an `app/`
 
 Nothing here is a document migration, and all of it is frontend only. A backend with no `app/` skips this section entirely.

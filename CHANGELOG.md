@@ -4,6 +4,32 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
+## [0.6.1] — 2026-08-15
+
+Three gaps found by running `/dev-design` on a real project: it could not tell a Playwright it can use from one it cannot, it had no way to prove the browser works before a person was waiting, and ending a session meant killing processes by number.
+
+### Added
+
+- **A preflight probe, `review-harness/preflight.mjs`.** `/dev-design` runs it before building a session, and `/dev-architect` runs it once after installing. It resolves the Playwright package and then launches the browser, because those are two different facts and a package manager reports success for a package whose browser binary was never downloaded. It exits 69 when no Playwright is reachable, naming every path it tried, and 70 when the browser will not launch.
+
+- **A Check row in the Visual verification section of `tooling.md`**, holding the command that proves the tool and its browser both work. The install command returning zero was being read as evidence of a working setup, and it is not.
+
+### Changed
+
+- **A review session ends by creating a file, not by killing a process.** Writing `stop` in the session directory stops the server, which also exits on its own a few minutes after a decision and again after a maximum lifetime, so an abandoned review no longer leaves a server holding a port. **A stored process id is a number that was true once**: the process may have exited and the number may since have been reused, and killing by it checks nothing and reports success either way. The server publishes `server.json` while it runs and removes it on exit, so a caller can tell a live session from a finished one without going near a signal.
+
+- **Playwright is resolved from the project root rather than from beside the harness.** A skill installed for the person rather than the project sits outside the project entirely, and Node's upward search from there walks the home directory and stops, reporting a project with a perfectly good Playwright as having none. This is the failure behind a session insisting Playwright is missing on a machine where the end to end suite runs fine.
+
+- **Finding Playwright in a project is no longer treated as an answer.** "Playwright is installed" is three separate facts and a project can hold any two without the third: the Node package resolving from this project, the browser being downloaded, and `tooling.md` naming it as the visual verification tool. An existing end to end suite settles none of them for design review, and choosing what reviews designs is a tool decision, so `/dev-design` routes it to `/dev-architect` rather than adopting what it found.
+
+- **One review session at a time**, stated as a rule. Several at once produced several servers, a list of process ids kept somewhere, and a teardown loop that kills by number, for no gain: a person can only look at one design at a time, which is the part that was never parallel.
+
+- **A server refuses to serve a session that already recorded a decision**, and refuses to be the second server on one session directory. Both put a live approval page in front of somebody whose click can only be refused.
+
+### Fixed
+
+- **Deleting a session directory now has rules**, because a wrong path there removes somebody's work. The path is never built by expanding a variable that could be empty, and the directory is confirmed to hold this session's `manifest.json` before it goes.
+
 ## [0.6.0] — 2026-08-13
 
 Design becomes a skill of its own, and design approval becomes something that runs. Approving a prototype used to mean a skill saying "here it is" and a person reading a file, which is the weakest step in the whole workflow and the one everything visual depends on.

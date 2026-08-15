@@ -1,10 +1,20 @@
 # The design review harness
 
-Three files `/dev-design` copies into a review session workspace and runs. **`internal/design-review.md` defines the session and the rules.** This file documents the interfaces only, so a session can be driven without reading the code.
+The programs `/dev-design` runs to hold a review session. **`internal/design-review.md` defines the session and the rules.** This file documents the interfaces only, so a session can be driven without reading the code.
+
+| File | Does |
+| --- | --- |
+| `preflight.mjs` | answers whether a review can run here at all, before one is started |
+| `server.mjs` | serves one session on two loopback origins and accepts one decision |
+| `capture.mjs` | renders the prototype at every breakpoint and state, and records what it threw |
+| `review.html` | the page a person decides in, served by `server.mjs` |
+| `resolve-playwright.mjs` | finds the project's Playwright from wherever this harness runs |
 
 **Run them in place and copy nothing.** The session directory holds data; the code stays here.
 
-**Copying breaks it.** Node resolves an import by looking beside the importing file and then upwards, so `capture.mjs` run from a temporary directory searches `/tmp` and `/` for Playwright and exits 69 on a project that has it installed. In place, it searches upward from the skill folder and reaches the project's `node_modules`.
+**Copying breaks it.** Node resolves an import by looking beside the importing file and then upwards, so a copy in a temporary directory has neither its own sibling modules nor a `node_modules` above it.
+
+**Playwright is resolved from the project root rather than by that upward search**, which is what lets the harness sit outside the project it is reviewing. A skill installed for the person lives in the home directory, and an upward search from there reports a project with a working Playwright as having none. `resolve-playwright.mjs` asks the project first and falls back to the ambient search.
 
 **Do not regenerate them and do not edit them for one session.** This is the code path that decides whether an approval is genuine, and a file rewritten from memory each time is a file nobody has ever reviewed twice. Where the harness will not do what a session needs, that is a bug to fix here, once, for every project.
 
@@ -21,10 +31,31 @@ Three files `/dev-design` copies into a review session workspace and runs. **`in
 ├── manifest.json          written by /dev-design
 ├── decision.json          written by server.mjs, on the person's click
 ├── errors.json            written by capture.mjs
+├── server.json            written by server.mjs while it runs, removed on exit
+├── stop                   created by anybody, to end the session
 └── screenshots/           written by capture.mjs
 ```
 
 Nothing outside this directory is reachable from the session.
+
+## `preflight.mjs`
+
+```bash
+node preflight.mjs [--project <project root, default cwd>]
+```
+
+Run it before building a session. It settles two of the three facts behind "Playwright is installed", and a project can hold either without the other.
+
+| Exit code | Means |
+| --- | --- |
+| 0 | the package resolves from this project and its browser launched |
+| 64 | bad arguments |
+| 69 | no Playwright this harness can reach, and the output names every path it tried |
+| 70 | Playwright is here and the browser will not launch, or Node is older than 18 |
+
+**It launches a browser and closes it.** Reading a version string proves a package was unpacked, and a machine that never ran `npx playwright install` passes that check and fails a review.
+
+**The third fact is not checkable here**: whether `tooling.md` names Playwright as this project's visual verification tool. A browser in `node_modules` is not a decision anybody made about how designs get reviewed, so `/dev-design` reads the document that owns that answer and this file says so on the way out.
 
 ## `manifest.json`
 
@@ -47,7 +78,8 @@ npm test
 ## `server.mjs`
 
 ```bash
-node server.mjs --dir <session directory> [--host 127.0.0.1]
+node server.mjs --dir <session directory> [--host 127.0.0.1] \
+                [--exit-after-decision <seconds>] [--max-minutes <n>]
 ```
 
 Prints two lines to parse:
@@ -58,6 +90,21 @@ KAHANAS_ASSET_URL=http://127.0.0.1:<other port>/
 ```
 
 Both ports are picked open, since a fixed one collides with the product's own dev server. **It refuses to bind anything but loopback**, because the review origin carries an approval endpoint.
+
+**One server per session.** A second one on the same directory exits 65 rather than serving one review on four ports. So does a session that already recorded a decision, since a decision cannot be replaced and the page would only ever be refused.
+
+### Stopping it, without signalling anything
+
+**Create a file named `stop` in the session directory.** The server checks twice a second and exits. That is the whole procedure, and it needs no process id, no shell, and no signal.
+
+**It also stops on its own, two ways**, so an abandoned review does not leave a server holding a port:
+
+| Flag | Default | Zero means |
+| --- | --- | --- |
+| `--exit-after-decision` | 300 seconds | stay up after a decision |
+| `--max-minutes` | 240 minutes | no maximum lifetime |
+
+`server.json`, written on startup and removed on exit, carries the pid, both origins, and the path of the stop file. **It exists so a caller can tell a live session from a finished one**, not so anybody can signal the pid inside it. A stored pid is a number that was true once: the process may have exited, and the number may since have been reused by something unrelated. Killing by that number checks nothing and reports success either way.
 
 ### Two origins
 
@@ -100,7 +147,8 @@ node capture.mjs \
   --url http://127.0.0.1:<port>/proposal.html \
   --out <session directory> \
   --states default,submitting,invalid-code \
-  --breakpoints desktop:1440x900,tablet:834x1112,phone:390x844
+  --breakpoints desktop:1440x900,tablet:834x1112,phone:390x844 \
+  [--project <project root, default cwd>]
 ```
 
 **On a prototype covering several surfaces, group the states by surface**, since a state is only ever compared with its own surface's:
@@ -128,7 +176,7 @@ The URL is the **asset origin**, never the review one. Writes `screenshots/<stat
 | 0 | the pass ran, read `errors.json` for what it found |
 | 2 | a declared state did not activate, which is a defect in the prototype |
 | 64 | bad arguments, including a URL pointing at the review page |
-| 69 | Playwright is not installed |
+| 69 | no Playwright this harness can reach, and the output names every path it tried |
 
 **Two rules are enforced in code rather than trusted.**
 
@@ -184,4 +232,6 @@ Served at `/`. Reads everything from `/api/session`, so it needs no arguments an
 - decide anything, or write to `design-registry.md`, or touch `.konteksto/` at all
 - read or write anything outside the session directory
 - open a browser profile that exists, or one that is signed in
+- signal, stop, or otherwise reach any process other than itself
+- install anything, which is `/dev-architect`'s and only `/dev-architect`'s
 - survive the session, which `/dev-design` deletes with the directory

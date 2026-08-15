@@ -133,8 +133,8 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 }
 
 // Start a session server and return its two origins plus the page token.
-async function startServer(dir) {
-  const child = spawn(process.execPath, [join(HARNESS, "server.mjs"), "--dir", dir], {
+async function startServer(dir, extraArgs = []) {
+  const child = spawn(process.execPath, [join(HARNESS, "server.mjs"), "--dir", dir, ...extraArgs], {
     cwd: dir,
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -479,6 +479,186 @@ await check("twenty concurrent approvals record exactly one", async () => {
   const record = JSON.parse(await readFile(join(session.dir, "decision.json"), "utf8"));
   assert(/^P\d+$/.test(record.person), `decision.json holds ${record.person}`);
 });
+
+// -------------------------------------------------------------------- preflight
+
+// Whether a review can run at all, which is three facts and not one. These cases
+// are the two this harness can settle; tooling.md settles the third.
+
+process.stdout.write("\npreflight\n");
+
+await check("Playwright is resolved from the project, not from beside the harness", async () => {
+  // The failure this reproduces: the skill installed for the person rather than
+  // the project, so the upward search walks ~/.claude and never enters the
+  // project that has Playwright installed.
+  const project = await mkdtemp(join(tmpdir(), "kahanas-fake-project-"));
+  cleanups.push(project);
+  await mkdir(join(project, "node_modules", "playwright"), { recursive: true });
+  await writeFile(
+    join(project, "node_modules", "playwright", "package.json"),
+    JSON.stringify({ name: "playwright", version: "0.0.0-test", main: "index.js" })
+  );
+  await writeFile(
+    join(project, "node_modules", "playwright", "index.js"),
+    "module.exports = { chromium: { marker: 'from the project' } };"
+  );
+
+  const { loadChromium } = await import(join(HARNESS, "resolve-playwright.mjs"));
+  const found = await loadChromium(project);
+  equal(found.package, "playwright", "package");
+  assert(found.from.startsWith(project), `resolved ${found.from}, which is outside ${project}`);
+  equal(found.chromium.marker, "from the project", "module");
+});
+
+await check("an unreachable Playwright names every place it looked", async () => {
+  const empty = await mkdtemp(join(tmpdir(), "kahanas-empty-project-"));
+  cleanups.push(empty);
+  const { loadChromium, missingPlaywrightMessage } = await import(
+    join(HARNESS, "resolve-playwright.mjs")
+  );
+  let message = null;
+  try {
+    // Resolution walks upward from the given root, so a temporary directory is
+    // only empty if nothing above it has Playwright either. On a machine where
+    // it does, this case has nothing to prove and passes trivially.
+    await loadChromium(empty);
+  } catch (err) {
+    message = missingPlaywrightMessage(err, empty);
+  }
+  if (message === null) return;
+  assert(message.includes(empty), "the message does not say which project root it searched");
+  assert(message.includes("/dev-architect"), "the message does not route the install anywhere");
+});
+
+await check("preflight reports one of its three answers, and says which", async () => {
+  const result = await run(join(HARNESS, "preflight.mjs"), [], process.cwd());
+  const output = `${result.out}${result.err}`;
+  if (result.code === 0) {
+    assert(/KAHANAS_PREFLIGHT=ok/.test(result.out), `a pass without its marker: ${output}`);
+    assert(/KAHANAS_BROWSER=chromium /.test(result.out), "a pass that never launched a browser");
+  } else if (result.code === 69) {
+    assert(/Project root searched/.test(result.err), `69 without a searched root: ${output}`);
+  } else if (result.code === 70) {
+    assert(/browser|Node/.test(result.err), `70 without a reason: ${output}`);
+  } else {
+    throw new Error(`preflight exited ${result.code}, which is not one of its answers: ${output}`);
+  }
+});
+
+// --------------------------------------------------------------------- stopping
+
+// A session that has to be killed is a session somebody kills wrongly. Every
+// case here is a way this server ends without anybody signalling a pid.
+
+process.stdout.write("\nstopping a session\n");
+
+function waitForExit(child, ms = 8000) {
+  return new Promise((done, fail) => {
+    if (child.exitCode !== null) return done(child.exitCode);
+    const timer = setTimeout(() => fail(new Error(`still running after ${ms}ms`)), ms);
+    child.on("close", (code) => {
+      clearTimeout(timer);
+      done(code);
+    });
+  });
+}
+
+await check("it publishes its pid and origins, and removes the file on the way out", async () => {
+  const session = await makeSession();
+  cleanups.push(session.dir);
+  const server = await startServer(session.dir);
+
+  const published = JSON.parse(await readFile(join(session.dir, "server.json"), "utf8"));
+  equal(published.pid, server.child.pid, "pid");
+  equal(published.reviewUrl, `${server.review}/`, "review url");
+  equal(published.assetUrl, `${server.asset}/`, "asset url");
+
+  await writeFile(join(session.dir, "stop"), "");
+  await waitForExit(server.child);
+  assert(
+    !(await readFile(join(session.dir, "server.json")).catch(() => null)),
+    "server.json outlived the server"
+  );
+});
+
+await check("a stop file ends it, with no signal sent", async () => {
+  const session = await makeSession();
+  cleanups.push(session.dir);
+  const server = await startServer(session.dir);
+  await writeFile(join(session.dir, "stop"), "");
+  equal(await waitForExit(server.child), 0, "exit code");
+});
+
+await check("a recorded decision ends it on its own", async () => {
+  const session = await makeSession();
+  cleanups.push(session.dir);
+  const server = await startServer(session.dir, ["--exit-after-decision", "1"]);
+  await writeEvidence(session, server);
+  const res = await decide(server, {
+    decision: "approve",
+    person: "P",
+    proposalHash: sha256(session.html),
+    evidenceHash: sha256(await readFile(join(session.dir, "errors.json"))),
+  });
+  equal(res.status, 201, "status");
+  equal(await waitForExit(server.child), 0, "exit code");
+});
+
+await check("the lifetime cap ends an abandoned session", async () => {
+  const session = await makeSession();
+  cleanups.push(session.dir);
+  // A hundredth of a minute, which is the same code path a four hour cap takes.
+  const server = await startServer(session.dir, ["--max-minutes", "0.01"]);
+  equal(await waitForExit(server.child), 0, "exit code");
+});
+
+await check("zero means never, so a decision leaves it running", async () => {
+  const session = await makeSession();
+  cleanups.push(session.dir);
+  const server = await startServer(session.dir, ["--exit-after-decision", "0"]);
+  await writeEvidence(session, server);
+  const res = await decide(server, {
+    decision: "approve",
+    person: "P",
+    proposalHash: sha256(session.html),
+    evidenceHash: sha256(await readFile(join(session.dir, "errors.json"))),
+  });
+  equal(res.status, 201, "status");
+  await new Promise((r) => setTimeout(r, 1200));
+  equal(server.child.exitCode, null, "exit code");
+  server.stop();
+});
+
+await check("a second server on one session is refused", async () => {
+  const session = await makeSession();
+  cleanups.push(session.dir);
+  const server = await startServer(session.dir);
+  const result = await run(join(HARNESS, "server.mjs"), ["--dir", session.dir], session.dir);
+  equal(result.code, 65, "exit code");
+  assert(/already running/.test(result.err), `error said: ${result.err.trim()}`);
+  server.stop();
+});
+
+await check("a session that already decided will not be served again", async () => {
+  const session = await makeSession();
+  cleanups.push(session.dir);
+  await writeFile(join(session.dir, "decision.json"), JSON.stringify({ decision: "approve" }));
+  const result = await run(join(HARNESS, "server.mjs"), ["--dir", session.dir], session.dir);
+  equal(result.code, 65, "exit code");
+});
+
+for (const [name, args] of [
+  ["a nonsense grace period is refused", ["--exit-after-decision", "soon"]],
+  ["a negative grace period is refused", ["--exit-after-decision", "-1"]],
+  ["a nonsense lifetime is refused", ["--max-minutes", "forever"]],
+]) {
+  await check(name, async () => {
+    const session = await makeSession();
+    cleanups.push(session.dir);
+    const result = await run(join(HARNESS, "server.mjs"), ["--dir", session.dir, ...args], session.dir);
+    equal(result.code, 64, "exit code");
+  });
+}
 
 // ------------------------------------------------------------------ capture pass
 

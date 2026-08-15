@@ -10,7 +10,8 @@
 //     --url http://127.0.0.1:1234/proposal.html \
 //     --out <session directory> \
 //     --states default,submitting,invalid-code \
-//     --breakpoints desktop:1440x900,tablet:834x1112,phone:390x844
+//     --breakpoints desktop:1440x900,tablet:834x1112,phone:390x844 \
+//     [--project <the project root Playwright is installed in, default cwd>]
 //
 // Writes <out>/screenshots/<state>__<breakpoint>.png and <out>/errors.json.
 //
@@ -32,6 +33,7 @@
 import { mkdir, writeFile, rm, rename } from "node:fs/promises";
 import { join, resolve, sep } from "node:path";
 import { createHash } from "node:crypto";
+import { loadChromium, missingPlaywrightMessage } from "./resolve-playwright.mjs";
 
 function args(argv) {
   const out = {};
@@ -174,19 +176,18 @@ for (const breakpoint of BREAKPOINTS) requireSafeName("breakpoint", breakpoint.n
 
 // Rule 2: importing the library directly is what keeps playwright.config.ts out
 // of this. Never run this file through the Playwright test runner.
+//
+// Resolved from the project root rather than from beside this file, since the
+// skill may be installed for the person rather than for the project and the
+// upward search would then never enter the project at all. resolve-playwright.mjs
+// says why that matters.
+const PROJECT_ROOT = resolve(opts.project ?? process.cwd());
 let chromium;
 try {
-  ({ chromium } = await import("playwright"));
-} catch {
-  try {
-    ({ chromium } = await import("@playwright/test"));
-  } catch {
-    console.error(
-      "capture.mjs: Playwright is not installed.\n" +
-        "  npm install --save-dev @playwright/test && npx playwright install chromium"
-    );
-    process.exit(69);
-  }
+  ({ chromium } = await loadChromium(PROJECT_ROOT));
+} catch (err) {
+  console.error(`capture.mjs: ${missingPlaywrightMessage(err, PROJECT_ROOT)}`);
+  process.exit(69);
 }
 
 // Parse before comparing. A string prefix test passes for

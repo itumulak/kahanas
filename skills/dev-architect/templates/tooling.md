@@ -78,15 +78,26 @@ Whoever builds a task follows this and nothing else. A build never drops a local
 | Tool | <BROWSER_AUTOMATION_TOOL, DEFAULT_PLAYWRIGHT> |
 | Browser | <BROWSER_AND_HOW_IT_IS_INSTALLED, DEFAULT_CHROMIUM> |
 | Install | `<EXACT_COMMAND_THAT_INSTALLS_THE_TOOL_AND_ITS_BROWSER>` |
+| Check | `<EXACT_COMMAND_THAT_PROVES_THE_TOOL_AND_ITS_BROWSER_BOTH_WORK>` |
 | Review command | `<COMMAND_THAT_STARTS_A_DESIGN_REVIEW_SESSION>` |
 | Capture command | `<COMMAND_THAT_RENDERS_A_ROUTE_AND_WRITES_AN_IMAGE>` |
 | Output | <WHERE_THE_IMAGES_LAND> |
+
+**The Check row is a command that fails when the setup is broken, and it is not the install command run twice.** A package manager reports success for a package whose browser binary was never downloaded, so an install that returned zero proves less than it looks like it does. On the default answer the check is `/dev-design`'s own probe, which resolves the package from the project root and then launches the browser:
+
+```bash
+node <skill folder>/dev-design/review-harness/preflight.mjs
+```
+
+**Run it once here, after installing, and record what it printed.** `/dev-design` runs the same probe before every session, and a project where the first run of it happens in front of a person waiting to approve a design is a project that discovers its own setup problem at the worst moment.
+
+**A project that already has Playwright still gets this row filled.** An end to end suite installs one for its own reasons, and that says nothing about whether the package this harness imports is reachable or the browser is downloaded. Check it rather than assuming it, and where it is already working, record that nothing needed installing.
 
 **Playwright with Chromium is the default answer**, because it drives a real browser, sets a viewport exactly, and reports console errors, page errors, and failed requests without extra tooling, which is the whole evidence set a review session needs. A project already carrying a different browser automation tool records that one instead rather than installing a second.
 
 **Chromium alone is enough for a design review.** A review answers whether this is the design to build, and rendering it in three engines answers a different question. Where a project needs cross browser evidence, that belongs to `/dev-check verify` against the built product, not to the approval of a prototype.
 
-**The review harness runs on Node, whatever the product is written in.** It ships with `/dev-design` as three small files, and Node plus the Playwright package is what runs them. A Go or Python or Rust product with an `app/` therefore needs Node available to review a design, and that is a real requirement rather than an implied one, so it is written here where somebody setting the project up will see it.
+**The review harness runs on Node, whatever the product is written in.** It ships with `/dev-design` as a handful of small files, and Node plus the Playwright package is what runs them. A Go or Python or Rust product with an `app/` therefore needs Node available to review a design, and that is a real requirement rather than an implied one, so it is written here where somebody setting the project up will see it.
 
 **The reason is that one harness beats one per language.** The alternative is the same review page and the same decision endpoint reimplemented per ecosystem, drifting apart, each one separately wrong in its own way, and this is the code path that decides whether an approval is genuine. **A project with an `app/` almost always has Node already**, since the client tooling brought it, so the requirement usually costs nothing. Where it genuinely does not, that is worth saying in this section along with what the project does instead.
 
