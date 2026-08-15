@@ -93,7 +93,12 @@ const MIME = {
   ".txt": "text/plain; charset=utf-8",
 };
 
-const opts = parseArgsOrExit(process.argv, "server.mjs");
+const opts = parseArgsOrExit(process.argv, "server.mjs", [
+  "dir",
+  "host",
+  "exit-after-decision",
+  "max-minutes",
+]);
 if (!opts.dir) {
   console.error("server.mjs: --dir <session directory> is required");
   process.exit(64);
@@ -222,14 +227,30 @@ if (!(await exists(join(PROTOTYPE_ROOT, "proposal.html")))) {
 //
 // The claim is taken before the ports are bound, so a loser never reaches a
 // listen call, and it is released on every path out of here.
-function pidIsAlive(pid) {
-  if (!Number.isInteger(pid) || pid <= 0) return false;
+// WHY THE CLAIM IS PROBED AND NOT PID CHECKED
+//
+// A pid proves something exists, never that it is the thing you meant. Pids are
+// reused, so a claim left by a crashed server can name a number the machine has
+// since handed to something unrelated, and asking whether that number is alive
+// answers yes. The advice that follows is then actively wrong: it tells somebody
+// to create a stop file and wait, and no server will ever read it.
+//
+// So the claim is asked to prove itself instead. A live server answers on its
+// own review origin and reports the proposal hash it is serving, and only a
+// server holding this session can do both.
+async function claimIsLive(previous) {
+  if (!previous?.reviewUrl) return false;
   try {
-    // Signal 0 sends nothing and only asks whether the pid exists.
-    process.kill(pid, 0);
-    return true;
-  } catch (err) {
-    return err.code === "EPERM";
+    const res = await fetch(new URL("/api/session", previous.reviewUrl), {
+      signal: AbortSignal.timeout(1500),
+    });
+    if (!res.ok) return false;
+    const state = await res.json();
+    // Something else may have taken that port since. A server answering with
+    // another session's proposal is not this session's server.
+    return state?.manifest?.proposalHash === manifest.proposalHash;
+  } catch {
+    return false;
   }
 }
 
@@ -239,16 +260,32 @@ try {
 } catch (err) {
   if (err.code !== "EEXIST") throw err;
   const previous = await readJson("server.json", null);
-  const alive = previous && pidIsAlive(previous.pid);
-  console.error(
-    alive
-      ? `server.mjs: a server for this session is already running as pid ${previous.pid} on ${previous.reviewUrl}.\n` +
-          `  Stop it by creating ${STOP_FILE}.`
-      : `server.mjs: ${SERVER_FILE} is already there, so this session is claimed.\n` +
-          `  Nothing is listening on it, so it was most likely left behind by a crash.\n` +
-          `  Sessions are disposable and are not resumed: build a fresh one, or delete that\n` +
-          `  file yourself if you are certain no server is using this directory.`
-  );
+
+  // Three states, and they need three different things said, because the
+  // action is different in each. The claim is created empty and filled once
+  // the ports are bound, so an empty one is a server mid startup or one that
+  // died before it finished starting, and neither of those is a running server
+  // somebody can go and stop.
+  let why;
+  if (await claimIsLive(previous)) {
+    why =
+      `a server for this session is already answering on ${previous.reviewUrl}.\n` +
+      `  Stop it by creating ${STOP_FILE}.`;
+  } else if (previous === null) {
+    why =
+      `${SERVER_FILE} is already there and has nothing in it yet.\n` +
+      `  Another server is claiming this session right now, or one died before it\n` +
+      `  finished starting. Wait a moment and look again: a real one fills that file\n` +
+      `  in as soon as its ports are bound.`;
+  } else {
+    why =
+      `${SERVER_FILE} is already there, so this session is claimed,\n` +
+      `  and nothing is answering on it. It was most likely left behind by a crash.\n` +
+      `  A stop file will not clear it, because no server is there to read one.\n` +
+      `  Sessions are disposable and are not resumed: build a fresh one, or delete that\n` +
+      `  file yourself if you are certain no server is using this directory.`;
+  }
+  console.error(`server.mjs: ${why}`);
   process.exit(65);
 }
 

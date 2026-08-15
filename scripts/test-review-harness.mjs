@@ -532,6 +532,13 @@ await check("an unreachable Playwright names every place it looked", async () =>
   assert(message.includes("--project"), "the message does not cover a package below the root");
 });
 
+await check("a misspelled --project is refused rather than defaulting to the working directory", async () => {
+  const result = await run(join(HARNESS, "preflight.mjs"), ["--projec", "/tmp"], process.cwd());
+  equal(result.code, 64, "exit code");
+  assert(/not a flag this takes/.test(result.err), `error said: ${result.err.trim()}`);
+  assert(/--project/.test(result.err), "the error does not name the flag that was meant");
+});
+
 await check("preflight reports one of its three answers, and says which", async () => {
   const result = await run(join(HARNESS, "preflight.mjs"), [], process.cwd());
   const output = `${result.out}${result.err}`;
@@ -638,7 +645,7 @@ await check("a second server on one session is refused", async () => {
   const server = await startServer(session.dir);
   const result = await run(join(HARNESS, "server.mjs"), ["--dir", session.dir], session.dir);
   equal(result.code, 65, "exit code");
-  assert(/already running/.test(result.err), `error said: ${result.err.trim()}`);
+  assert(/already answering/.test(result.err), `error said: ${result.err.trim()}`);
   server.stop();
 });
 
@@ -692,7 +699,7 @@ await check("eight simultaneous starts leave exactly one server", async () => {
   }
   equal(started, 1, "servers that started");
 
-  const refused = outputs.filter((o) => /already running|is already there/.test(o.err)).length;
+  const refused = outputs.filter((o) => /is already there|already answering/.test(o.err)).length;
   equal(refused, 7, "starts refused with a reason");
 });
 
@@ -755,6 +762,53 @@ await check("nothing is serving once the marker is gone", async () => {
   equal(await waitForExit(server.child), 0, "exit code");
 });
 
+await check("a live pid with no server behind it is reported as stale", async () => {
+  // A pid proves existence, never identity. Pids are reused, so a claim left by
+  // a crash can name a number the machine has since handed to something else,
+  // and asking whether it is alive answers yes. The advice that used to follow
+  // was actively wrong: create a stop file and wait, with no server to read it.
+  const session = await makeSession();
+  cleanups.push(session.dir);
+  await writeFile(
+    join(session.dir, "server.json"),
+    JSON.stringify({
+      // This test runner: certainly alive, certainly not a review server.
+      pid: process.pid,
+      dir: session.dir,
+      // Port 9 is discard, and nothing answers HTTP on it.
+      reviewUrl: "http://127.0.0.1:9/",
+      assetUrl: "http://127.0.0.1:9/",
+    })
+  );
+
+  const result = await run(join(HARNESS, "server.mjs"), ["--dir", session.dir], session.dir);
+  equal(result.code, 65, "exit code");
+  assert(/nothing is answering/.test(result.err), `error said: ${result.err.trim()}`);
+  assert(
+    /A stop file will not clear it/.test(result.err),
+    "a stale claim must not send somebody to write a stop file nothing will read"
+  );
+});
+
+await check("a claim answering for another session is not this session's server", async () => {
+  // The other half of identity. Something else may hold that port by now, and
+  // a server answering with a different proposal is not this session's.
+  const mine = await makeSession();
+  const theirs = await makeSession({ prototype: "<!doctype html><title>other</title><body>other</body>" });
+  cleanups.push(mine.dir, theirs.dir);
+
+  const other = await startServer(theirs.dir);
+  await writeFile(
+    join(mine.dir, "server.json"),
+    JSON.stringify({ pid: process.pid, dir: mine.dir, reviewUrl: `${other.review}/` })
+  );
+
+  const result = await run(join(HARNESS, "server.mjs"), ["--dir", mine.dir], mine.dir);
+  other.stop();
+  equal(result.code, 65, "exit code");
+  assert(/nothing is answering/.test(result.err), `error said: ${result.err.trim()}`);
+});
+
 await check("a session that already decided will not be served again", async () => {
   const session = await makeSession();
   cleanups.push(session.dir);
@@ -767,6 +821,11 @@ for (const [name, args] of [
   ["a nonsense grace period is refused", ["--exit-after-decision", "soon"]],
   ["a negative grace period is refused", ["--exit-after-decision", "-1"]],
   ["a nonsense lifetime is refused", ["--max-minutes", "forever"]],
+  // A misspelling parses perfectly, stores a key nothing reads, and leaves the
+  // real flag unset, so the run falls back to a default as if it had never been
+  // passed. Same silent wrong answer as an empty value, and harder to see.
+  ["a misspelled flag is refused", ["--max-minute", "10"]],
+  ["an unknown flag is refused", ["--headless", "true"]],
 ]) {
   await check(name, async () => {
     const session = await makeSession();

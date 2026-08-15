@@ -41,7 +41,7 @@ import { loadChromium, missingPlaywrightMessage } from "./resolve-playwright.mjs
 import { parseArgsOrExit } from "./args.mjs";
 import { resolve } from "node:path";
 
-const opts = parseArgsOrExit(process.argv, "preflight.mjs");
+const opts = parseArgsOrExit(process.argv, "preflight.mjs", ["project"]);
 const PROJECT_ROOT = resolve(opts.project ?? process.cwd());
 
 const major = Number(process.versions.node.split(".")[0]);

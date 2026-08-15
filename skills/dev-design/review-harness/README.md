@@ -103,7 +103,15 @@ Both ports are picked open, since a fixed one collides with the product's own de
 
 **The claim is atomic**, taken by creating `server.json` with an exclusive create before any port is bound. Checking whether the file exists and then writing it leaves a window both racers pass: eight simultaneous starts on one directory left four servers running, each believing it was alone. A claim left behind by a crash is reported and never cleaned up automatically, because sessions are disposable and building a fresh one is always available, while deleting a claim that turns out to be live is not undoable.
 
-**Every argument is checked, and a flag with no value is an error rather than a default.** `--project` with nothing after it used to read as "not given" and fall back to the working directory, which is the worst thing that flag can do: the caller said which package root to use, the value went missing in the shell, and the run captured against a different Playwright than it was told to. Exit 64.
+**An existing claim is asked to prove itself, rather than checked by pid.** A pid proves something exists and never that it is the thing you meant, and pids are reused, so a claim left by a crash can name a number the machine has since given to something unrelated. Asking whether that number is alive answers yes, and the advice that followed was then actively wrong: create a stop file and wait, with no server there to read one. So the claim is probed on its own review origin, and it counts as live only when the server answering reports **this session's** proposal hash. Three outcomes, because the right move differs in each:
+
+| What the probe finds | Means | Says |
+| --- | --- | --- |
+| this session's server answering | a real review is running | stop it with the stop file |
+| the claim file still empty | a server is binding its ports right now, or died before it finished | look again in a moment |
+| nothing answering, or another session answering | left behind, or that port belongs to something else now | build a fresh session, and a stop file will not clear this |
+
+**Every argument is checked**, and three things are errors rather than defaults: a flag with no value, an empty value, and **a flag the program does not take**. `--project` with nothing after it, and `--projec /path`, both used to fall back to the working directory, which is the worst thing that flag can do: the caller named a package root, it went missing in the shell or in a typo, and the run captured against a different Playwright than it was told to. The misspelling is the harder one to catch by eye, because the command line looks right. Exit 64, and the message lists the flags that program actually takes.
 
 ### Stopping it, without signalling anything
 
@@ -116,7 +124,7 @@ Both ports are picked open, since a fixed one collides with the product's own de
 | `--exit-after-decision` | 300 seconds | stay up after a decision |
 | `--max-minutes` | 240 minutes | no maximum lifetime |
 
-`server.json`, written on startup and removed on exit, carries the pid, both origins, and the path of the stop file. **It exists so a caller can tell a live session from a finished one**, not so anybody can signal the pid inside it. **It is removed after both listeners have closed and immediately before the process exits**, so teardown reading its absence as "the server is finished" is reading it correctly. A stored pid is a number that was true once: the process may have exited, and the number may since have been reused by something unrelated. Killing by that number checks nothing and reports success either way.
+`server.json`, written on startup and removed on exit, carries the pid, both origins, and the path of the stop file. **It exists so a caller can tell a live session from a finished one**, not so anybody can signal the pid inside it. **The pid in it is information for a person reading the file**, and nothing in the harness draws a conclusion from it. **It is removed after both listeners have closed and immediately before the process exits**, so teardown reading its absence as "the server is finished" is reading it correctly. A stored pid is a number that was true once: the process may have exited, and the number may since have been reused by something unrelated. Killing by that number checks nothing and reports success either way.
 
 ### Two origins
 

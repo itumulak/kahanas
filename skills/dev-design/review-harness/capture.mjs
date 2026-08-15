@@ -36,7 +36,13 @@ import { createHash } from "node:crypto";
 import { loadChromium, missingPlaywrightMessage } from "./resolve-playwright.mjs";
 import { parseArgsOrExit } from "./args.mjs";
 
-const opts = parseArgsOrExit(process.argv, "capture.mjs");
+const opts = parseArgsOrExit(process.argv, "capture.mjs", [
+  "url",
+  "out",
+  "states",
+  "breakpoints",
+  "project",
+]);
 for (const required of ["url", "out"]) {
   if (!opts[required]) {
     console.error(`capture.mjs: --${required} is required`);
