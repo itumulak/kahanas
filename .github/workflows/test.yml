@@ -1,0 +1,38 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # The path most contributors run, and the one the skills themselves rely on:
+  # the harness has to work with nothing installed beside it.
+  without-playwright:
+    name: harness, no Playwright
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm test
+
+  # The one that actually exercises the capture pass, the Playwright resolver,
+  # and the browser. Without this job a change to any of the three goes green
+  # while never running, because the suite skips those cases when Playwright is
+  # missing rather than failing.
+  with-playwright:
+    name: harness, with Playwright
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Not saved to package.json. This repository ships skills and has no
+      # runtime dependencies of its own, and Playwright is here to be driven by
+      # the tests rather than to become one.
+      - run: npm install --no-save playwright
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser

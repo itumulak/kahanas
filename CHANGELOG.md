@@ -4,6 +4,48 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
+## [0.6.1] — 2026-08-15
+
+Three gaps found by running `/dev-design` on a real project: it could not tell a Playwright it can use from one it cannot, it had no way to prove the browser works before a person was waiting, and ending a session meant killing processes by number.
+
+### Added
+
+- **A preflight probe, `review-harness/preflight.mjs`.** `/dev-design` runs it before building a session, and `/dev-architect` runs it once after installing. It resolves the Playwright package and then launches the browser, because those are two different facts and a package manager reports success for a package whose browser binary was never downloaded. It exits 69 when no Playwright is reachable, naming every path it tried, and 70 when the browser will not launch.
+
+- **A Check row in the Visual verification section of `tooling.md`**, holding the command that proves the tool and its browser both work. The install command returning zero was being read as evidence of a working setup, and it is not.
+
+- **Continuous integration, with a job that requires Playwright.** The suite skips its browser cases when Playwright is absent, which is right on a contributor's machine and wrong in CI, where it let a change to the capture pass, the resolver, or the browser path go green without any of them running. `npm run test:browser` turns that skip into a failure, and the workflow runs both that and the plain suite, since the harness has to work with nothing installed beside it.
+
+### Changed
+
+- **A review session ends by creating a file, not by killing a process.** Writing `stop` in the session directory stops the server, which also exits on its own a few minutes after a decision and again after a maximum lifetime, so an abandoned review no longer leaves a server holding a port. **A stored process id is a number that was true once**: the process may have exited and the number may since have been reused, and killing by it checks nothing and reports success either way. The server publishes `server.json` while it runs and removes it on exit, so a caller can tell a live session from a finished one without going near a signal.
+
+- **Playwright is resolved from a recorded package root rather than from beside the harness.** Node's upward search from the harness breaks on two ordinary layouts, in opposite directions: a skill installed for the person sits in the home directory and the walk never enters the project, and a workspace whose npm package is one level down puts Playwright below the root rather than above it. Either way a session insisted Playwright was missing on a machine where the end to end suite ran fine, because **confirming one consumer never proves the other**.
+
+- **A Package root row in the Visual verification section of `tooling.md`**, for the second of those. Where the project root and the package root differ, nothing can work it out on its own, and the tempting fix is a `package.json` at the top whose only purpose is to sit on a search path, plus a duplicate Playwright to keep in version step with the real one. **A version drift between those two is a review running against a browser the product never uses.** Record the one directory instead, and every session passes it as `--project`.
+
+- **Finding Playwright in a project is no longer treated as an answer.** "Playwright is installed" is three separate facts and a project can hold any two without the third: the Node package resolving from this project, the browser being downloaded, and `tooling.md` naming it as the visual verification tool. An existing end to end suite settles none of them for design review, and choosing what reviews designs is a tool decision, so `/dev-design` routes it to `/dev-architect` rather than adopting what it found.
+
+- **One review session at a time**, stated as a rule. Several at once produced several servers, a list of process ids kept somewhere, and a teardown loop that kills by number, for no gain: a person can only look at one design at a time, which is the part that was never parallel.
+
+- **A server refuses to serve a session that already recorded a decision**, and refuses to be the second server on one session directory. Both put a live approval page in front of somebody whose click can only be refused.
+
+### Fixed
+
+- **Two servers could start on one session directory.** The one server check read `server.json` and then wrote it, and every racer read it before any of them had written. Eight simultaneous starts left four servers running, each believing it was alone. The claim is now taken with an atomic exclusive create before any port is bound, so the filesystem picks one winner however many arrive together. A claim left behind by a crash is reported rather than cleaned up automatically, since building a fresh session is always available and deleting a claim that turns out to be live is not undoable.
+
+- **`server.json` is removed after both listeners close**, not before them. Teardown reads that file disappearing as the server being finished, and it was being removed while both listeners were still draining. With keep alive connections held open, as the review page holds them, the marker was gone for around ten milliseconds while the process was still shutting down.
+
+- **A flag with no value, an empty value, or a name the program does not take is an error rather than a default.** `--project` with nothing after it, and `--projec /path`, both fell back to the working directory, which is the worst available behaviour for that flag: the caller named a package root, it went missing in the shell or in a typo, and the run validated and captured against a different Playwright than it was told to. **The misspelling is the harder one**, because the command line looks right. Every program declares the flags it takes and exits 64 on anything else, naming what it does take.
+
+- **The claim url is constrained before it is fetched.** It comes out of `server.json`, and handing it straight to `fetch` made this process a request forwarder for whoever could write that file: a cloud metadata address, a service only the machine can reach, or a redirect to either. It now has to be plain HTTP on loopback with no credentials in it, redirects are refused rather than followed, and the response is read with a cap, since a rogue service on a loopback port can stream for as long as the timeout allows.
+
+- **A claimed session is probed rather than pid checked.** A pid proves something exists and never that it is the thing you meant, and pids are reused, so a claim left by a crash can name a number the machine has since given to something else. The check answered yes and sent somebody to create a stop file that no server would ever read. **The claim is now asked to prove itself** on its own review origin, and a claim file that is still empty is reported as a server binding its ports rather than as a crash, since those need opposite responses.
+
+- **A server is identified by a claim id it mints, answered on `/api/claim`.** Identifying it by something it serves, such as the proposal hash, would ask whether some server holds the same file, which two sessions reviewing one prototype both answer yes to. The endpoint is separate from `/api/session` because the probe reads with a cap and that route carries the whole evidence set: **a bounded read is only safe when the answer is bounded too**, or a session with one large finding in it reports a running review as dead. The id is published rather than secret, and is deliberately not the decision token.
+
+- **Deleting a session directory now has rules**, because a wrong path there removes somebody's work. The path is never built by expanding a variable that could be empty, and the directory is confirmed to hold this session's `manifest.json` before it goes.
+
 ## [0.6.0] — 2026-08-13
 
 Design becomes a skill of its own, and design approval becomes something that runs. Approving a prototype used to mean a skill saying "here it is" and a person reading a file, which is the weakest step in the whole workflow and the one everything visual depends on.

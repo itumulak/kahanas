@@ -7,11 +7,32 @@
 //
 // Usage:
 //   node server.mjs --dir <session directory> [--host 127.0.0.1]
+//                   [--exit-after-decision <seconds>] [--max-minutes <n>]
 //
 // Prints two machine readable lines on startup:
 //   KAHANAS_REVIEW_URL=http://127.0.0.1:<port>/
 //   KAHANAS_ASSET_URL=http://127.0.0.1:<other port>/
 //
+// HOW IT STOPS, AND WHY IT STOPS ITSELF
+//
+// Nothing should ever have to find this process and signal it. A caller that
+// hunts a pid out of a file and kills it is one stale entry away from killing
+// something else, and that is not a hypothetical: it is how a review teardown
+// turns into an incident. So there are three ways this exits and none of them
+// is somebody else's kill:
+//
+//   1. A decision was recorded, after a grace period for the person to finish
+//      reading the evidence.
+//   2. A file named `stop` appeared in the session directory. Creating a file
+//      is something every caller can already do, it names this session and
+//      nothing else, and it cannot reach any other process on the machine.
+//   3. The session hit its maximum lifetime, so an abandoned review does not
+//      leave a server holding a port for the rest of the week.
+//
+// `server.json` in the session directory carries the pid and both origins while
+// this runs, and is removed on the way out. It exists so a caller can tell a
+// live session from a finished one without parsing stdout, not so anybody can
+// signal the pid inside it.
 // TWO ORIGINS, AND THE REASON THEY ARE TWO
 //
 // A prototype is untrusted code. It may be derived from HTML a user supplied,
@@ -33,10 +54,11 @@
 // plainly rather than claiming a guarantee this cannot keep.
 
 import { createServer } from "node:http";
-import { readFile, readdir, writeFile, link, unlink, stat } from "node:fs/promises";
+import { readFile, readdir, writeFile, link, unlink, stat, open } from "node:fs/promises";
 import { randomUUID, createHash } from "node:crypto";
 import { resolve, join, extname, sep, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgsOrExit } from "./args.mjs";
 
 const DECISIONS = new Set(["approve", "request-changes", "reject"]);
 const SHA256 = /^[a-f0-9]{64}$/i;
@@ -71,20 +93,41 @@ const MIME = {
   ".txt": "text/plain; charset=utf-8",
 };
 
-function args(argv) {
-  const out = {};
-  for (let i = 2; i < argv.length; i += 2) {
-    const key = argv[i]?.replace(/^--/, "");
-    if (key) out[key] = argv[i + 1];
-  }
-  return out;
-}
-
-const opts = args(process.argv);
+const opts = parseArgsOrExit(process.argv, "server.mjs", [
+  "dir",
+  "host",
+  "exit-after-decision",
+  "max-minutes",
+]);
 if (!opts.dir) {
   console.error("server.mjs: --dir <session directory> is required");
   process.exit(64);
 }
+
+// Zero means never, for both of these, which is why the floor is zero rather
+// than one: a caller that wants a session to stay up says so with a number
+// instead of learning a separate flag.
+function duration(value, fallback, flag, unit) {
+  if (value === undefined) return fallback;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0) {
+    console.error(`server.mjs: ${flag} must be a number of ${unit}, zero or more, zero meaning never`);
+    process.exit(64);
+  }
+  return n;
+}
+
+// Long enough that a person who has just decided can finish reading the
+// findings, short enough that a decided session does not sit there for a day.
+const EXIT_AFTER_DECISION = duration(
+  opts["exit-after-decision"],
+  300,
+  "--exit-after-decision",
+  "seconds"
+);
+// A review takes as long as a person takes, so this is a leak guard rather than
+// a deadline. It ends a session nobody came back to.
+const MAX_MINUTES = duration(opts["max-minutes"], 240, "--max-minutes", "minutes");
 
 const ROOT = resolve(opts.dir);
 // The review page is read from this file's own folder, never from the session.
@@ -94,8 +137,16 @@ const ROOT = resolve(opts.dir);
 // directory has no node_modules above it.
 const HARNESS = dirname(fileURLToPath(import.meta.url));
 const PROTOTYPE_ROOT = join(ROOT, "prototype");
+const STOP_FILE = join(ROOT, "stop");
+const SERVER_FILE = join(ROOT, "server.json");
 const HOST = opts.host ?? "127.0.0.1";
 const TOKEN = randomUUID();
+// Identifies this server, and is deliberately not TOKEN. TOKEN is a secret that
+// gates the decision endpoint and goes only into the review page as it is
+// served. CLAIM_ID is an identifier, published to anyone who can reach the
+// review origin, and it settles one question: is the server answering here the
+// one that wrote this session's claim file.
+const CLAIM_ID = randomUUID();
 
 if (HOST !== "127.0.0.1" && HOST !== "::1" && HOST !== "localhost") {
   // The review origin carries an approval endpoint. Binding it anywhere
@@ -162,6 +213,172 @@ if (
 }
 if (!(await exists(join(PROTOTYPE_ROOT, "proposal.html")))) {
   console.error(`server.mjs: ${join(PROTOTYPE_ROOT, "proposal.html")} does not exist`);
+  process.exit(65);
+}
+
+// One server per session. Two of them would serve one directory on four ports,
+// and the caller would then have two pids for one review and no way to tell
+// which page a person is actually looking at.
+//
+// THE CLAIM IS ATOMIC, AND READING FIRST WOULD NOT BE
+//
+// Checking whether server.json exists and then writing it leaves a window
+// between the two, and both racers pass the check. That is not theoretical:
+// six simultaneous starts on one session directory left four servers running,
+// each believing it was the only one.
+//
+// `wx` creates the file and fails with EEXIST if it is already there, in one
+// operation the filesystem serialises, so exactly one starter wins however
+// many arrive together.
+//
+// The claim is taken before the ports are bound, so a loser never reaches a
+// listen call, and it is released on every path out of here.
+//
+// WHY THE CLAIM IS PROBED AND NOT PID CHECKED
+//
+// A pid proves something exists, never that it is the thing you meant. Pids are
+// reused, so a claim left by a crashed server can name a number the machine has
+// since handed to something unrelated, and asking whether that number is alive
+// answers yes. The advice that follows is then actively wrong: it tells somebody
+// to create a stop file and wait, and no server will ever read it.
+//
+// So the claim is asked to prove itself instead. Two things make that safe, and
+// both are here because the obvious version of this check is wrong.
+//
+// THE URL COMES OUT OF A FILE, SO IT IS NOT A URL TO BE TRUSTED
+//
+// Handing `server.json`'s `reviewUrl` straight to fetch makes this process a
+// request forwarder for whoever can write that file: a cloud metadata address,
+// a service that is only reachable from this machine, a redirect to somewhere
+// else entirely. It is a small window, since writing there already needs the
+// session directory, but this is the code path that decides whether an approval
+// is genuine and it should not be the weakest thing in the room.
+//
+// So the probe accepts plain HTTP on loopback with no credentials in it,
+// refuses to follow a redirect at all, and stops reading after a small body.
+//
+// A CONTENT HASH IS NOT A SESSION
+//
+// Comparing the proposal hash asks "is a server serving this same file", which
+// two sessions reviewing the same prototype both answer yes to. This session
+// would then report the other session's server as its own, and the stop file
+// somebody wrote here would not stop it: the pid mistake again, wearing a
+// different hat. So each server mints a claim id at startup, writes it into its
+// own claim, and returns it. Only the process that wrote this file can answer
+// with what is in it.
+const LOOPBACK = new Set(["127.0.0.1", "::1", "localhost"]);
+
+function safeClaimUrl(reviewUrl) {
+  let url;
+  try {
+    url = new URL("/api/claim", reviewUrl);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "http:") return null;
+  if (url.username !== "" || url.password !== "") return null;
+  // `new URL("http://[::1]:1/")` keeps the brackets on hostname.
+  if (!LOOPBACK.has(url.hostname.replace(/^\[|\]$/g, ""))) return null;
+  return url;
+}
+
+// A rogue service on a loopback port could stream for as long as the timeout
+// allows, and res.json() would hold all of it.
+//
+// **The cap is why the probe has an endpoint of its own.** Asking /api/session
+// for a claim id downloads the whole evidence set to read one field, and a
+// session with a large finding in it then exceeds any cap worth having. That is
+// not a hypothetical either: seventy kilobytes of console error was enough to
+// report a live server as crashed and send somebody to build a fresh session
+// while a real review was on screen in front of a person. /api/claim answers
+// with one field, so a bounded read and a complete answer are the same thing.
+async function readCapped(res, limit = 64 * 1024) {
+  const reader = res.body?.getReader();
+  if (!reader) return null;
+  const chunks = [];
+  let size = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.length;
+    if (size > limit) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+async function claimIsLive(previous) {
+  if (!previous?.claimId) return false;
+  const url = safeClaimUrl(previous.reviewUrl);
+  if (!url) return false;
+  try {
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(1500),
+      redirect: "error",
+      headers: { accept: "application/json" },
+    });
+    if (!res.ok) return false;
+    const body = await readCapped(res);
+    if (body === null) return false;
+    return JSON.parse(body)?.claimId === previous.claimId;
+  } catch {
+    return false;
+  }
+}
+
+let claim;
+try {
+  claim = await open(SERVER_FILE, "wx");
+} catch (err) {
+  if (err.code !== "EEXIST") throw err;
+  const previous = await readJson("server.json", null);
+
+  // Three states, and they need three different things said, because the
+  // action is different in each. The claim is created empty and filled once
+  // the ports are bound, so an empty one is a server mid startup or one that
+  // died before it finished starting, and neither of those is a running server
+  // somebody can go and stop.
+  let why;
+  if (await claimIsLive(previous)) {
+    why =
+      `a server for this session is already answering on ${previous.reviewUrl}.\n` +
+      `  Stop it by creating ${STOP_FILE}.`;
+  } else if (previous === null) {
+    why =
+      `${SERVER_FILE} is already there and has nothing in it yet.\n` +
+      `  Another server is claiming this session right now, or one died before it\n` +
+      `  finished starting. Wait a moment and look again: a real one fills that file\n` +
+      `  in as soon as its ports are bound.`;
+  } else {
+    why =
+      `${SERVER_FILE} is already there, so this session is claimed,\n` +
+      `  and nothing is answering on it. It was most likely left behind by a crash.\n` +
+      `  A stop file will not clear it, because no server is there to read one.\n` +
+      `  Sessions are disposable and are not resumed: build a fresh one, or delete that\n` +
+      `  file yourself if you are certain no server is using this directory.`;
+  }
+  console.error(`server.mjs: ${why}`);
+  process.exit(65);
+}
+
+// Anything failing between here and a successful listen has to give the claim
+// back, or a retry finds a session claimed by a process that never started.
+async function releaseClaim() {
+  await claim.close().catch(() => {});
+  await unlink(SERVER_FILE).catch(() => {});
+}
+
+// A decision that already exists cannot be replaced, so serving the session
+// again would put a live approval page in front of somebody whose click can
+// only ever be refused.
+if (await exists(join(ROOT, "decision.json"))) {
+  await releaseClaim();
+  console.error(
+    "server.mjs: this session already recorded a decision, so there is nothing left to decide"
+  );
   process.exit(65);
 }
 
@@ -499,6 +716,13 @@ async function postDecision(req, res) {
     return sendJson(res, 500, { error: `could not write decision: ${err.message}` });
   }
 
+  // A session with a decision in it has done its job. It closes itself after a
+  // grace period, so nobody has to find this process and signal it, and so a
+  // machine running reviews all week is not running a server for each of them.
+  if (EXIT_AFTER_DECISION > 0) {
+    setTimeout(() => shutdown("a decision was recorded"), EXIT_AFTER_DECISION * 1000).unref();
+  }
+
   return sendJson(res, 201, record);
 }
 
@@ -507,6 +731,13 @@ async function postDecision(req, res) {
 const reviewServer = createServer(async (req, res) => {
   try {
     const url = req.url ?? "/";
+
+    // Answers one question and carries nothing else, so another server deciding
+    // whether this session is claimed reads a few dozen bytes rather than the
+    // whole evidence set. It is read by that server and never by the review page.
+    if (url === "/api/claim" && req.method === "GET") {
+      return sendJson(res, 200, { claimId: CLAIM_ID });
+    }
 
     if (url === "/api/session" && req.method === "GET") {
       return sendJson(res, 200, await sessionState());
@@ -558,8 +789,23 @@ const assetServer = createServer(async (req, res) => {
 let REVIEW_ORIGIN = "";
 let ASSET_ORIGIN = "";
 
-await new Promise((done) => assetServer.listen(0, HOST, done));
-await new Promise((done) => reviewServer.listen(0, HOST, done));
+// A port already taken, or a host the machine will not bind, has to give the
+// claim back. Left behind, it reads exactly like a live session and blocks
+// every retry on a directory nothing is serving.
+try {
+  await new Promise((done, fail) => {
+    assetServer.once("error", fail);
+    assetServer.listen(0, HOST, done);
+  });
+  await new Promise((done, fail) => {
+    reviewServer.once("error", fail);
+    reviewServer.listen(0, HOST, done);
+  });
+} catch (err) {
+  await releaseClaim();
+  console.error(`server.mjs: could not listen on ${HOST}: ${err.message}`);
+  process.exit(70);
+}
 
 // An IPv6 literal has to be bracketed in a URL, or http://::1:41655 is nonsense
 // that every origin comparison then fails against.
@@ -567,7 +813,92 @@ const HOST_IN_URL = HOST.includes(":") ? `[${HOST}]` : HOST;
 ASSET_ORIGIN = `http://${HOST_IN_URL}:${assetServer.address().port}`;
 REVIEW_ORIGIN = `http://${HOST_IN_URL}:${reviewServer.address().port}`;
 
+// Written through the handle that claimed the file, so the claim and the thing
+// it publishes are the same file and never two.
+await claim.writeFile(
+  JSON.stringify(
+    {
+      claimId: CLAIM_ID,
+      pid: process.pid,
+      dir: ROOT,
+      reviewUrl: `${REVIEW_ORIGIN}/`,
+      assetUrl: `${ASSET_ORIGIN}/`,
+      startedAt: new Date().toISOString(),
+      stopFile: STOP_FILE,
+      maxMinutes: MAX_MINUTES,
+    },
+    null,
+    2
+  )
+);
+await claim.close();
+
+let stopping = false;
+let watcher = null;
+async function shutdown(reason) {
+  if (stopping) return;
+  stopping = true;
+  if (watcher) clearInterval(watcher);
+  console.log(`KAHANAS_STOPPING=${reason}`);
+
+  // Both listeners fully closed BEFORE the file goes.
+  //
+  // Teardown waits for server.json to disappear and then deletes the session
+  // directory. Removing it first would announce a stopped server while this
+  // one was still accepting requests, and the directory would go out from
+  // under a live process. The marker is the last thing to go, so its absence
+  // means what teardown reads it as meaning.
+  await Promise.race([
+    Promise.all(
+      [reviewServer, assetServer].map(
+        (server) =>
+          new Promise((done) => {
+            server.close(done);
+            // A browser holding a keep alive connection would otherwise keep an
+            // abandoned session running for as long as that tab stays open.
+            server.closeAllConnections?.();
+          })
+      )
+    ),
+    // A socket that will not die must not strand the marker forever. Exiting
+    // is imminent either way, which closes every listener the hard way.
+    new Promise((done) => setTimeout(done, 3000)),
+  ]);
+
+  // Removed last, and followed immediately by the exit rather than by waiting
+  // for the event loop to drain. Teardown treats this file disappearing as the
+  // server being finished, so every instruction that runs after it here is a
+  // moment where that is not quite true yet.
+  await unlink(SERVER_FILE).catch(() => {});
+  process.exit(0);
+}
+
+const startedAtMs = Date.now();
+watcher = setInterval(async () => {
+  if (stopping) return;
+  if (await exists(STOP_FILE)) return shutdown("a stop file appeared in the session directory");
+  if (MAX_MINUTES > 0 && Date.now() - startedAtMs > MAX_MINUTES * 60_000) {
+    return shutdown(`the session reached its maximum lifetime of ${MAX_MINUTES} minutes`);
+  }
+}, 500);
+
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.on(signal, () => {
+    shutdown(`received ${signal}`);
+  });
+}
+
 console.log(`KAHANAS_REVIEW_URL=${REVIEW_ORIGIN}/`);
 console.log(`KAHANAS_ASSET_URL=${ASSET_ORIGIN}/`);
 console.log(`Serving ${ROOT}`);
-console.log("Waiting for a decision. Stop with Ctrl C.");
+console.log(`Stop it by creating ${STOP_FILE}, rather than by signalling pid ${process.pid}.`);
+console.log(
+  EXIT_AFTER_DECISION > 0
+    ? `It also stops ${EXIT_AFTER_DECISION} seconds after a decision is recorded.`
+    : "It will not stop itself when a decision is recorded."
+);
+console.log(
+  MAX_MINUTES > 0
+    ? `It stops either way after ${MAX_MINUTES} minutes.`
+    : "It has no maximum lifetime, so it runs until it is stopped."
+);

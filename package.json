@@ -1,6 +1,6 @@
 {
   "name": "kahanas",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "A document driven engineering workflow as Agent Skills. Takes a project from an idea to shipped, verified code, keeping every decision in version controlled documents instead of a chat log.",
   "keywords": [
     "claude-code",
@@ -24,6 +24,7 @@
   },
   "scripts": {
     "install-local": "node scripts/install-local.mjs",
-    "test": "node scripts/test-review-harness.mjs"
+    "test": "node scripts/test-review-harness.mjs",
+    "test:browser": "node scripts/test-review-harness.mjs --require-playwright"
   }
 }

@@ -1,10 +1,22 @@
 # The design review harness
 
-Three files `/dev-design` copies into a review session workspace and runs. **`internal/design-review.md` defines the session and the rules.** This file documents the interfaces only, so a session can be driven without reading the code.
+The programs `/dev-design` runs to hold a review session. **`internal/design-review.md` defines the session and the rules.** This file documents the interfaces only, so a session can be driven without reading the code.
+
+| File | Does |
+| --- | --- |
+| `preflight.mjs` | answers whether a review can run here at all, before one is started |
+| `server.mjs` | serves one session on two loopback origins and accepts one decision |
+| `capture.mjs` | renders the prototype at every breakpoint and state, and records what it threw |
+| `review.html` | the page a person decides in, served by `server.mjs` |
+| `resolve-playwright.mjs` | finds the project's Playwright from wherever this harness runs |
 
 **Run them in place and copy nothing.** The session directory holds data; the code stays here.
 
-**Copying breaks it.** Node resolves an import by looking beside the importing file and then upwards, so `capture.mjs` run from a temporary directory searches `/tmp` and `/` for Playwright and exits 69 on a project that has it installed. In place, it searches upward from the skill folder and reaches the project's `node_modules`.
+**Copying breaks it.** Node resolves an import by looking beside the importing file and then upwards, so a copy in a temporary directory has neither its own sibling modules nor a `node_modules` above it.
+
+**Playwright is resolved from a package root passed in, rather than by that upward search**, which is what lets the harness sit outside the project it is reviewing. Two ordinary layouts break the search, in opposite directions: a skill installed for the person lives in the home directory and the walk never enters the project, and a workspace with its npm package one level down puts Playwright below the root rather than above it. `resolve-playwright.mjs` asks that root first and falls back to the ambient search.
+
+**Pass `--project` to both `preflight.mjs` and `capture.mjs`, with the same value.** It defaults to the working directory, which is right whenever the project root is also the package root. The Visual verification section of `tooling.md` records it when they differ.
 
 **Do not regenerate them and do not edit them for one session.** This is the code path that decides whether an approval is genuine, and a file rewritten from memory each time is a file nobody has ever reviewed twice. Where the harness will not do what a session needs, that is a bug to fix here, once, for every project.
 
@@ -21,10 +33,31 @@ Three files `/dev-design` copies into a review session workspace and runs. **`in
 ├── manifest.json          written by /dev-design
 ├── decision.json          written by server.mjs, on the person's click
 ├── errors.json            written by capture.mjs
+├── server.json            written by server.mjs while it runs, removed on exit
+├── stop                   created by anybody, to end the session
 └── screenshots/           written by capture.mjs
 ```
 
 Nothing outside this directory is reachable from the session.
+
+## `preflight.mjs`
+
+```bash
+node preflight.mjs [--project <package root, default cwd>]
+```
+
+Run it before building a session. It settles two of the three facts behind "Playwright is installed", and a project can hold either without the other.
+
+| Exit code | Means |
+| --- | --- |
+| 0 | the package resolves from this project and its browser launched |
+| 64 | bad arguments |
+| 69 | no Playwright this harness can reach, and the output names every path it tried |
+| 70 | Playwright is here and the browser will not launch, or Node is older than 18 |
+
+**It launches a browser and closes it.** Reading a version string proves a package was unpacked, and a machine that never ran `npx playwright install` passes that check and fails a review.
+
+**The third fact is not checkable here**: whether `tooling.md` names Playwright as this project's visual verification tool. A browser in `node_modules` is not a decision anybody made about how designs get reviewed, so `/dev-design` reads the document that owns that answer and this file says so on the way out.
 
 ## `manifest.json`
 
@@ -44,10 +77,17 @@ npm test
 
 `scripts/test-review-harness.mjs` in this repository, not shipped with the skill. Playwright is optional: without it the browser cases are skipped and the server cases still run in full.
 
+```bash
+npm run test:browser
+```
+
+**The same suite with the skip turned into a failure**, which is what CI runs. A silent skip is right on a contributor's machine and wrong in CI, where it lets a change to the capture pass, the resolver, or the browser path go green without any of them ever running.
+
 ## `server.mjs`
 
 ```bash
-node server.mjs --dir <session directory> [--host 127.0.0.1]
+node server.mjs --dir <session directory> [--host 127.0.0.1] \
+                [--exit-after-decision <seconds>] [--max-minutes <n>]
 ```
 
 Prints two lines to parse:
@@ -58,6 +98,47 @@ KAHANAS_ASSET_URL=http://127.0.0.1:<other port>/
 ```
 
 Both ports are picked open, since a fixed one collides with the product's own dev server. **It refuses to bind anything but loopback**, because the review origin carries an approval endpoint.
+
+**One server per session.** A second one on the same directory exits 65 rather than serving one review on four ports. So does a session that already recorded a decision, since a decision cannot be replaced and the page would only ever be refused.
+
+**The claim is atomic**, taken by creating `server.json` with an exclusive create before any port is bound. Checking whether the file exists and then writing it leaves a window both racers pass: eight simultaneous starts on one directory left four servers running, each believing it was alone. A claim left behind by a crash is reported and never cleaned up automatically, because sessions are disposable and building a fresh one is always available, while deleting a claim that turns out to be live is not undoable.
+
+**An existing claim is asked to prove itself, rather than checked by pid.** A pid proves something exists and never that it is the thing you meant, and pids are reused, so a claim left by a crash can name a number the machine has since given to something unrelated. Asking whether that number is alive answers yes, and the advice that followed was then actively wrong: create a stop file and wait, with no server there to read one. So the claim is probed on its own review origin. Three outcomes, because the right move differs in each:
+
+| What the probe finds | Means | Says |
+| --- | --- | --- |
+| this session's server answering | a real review is running | stop it with the stop file |
+| the claim file still empty | a server is binding its ports right now, or died before it finished | look again in a moment |
+| nothing answering, or another server answering | left behind, or that port belongs to something else now | build a fresh session, and a stop file will not clear this |
+
+**Identity is a claim id, and it has an endpoint of its own.** Each server mints one at startup, writes it into its own claim, and answers with it on `/api/claim`. A content hash such as the proposal's would ask "is a server serving this same file", which two sessions reviewing one prototype both answer yes to, so a session would report the other session's server as its own and the stop file written here would not stop it: the pid mistake in different clothes. **The claim id is an identifier and not the decision token**, which stays secret and goes only into the review page.
+
+**The claim url is constrained before it is fetched, because it comes out of a file.** Handing it straight to `fetch` makes this process a request forwarder for whoever can write that file: a cloud metadata address, a service only this machine can reach, or a redirect to either. It is a narrow window, since writing there already needs the session directory, and this is still the code path that decides whether an approval is genuine.
+
+| Required | Why |
+| --- | --- |
+| `http:` only | there is nothing to negotiate on loopback, and it removes a whole class of target |
+| a loopback host | the server only ever binds one, so anything else was not written by a server |
+| no credentials in the url | nothing here authenticates, so their only use is reaching something that does |
+| `redirect: "error"` | a permitted target that bounces elsewhere would undo every check above |
+| a capped response body | a rogue service on a loopback port can stream for as long as the timeout allows |
+
+**The probe asks `/api/claim`, which is why that endpoint exists.** Reading the claim id out of `/api/session` downloads the whole evidence set to look at one field, and the cap then turns a large session into a false verdict: seventy kilobytes of console error was enough to report a live server as crashed and send somebody to build a fresh session while a real review was on screen in front of a person. **A bounded read is only safe when the answer is bounded too.**
+
+**Every argument is checked**, and three things are errors rather than defaults: a flag with no value, an empty value, and **a flag the program does not take**. `--project` with nothing after it, and `--projec /path`, both used to fall back to the working directory, which is the worst thing that flag can do: the caller named a package root, it went missing in the shell or in a typo, and the run captured against a different Playwright than it was told to. The misspelling is the harder one to catch by eye, because the command line looks right. Exit 64, and the message lists the flags that program actually takes.
+
+### Stopping it, without signalling anything
+
+**Create a file named `stop` in the session directory.** The server checks twice a second and exits. That is the whole procedure, and it needs no process id, no shell, and no signal.
+
+**It also stops on its own, two ways**, so an abandoned review does not leave a server holding a port:
+
+| Flag | Default | Zero means |
+| --- | --- | --- |
+| `--exit-after-decision` | 300 seconds | stay up after a decision |
+| `--max-minutes` | 240 minutes | no maximum lifetime |
+
+`server.json`, written on startup and removed on exit, carries the pid, both origins, and the path of the stop file. **It exists so a caller can tell a live session from a finished one**, not so anybody can signal the pid inside it. **The pid in it is information for a person reading the file**, and nothing in the harness draws a conclusion from it. **It is removed after both listeners have closed and immediately before the process exits**, so teardown reading its absence as "the server is finished" is reading it correctly. A stored pid is a number that was true once: the process may have exited, and the number may since have been reused by something unrelated. Killing by that number checks nothing and reports success either way.
 
 ### Two origins
 
@@ -73,6 +154,7 @@ The review origin returns 404 for any path under `/prototype`, so the split cann
 | Route, review origin | Method | Does |
 | --- | --- | --- |
 | `/` | GET | serves `review.html`, with the token and asset origin substituted in |
+| `/api/claim` | GET | this server's claim id, and nothing else |
 | `/api/session` | GET | the manifest, capture findings, screenshots, asset origin, approval gate, and any decision already made |
 | `/api/decision` | POST | writes `decision.json`, once |
 | anything else | GET | serves that file from the session directory, 403 outside it |
@@ -100,7 +182,8 @@ node capture.mjs \
   --url http://127.0.0.1:<port>/proposal.html \
   --out <session directory> \
   --states default,submitting,invalid-code \
-  --breakpoints desktop:1440x900,tablet:834x1112,phone:390x844
+  --breakpoints desktop:1440x900,tablet:834x1112,phone:390x844 \
+  [--project <project root, default cwd>]
 ```
 
 **On a prototype covering several surfaces, group the states by surface**, since a state is only ever compared with its own surface's:
@@ -128,7 +211,7 @@ The URL is the **asset origin**, never the review one. Writes `screenshots/<stat
 | 0 | the pass ran, read `errors.json` for what it found |
 | 2 | a declared state did not activate, which is a defect in the prototype |
 | 64 | bad arguments, including a URL pointing at the review page |
-| 69 | Playwright is not installed |
+| 69 | no Playwright this harness can reach, and the output names every path it tried |
 
 **Two rules are enforced in code rather than trusted.**
 
@@ -184,4 +267,6 @@ Served at `/`. Reads everything from `/api/session`, so it needs no arguments an
 - decide anything, or write to `design-registry.md`, or touch `.konteksto/` at all
 - read or write anything outside the session directory
 - open a browser profile that exists, or one that is signed in
+- signal, stop, or otherwise reach any process other than itself
+- install anything, which is `/dev-architect`'s and only `/dev-architect`'s
 - survive the session, which `/dev-design` deletes with the directory

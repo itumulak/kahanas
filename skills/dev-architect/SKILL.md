@@ -86,6 +86,8 @@ Some narrow exceptions, and each one states its own edges. Agent tooling found i
 
 Say what you are installing and why before you install it. It is a development tool for reviewing and verifying rather than a package the product ships, so it never enters `library-docs.md`. It is recorded in the Visual verification section of `tooling.md` like every other tool the agent works with.
 
+**Prove it works before you record it, and a project that already has Playwright gets proved the same way.** An install that returned zero is not a browser that launches, and an existing end to end suite is not a visual verification setup: it may be on a language binding this harness cannot import, or on a machine where the browser binary was never downloaded. The Check row of that section names the command, and it is `/dev-design`'s own preflight probe. Run it here, once, rather than leaving a person to find the problem while they are waiting to approve a design.
+
 Do NOT fill a document with a guess. Every value is read from the existing codebase, stated by the user, found at a source you actually fetched, or picked by the user from options you presented.
 
 Do NOT let a document look simple enough to skip. A one page tool still needs its stack recorded. The document can be short. It cannot be absent.
@@ -182,7 +184,9 @@ The answer is written later, in step 8. Carry it forward with the step 4 finding
 
 Otherwise there is exactly one thing to do here, and it is not designing anything.
 
-**Confirm the Visual verification section of `tooling.md` will be filled**, per step 5's tooling work and step 7's writing, with a browser automation tool and its install command. `/dev-design` renders every prototype at every breakpoint and every state and cannot start without one, and `/dev-check verify` cannot produce a screenshot without one. **On a project with an `app/` that section is required rather than optional.**
+**Confirm the Visual verification section of `tooling.md` will be filled**, per step 5's tooling work and step 7's writing, with a browser automation tool, its install command, and the check command that proves both the tool and its browser work. `/dev-design` renders every prototype at every breakpoint and every state and cannot start without one, and `/dev-check verify` cannot produce a screenshot without one. **On a project with an `app/` that section is required rather than optional.**
+
+**Finding Playwright already in the project does not finish this.** It is a reason the install will be quick, not evidence that a review can run: `/dev-design` runs a probe before every session and routes straight back here when it fails. Run that probe once now, and record what it said.
 
 **You do not map surfaces, settle a design system, write a prototype, or touch `design-registry.md`.** All of it belongs to `/dev-design`, including on the very first run when none of those files exists. A stack conversation that drifts into deciding what the dashboard looks like has created design intent that nobody designed and nobody approved.
 
