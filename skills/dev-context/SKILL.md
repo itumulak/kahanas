@@ -21,8 +21,9 @@ Read each existing item completely before moving to the next:
 5. `.konteksto/build-plan.md`
 6. `.konteksto/progress-tracker.md`
 7. `.konteksto/decision-log.md`
-8. `.konteksto/ui-registry.md`
-9. The approved design, as identified by `build-plan.md`, `project-overview.md`, or the design registry.
+8. `.konteksto/audit-register.md`, when it exists
+9. `.konteksto/ui-registry.md`
+10. The approved design, as identified by `build-plan.md`, `project-overview.md`, or the design registry.
 
 If a required record is absent, do not invent it. State which record is missing and use the owning workflow to resolve it. If no approved design applies to the active task, say so and route UI work to `/dev-design`.
 
@@ -33,6 +34,7 @@ After reading, identify:
 - the project shape, runtime, and verification commands
 - the active or next task, its dependencies, and its progress and verification state
 - the decisions and terminology that constrain that task
+- open audit findings and any QA regressions that affect that task
 - the approved design surface, when the task has UI work
 - document ownership and the next valid workflow step
 

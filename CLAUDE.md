@@ -12,6 +12,8 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | `/dev-develop` | the code, every column of `progress-tracker.md` except Verify Check, all of `ui-registry.md`, and Decision or Evidence rows in `decision-log.md` | Builds it |
 | `/dev-check` | `.konteksto/reviews/`, the Verify Check column in `progress-tracker.md`, plus an Evidence row in `decision-log.md` on a verify pass | Confirms it actually works |
 | `/dev-debug` | the minimal fix, and Decision plus Evidence rows in `decision-log.md` | Finds out why it does not |
+| `/dev-audit` | the Issues table in `audit-register.md` | Tracks review findings across changes |
+| `/dev-qa` | QA Runs in `audit-register.md` | Checks resolved bugs for regression |
 | `/dev-test` | the test files, and `test-preferences.json` | Stops it breaking again |
 | `/dev-document` | `CHANGELOG.md`, `.konteksto/releases/`, `.konteksto/postmortems/` | Explains it to people |
 | `/dev-sync` | corrections to `progress-tracker.md` and `ui-registry.md` from repo evidence | Makes the documents true again |

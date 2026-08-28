@@ -84,6 +84,8 @@ Thirteen documents in `.konteksto/`, plus the design prototypes:
 │                                            Check column from /dev-check)
 ├── decision-log.md        decisions and observed evidence
 │                                    (/dev-develop, /dev-check, /dev-debug append)
+├── audit-register.md      review findings and QA history
+│                                    (/dev-audit, /dev-qa update)
 └── ui-registry.md         reusable components           (/dev-develop updates)
 ```
 

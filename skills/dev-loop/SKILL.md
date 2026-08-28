@@ -1,7 +1,7 @@
 ---
 name: dev-loop
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion
-description: "Run /dev-loop to complete one or more build plan tasks through /dev-develop, /dev-check verify, and /dev-test. Recovers verification failures through /dev-debug, persists the handoff state, and stops only after all selected tasks pass or one task reaches ten failed attempts."
+description: "Run /dev-loop to complete one or more build plan tasks through /dev-develop, /dev-check verify, /dev-test, and final /dev-qa regression checks. Recovers failures through /dev-debug, persists the handoff state, and stops only after all selected tasks and QA checks pass or one repair reaches ten failed attempts."
 ---
 
 ## What this skill does
@@ -11,6 +11,8 @@ The task runner for the delivery chain. It completes one task at a time, in buil
 ```
 /dev-develop  →  /dev-check verify  →  /dev-test
 ```
+
+After every selected task passes, the run ends with `/dev-qa` to check the audit register for regressions.
 
 Verification is the acceptance gate. If it fails, run `/dev-debug`, then return to `/dev-check verify`. Do not send a failed verification back to `/dev-develop`: that skill has already marked the task `DONE`, while `/dev-debug` owns the smallest corrective fix.
 
@@ -27,7 +29,7 @@ Keep these fields in it:
 
 - Selected tasks: <ordered task IDs>
 - Current task: <task ID or none>
-- Phase: <develop | verify | debug | test | complete | blocked>
+- Phase: <develop | verify | debug | test | qa | complete | blocked>
 - Failed attempts for current task: <0 to 10>
 - Last observed result: <short evidence based summary>
 - Next action: <exact skill invocation>
@@ -61,6 +63,16 @@ After each completed task, record the next task and exact next action in `loop-s
 If the host can create and start a new agent session programmatically, start a fresh session with `/dev-loop` and let it resume the saved state. If it cannot, continue with the next selected task in the current session. Do not claim that a fresh session was created unless the host confirmed it.
 
 The saved state is mandatory in both cases. It makes the workflow portable across Codex, Claude Code, OpenCode, and any host that cannot delegate session creation to a skill.
+
+## Final QA
+
+After every selected task has passed its test gate, set the phase to `qa` and run `/dev-qa` without an argument.
+
+- **All pass or no eligible bugs:** complete the run.
+- **A regression fails:** set the current task to the audit issue's linked task, increment its failed attempts, and run `/dev-debug <AUD-ID>`. Then run `/dev-check verify <linked task>`, `/dev-test`, `/dev-audit <linked task>`, and `/dev-qa <AUD-ID>` in that order. A passing targeted QA check returns to final QA for the remaining register.
+- **QA is blocked:** preserve the audit ID and blocker in loop state, then stop. A blocked regression cannot be treated as a passed task.
+
+The repair path applies even when the audit issue came from an earlier task. Do not drop it merely because the selected task list has already completed.
 
 ## Finish
 

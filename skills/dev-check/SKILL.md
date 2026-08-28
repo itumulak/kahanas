@@ -24,7 +24,7 @@ The gate between a task being built and a task being trusted. It confirms soundn
 
 **Before this:** `/dev-develop`, for verify. Any finished change, for review.
 
-**After this:** `/dev-test` once verify passes, `/dev-debug` when it fails, and `/dev-document pr` plus `/dev-sync` before a merge.
+**After this:** `/dev-test` once verify passes, `/dev-debug` when it fails, `/dev-audit` after review to track findings, and `/dev-document pr` plus `/dev-sync` before a merge.
 
 The whole chain, once per project then once per task:
 
