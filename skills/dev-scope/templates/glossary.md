@@ -36,7 +36,7 @@ Repeat one entry per term. Keep them in alphabetical order, so a reader checking
 
 **Not a specification.** What a Booking does, when it may be cancelled, and who may see it are flows in `project-overview.md` and rules in `architecture.md`. This file says only what a Booking is.
 
-**Not a decision record.** Choosing `Booking` over `Reservation` is a decision, and if it was a hard one with a real reason, that reason goes in `decision-log.md` during a build, or in the Why these choices list in `architecture.md` at design time. What lands here is the outcome: one word, and the words it beat.
+**Not a decision or evidence record.** Choosing `Booking` over `Reservation` is a decision, and if it was a hard one with a real reason, that reason goes in `decision-log.md` during a build, or in the Why these choices list in `architecture.md` at design time. What lands here is the outcome: one word, and the words it beat.
 
 **Not a scratch pad.** A term nobody has settled is not an entry. Leave it out and ask.
 
@@ -81,7 +81,7 @@ So it reports and stops: a word this file rejects on an Avoid line, named alongs
 
 *This section is an example. It is not part of a real project's glossary, and the skill writing this file deletes it. It exists so a first entry has a shape to copy, and the terms in it are invented.*
 
-The example is the same invented booking product used by the worked examples in `progress-tracker.md`, `decision-log.md`, and `note-registry.md`, so the four can be read together.
+The example is the same invented booking product used by the worked examples in `progress-tracker.md` and `decision-log.md`, so the three can be read together.
 
 ---
 

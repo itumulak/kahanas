@@ -194,7 +194,7 @@ The Note is overwritten rather than superseded, because the struck stamps beside
 
 *This section is an example. It is not part of a real project's registry, and the skill writing this file deletes it. The surfaces, names, and dates in it are invented.*
 
-Same invented booking product as the worked examples in `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `glossary.md`.
+Same invented booking product as the worked examples in `progress-tracker.md`, `decision-log.md`, and `glossary.md`.
 
 | Surface | Required by | File | Status | Note |
 | --- | --- | --- | --- | --- |

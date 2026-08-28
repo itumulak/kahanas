@@ -8,8 +8,7 @@ Update this file after every completed feature. Any AI agent reading this should
 
 **This file holds state and nothing else**, which is what keeps it scannable as the build grows. Two neighbours carry the rest:
 
-- **`note-registry.md`**, what was run and what it proved, appended to by `/dev-develop`, `/dev-check`, and `/dev-debug`. A Status cell here is a verdict, one word plus who stamped it. A note row there is the observation behind it.
-- **`decision-log.md`**, what was decided and why, appended to by `/dev-develop` and `/dev-debug`. It is one row per decision in the order they happened, where this file is one row per task rewritten as the task moves. Different index, different file.
+- **`decision-log.md`**, the chronological record of what was decided and why, plus what was run and what it proved. It is appended to by `/dev-develop`, `/dev-check`, and `/dev-debug`; this file is one row per task rewritten as the task moves. Different index, different file.
 
 A stamp stays short enough to scan a whole phase precisely because neither of those lives here.
 
@@ -112,7 +111,7 @@ A cell that grows unreadably long is a signal, not a formatting problem. Say so 
 
 Nothing else. **This column is deliberately not a general comment field**, and the restriction is what makes it useful: a Note in this table means something is wrong right now, so a reader scans for a non empty cell instead of reading every one. Open it up to observations and remarks and the column stops carrying that signal within a week.
 
-The reasoning behind a Note belongs in `decision-log.md`, and the command that proved anything belongs in `note-registry.md`. A Note is a flag, one line, and never a substitute for either.
+The reasoning and evidence behind a Note belong in `decision-log.md`. A Note is a flag, one line, and never a substitute for the log.
 
 A Note is cleared the moment its reason goes: when `BLOCKED` is superseded by `DONE`, or a `FAILED` verify by a `PASSED` one, the skill writing that new value replaces the Note with `—` in the same edit. **The Note is the only thing in this table that is overwritten rather than superseded**, because it describes the current state rather than recording history, and the history it would otherwise accumulate is already kept in the struck stamps beside it.
 
@@ -128,7 +127,7 @@ A Note is cleared the moment its reason goes: when `BLOCKED` is superseded by `D
 | Verify Check | `/dev-check verify` | nobody |
 | Note | `/dev-develop` on a `BLOCKED` row, `/dev-check verify` on a `FAILED` one | a person |
 
-**`/dev-check verify` writes the Verify Check cell on a fail as well as a pass**, which is the one place its behavior differs from `note-registry.md`, where it writes only on a pass. The difference is deliberate: this column is a verdict, and a failed verdict is a fact worth recording. That file holds proofs, and a failure proves nothing about the build.
+**`/dev-check verify` writes the Verify Check cell on a fail as well as a pass**, while it writes an Evidence row in `decision-log.md` only on a pass. The difference is deliberate: this column is a verdict, and a failed verdict is a fact worth recording. An Evidence row holds proof that behavior works, and a failure provides none.
 
 **No skill edits another skill's cell.** `/dev-develop` never touches Verify Check, not even to clear a stale one, and `/dev-check` never touches Status, however plainly wrong it looks. A wrong cell is reported, and its owner fixes it.
 
@@ -211,7 +210,7 @@ What each part of it demonstrates:
 - **Task 06** is `BLOCKED` with its reason in Note, and its Verify Check stays `—`. Nothing ran, so nothing is stamped.
 - **Tasks 07 and 08** are untouched rows: bare `PENDING`, no stamp, `—` in both trailing columns. That is exactly how `/dev-architect` writes every row on a fresh project.
 - **The struck `PENDING` on task 03** carries no stamp either, because it never had one to keep.
-- **Only the two problem rows carry a Note**, which is the whole point of the column. A reader scans for a non empty cell and finds exactly the two tasks that need somebody. The reasoning behind them lives in `decision-log.md`, and the commands that proved anything live in `note-registry.md`.
+- **Only the two problem rows carry a Note**, which is the whole point of the column. A reader scans for a non empty cell and finds exactly the two tasks that need somebody. The reasoning and evidence behind them live in `decision-log.md`.
 
 On a personal project the same table drops one column and nothing else changes:
 
@@ -221,18 +220,18 @@ On a personal project the same table drops one column and nothing else changes:
 | 01 Project scaffold and compose stack | DONE, claude-opus-5, 2026-08-02 10:14 | PASSED, claude-opus-5, 2026-08-02 10:41 | — |
 ````
 
-Where the rest of task 05 lives. `note-registry.md` holds one row, from the build:
+Where the rest of task 05 lives. `decision-log.md` holds one Evidence row from the build:
 
 ````markdown
-| 2026-08-07 14:20 | Ian Tumulak | claude-opus-5 | /dev-develop | 05 Availability query endpoint | `pnpm typecheck && pnpm build` clean |
+| 2026-08-07 14:20 | Ian Tumulak | claude-opus-5 | /dev-develop | 05 Availability query endpoint | Evidence | `pnpm typecheck && pnpm build` clean |
 ````
 
-**No row for the 15:02 verify**, because it failed, and that file records only what was proven. The failure is recorded here instead, in the Verify Check cell, with its one line in Note. When `/dev-debug` finds the cause and `/dev-check verify` runs again and passes, the cell gains a struck `FAILED` and a live `PASSED`, the Note goes back to `—`, and the registry finally gains its second row.
+**No row for the 15:02 verify**, because it failed, and the log writes Evidence only for what was proven. The failure is recorded here instead, in the Verify Check cell, with its one line in Note. When `/dev-debug` finds the cause and `/dev-check verify` runs again and passes, the cell gains a struck `FAILED` and a live `PASSED`, the Note goes back to `—`, and the log gains its next Evidence row.
 
 Task 05 has no `decision-log.md` row yet either, because nobody has worked out why it fails. Task 06 does, and it is the row its `BLOCKED` Note points at:
 
 ````markdown
-| 2026-08-08 16:45 | Ian Tumulak | claude-opus-5 | /dev-develop | 06 Booking form page | stopped rather than choosing a date picker. Two candidates, neither on `code-standards.md`'s approved list, and the choice fixes the accessibility story for every form after this one. Routed to `/dev-architect`, and the task is `BLOCKED` until it comes back |
+| 2026-08-08 16:45 | Ian Tumulak | claude-opus-5 | /dev-develop | 06 Booking form page | Decision | stopped rather than choosing a date picker. Two candidates, neither on `code-standards.md`'s approved list, and the choice fixes the accessibility story for every form after this one. Routed to `/dev-architect`, and the task is `BLOCKED` until it comes back |
 ````
 
-Three files, three different questions: where the task stands, what was run, and why it is the way it is. The Worked example sections in `note-registry.md` and `decision-log.md` show the same build from their own side.
+Two files, two different questions: where the task stands, and the chronological record of what was run and why work changed. The Worked example in `decision-log.md` shows the supporting events.

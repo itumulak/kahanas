@@ -35,15 +35,13 @@ Owns no whole file. Chat output only, plus screenshots and logs saved to a scrat
 
 **BLOCKED writes nothing.** A behavior you could not exercise is not a verdict about the task, and a cell left at `—` says truthfully that nobody has checked yet.
 
-**Write two: the note row.** On a PASS, append a row to the Entries table in `note-registry.md` recording what you exercised and that it passed. That is how a later session tells an exercised task from an assumed one.
+**Write two: the Evidence row.** On a PASS, append an Evidence row to `decision-log.md` recording what you exercised and that it passed. That is how a later session tells an exercised task from an assumed one.
 
-`note-registry.md` has three writers, so read its Who writes what section before the first append. Yours is the row that claims the behavior was observed. Append it at the bottom, and never edit a row `/dev-develop` or `/dev-debug` wrote.
+Read the log's Who writes what section before the first append. Yours is the row that claims the behavior was observed. Append it at the bottom, and never edit a row `/dev-develop` or `/dev-debug` wrote.
 
-The row carries the Timestamp as `YYYY-MM-DD HH:MM` from the system clock, the Author as your exact model identifier such as `claude-opus-5`, the Skill as `/dev-check`, and on a team project the Actor from `git config user.name`. Write `unknown-model` and say so rather than guessing one. **Author matters most on your rows**, since verify is the mode most often run on a different model than built the code, and the registry is where that becomes visible.
+The row carries the Timestamp as `YYYY-MM-DD HH:MM` from the system clock, the Author as your exact model identifier such as `claude-opus-5`, the Skill as `/dev-check`, and on a team project the Actor from `git config user.name`. Write `unknown-model` and say so rather than guessing one. **Author matters most on your rows**, since verify is the mode most often run on a different model than built the code. You write Evidence only, never a Decision.
 
-`decision-log.md` is not yours at all. You decide nothing, you observe.
-
-**A fail writes the tracker cell and no note row.** The two files hold different things: the cell is the verdict, and a failed verdict is worth recording, while the registry holds proofs, and a failure proves nothing about the build.
+**A fail writes the tracker cell and no log row.** The tracker cell is the verdict, and a failed verdict is worth recording; an Evidence row records proof that behavior works, and a failure does not provide it.
 
 ---
 
@@ -194,8 +192,8 @@ An overall PASS requires every behavior verified with cited evidence, and every 
 
 Write the verdict where it belongs before reporting:
 
-- **PASS**: stamp `PASSED` in this task's Verify Check cell, and append your row to `note-registry.md`.
-- **FAIL**: stamp `FAILED` in that cell with a one line Note, and write nothing in `note-registry.md`, because that file records what was proven and a failure proves nothing.
+- **PASS**: stamp `PASSED` in this task's Verify Check cell, and append your Evidence row to `decision-log.md`.
+- **FAIL**: stamp `FAILED` in that cell with a one line Note, and write nothing in `decision-log.md`, because a failure proves nothing about a working build.
 - **BLOCKED**: write in neither file. Nothing was exercised, so there is no verdict to record.
 
 ```

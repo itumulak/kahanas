@@ -54,8 +54,7 @@ The documents below, all created and updated by this skill only, filled from the
 | 5 | `build-plan.md` | Features in Scope, plus the architecture |
 | 6 | `progress-tracker.md` | the exact phases and tasks in `build-plan.md` |
 | 7 | `decision-log.md` | nothing, it starts empty |
-| 8 | `note-registry.md` | nothing, it starts empty |
-| 9 | `ui-registry.md` | the component rules in `code-standards.md` |
+| 8 | `ui-registry.md` | the component rules in `code-standards.md` |
 
 **The plan does not wait on any design.** `/dev-design` runs after this skill, and a surface with no approved prototype blocks its own task rather than the plan. Write the whole plan regardless.
 
@@ -72,7 +71,7 @@ Never touch `project-overview.md`. It is `/dev-scope`'s file. If this work prove
 
 **`design.md`, `design-registry.md`, and `.konteksto/designs/` are `/dev-design`'s, and you write none of them.** Not a row, not a status, not a line of a prototype, and not on the first run when none of them exists yet. A design need that turns out to be a technical decision comes back here; the design itself never does.
 
-**Four of these are living files, created here and updated elsewhere.** `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `ui-registry.md` are written once by this skill, in their starting state, and every update after that belongs to another skill: a task's Status and a new component section to `/dev-develop`, a task's Verify Check to `/dev-check verify`, a decision row to `/dev-develop` or `/dev-debug`, and a note row to whichever of `/dev-develop`, `/dev-check`, or `/dev-debug` ran the thing. Do not stamp a task, register a component, log a decision, or write a note row for something that does not exist yet.
+**Three of these are living files, created here and updated elsewhere.** `progress-tracker.md`, `decision-log.md`, and `ui-registry.md` are written once by this skill, in their starting state, and every update after that belongs to another skill: a task's Status and a new component section to `/dev-develop`, a task's Verify Check to `/dev-check verify`, and Decision or Evidence rows to `/dev-develop`, `/dev-check`, or `/dev-debug`. Do not stamp a task, register a component, or log an event for something that does not exist yet.
 
 Read a template from `templates/`, in this skill's folder, and write the filled copy to `.konteksto/<same-file-name>`. Never edit a template in place.
 
@@ -299,30 +298,29 @@ For each:
 2. Replace every bracketed placeholder with real content. No literal `<TOKEN>` survives. Check before presenting.
 3. Follow the template's repeat instructions. One section per table, per language, per client, per library. Produce as many as the project needs.
 4. Keep a section marked Optional only when it genuinely applies. Remove it otherwise and say which you removed and why. Never present an empty section as a placeholder.
-5. **Delete every section marked Reference only**, meaning the Worked example at the end of `progress-tracker.md`, `decision-log.md`, and `note-registry.md`. Read it, then leave it out of the file you write. Its content is invented, and invented tasks, names, and dates left in a real document send the next session looking for work nobody did.
+5. **Delete every section marked Reference only**, meaning the Worked example at the end of `progress-tracker.md` and `decision-log.md`. Read it, then leave it out of the file you write. Its content is invented, and invented tasks, names, and dates left in a real document send the next session looking for work nobody did.
 6. Present the file, get approval, then start the next. If a change contradicts an earlier file, go back and fix that file too.
 
 ### Step 8: Write the Stage 2 documents
 
-Only after every Stage 1 artifact is approved. Same per file process, in order: `build-plan.md`, `progress-tracker.md`, `decision-log.md`, `note-registry.md`, `ui-registry.md`.
+Only after every Stage 1 artifact is approved. Same per file process, in order: `build-plan.md`, `progress-tracker.md`, `decision-log.md`, `ui-registry.md`.
 
 Extra rules:
 
 - `build-plan.md` writes the history line step 2a settled, on an existing codebase: either `## Phase 0 — Already built` with one task per existing feature, or no Phase 0 at all, plus the one line under Core Principle that says which it is. `internal/adoption-baseline.md` has the wording. On a fresh project neither applies.
 - `build-plan.md` covers every feature in the Features in Scope list and nothing from the out of scope list. Its Feature Count table must match the number of tasks actually written. Order the phases so each one is visible and testable before the next starts.
 - `progress-tracker.md` mirrors `build-plan.md` exactly, one Progress table per phase and one row per task, same phase and task order. A Phase 0 in the plan gets its Progress table here too, every row reading `BASELINE` with its stamp and an empty Verify Check. **Never `DONE` and never a Verify Check on one of those rows**: nothing was built here and nothing was exercised, and `progress-tracker.md` defines the difference. Every other row reads `PENDING` with no stamp, an empty Verify Check and Note written as `—`, Last completed reads "nothing yet", and Next names the first task not in Phase 0. **Never stamp a `PENDING` row.** A stamp names a model and a minute, and nothing has been built yet. A `BASELINE` row is stamped, and that file's Status section says what its stamp means. Its Worked example section is Reference only: read it for the shape, and delete it from the file you write.
-- `decision-log.md` always ships, and always starts with its headings and an empty Entries table. Nothing has been decided during a build that has not started, so a row here would be invented reasoning. Keep the What belongs here section exactly as the template has it, since it is the boundary the writing skills read, and delete the Worked example.
-- `note-registry.md` always ships, backend or frontend, and always starts with its headings and an empty Entries table. Nothing has been run yet, so writing a row here would be inventing evidence. Keep the Who writes what and Excluded sections exactly as the template has them, since they are the contract the three writing skills read, and delete the Worked example.
+- `decision-log.md` always ships, and always starts with its headings and an empty Entries table. Nothing has been decided or observed during a build that has not started, so a row here would be invented history. Keep the Entries and Who writes what sections exactly as the template has them, and delete the Worked example.
 
 **Team Shape decides the shape of three of these.** Read that section in `project-overview.md` before writing any of them, and follow it exactly rather than deciding for yourself. `/dev-scope` asked the user, and this is where their answer takes effect.
 
 **Mode is `team`:**
 
 - Every task row in `progress-tracker.md` keeps its Assigned column, and every cell in it reads `unassigned`. Never fill in a name here. Nobody has picked up a task yet, and an assignee you invented would send someone to the wrong person.
-- `note-registry.md` and `decision-log.md` both keep their Actor column. **Their Author column stays either way**, since the model varies between sessions even when the person does not.
+- `decision-log.md` keeps its Actor column. Its Author column stays either way, since the model varies between sessions even when the person does not.
 - Say plainly in your handoff that the assignee is a convention rather than a lock, so nobody reads the column as a reservation the system enforces. It does not, and cannot.
 
-**Mode is `personal`:** drop the Assigned column from every Progress table in `progress-tracker.md`, and delete the Actor column from `note-registry.md` and `decision-log.md` along with the paragraph describing it in each. One person means one value in all three, and a column with one value is noise that makes the file harder to read for no gain. **Keep the Author column in both.** It is not the same fact: the person is fixed on a personal project and the model is not.
+**Mode is `personal`:** drop the Assigned column from every Progress table in `progress-tracker.md`, and delete the Actor column from `decision-log.md` along with its description. One person means one repeated value, and a column with one value is noise. **Keep the Author column.** The person is fixed on a personal project and the model is not.
 
 **On `team`, also set up the role file.** Add `.konteksto/role.local.json` to the project's `.gitignore`, and write nothing into it yourself.
 

@@ -153,7 +153,7 @@ Two questions. Both describe how the work happens rather than what gets built, a
 
 Ask whether this is a personal project or a team one. Recommend from what the root survey showed: several distinct authors in `git log` means team, a single author or no history means personal. Say which signal you used, since a solo developer on a shared repository will want to correct you.
 
-Say plainly what the answer changes, because it is not obvious from the question: on **team**, `/dev-architect` gives every task in `progress-tracker.md` an assignee and every row in `note-registry.md` an actor, so the plan records who owns a task and the log records who ran each check. On **personal**, both are left out, since there is only ever one answer and a column with one value in it is noise.
+Say plainly what the answer changes, because it is not obvious from the question: on **team**, `/dev-architect` gives every task in `progress-tracker.md` an assignee and every row in `decision-log.md` an actor, so the plan records who owns a task and the log records who ran each event. On **personal**, both are left out, since there is only ever one answer and a column with one value in it is noise.
 
 **Say what this does not do.** It records who owns a task; it does not reserve one. Nothing in this workflow can stop two people building the same task at once, because these are instructions an agent reads, not a server holding a lock. If the user needs a real guarantee, that is branch protection or an issue tracker, and it belongs in their setup rather than in these documents. Promising a lock the system cannot deliver is worse than not offering one.
 
@@ -229,7 +229,7 @@ Report:
 - That `.konteksto/project-overview.md` and `.konteksto/glossary.md` are written and approved.
 - **The glossary's terms, and any concept you could not name.** `/dev-architect` writes every table, boundary, and component name from these words, and it is the other writer on that file, so say which terms are settled and which the design still has to sharpen.
 - What the root survey found: whether a codebase exists, and what it showed.
-- The team shape: personal or team, and whether phase checkpoints are on. `/dev-architect` shapes `progress-tracker.md`, `note-registry.md`, and `build-plan.md` from these two answers, so say them explicitly rather than leaving them to be read back out of the file.
+- The team shape: personal or team, and whether phase checkpoints are on. `/dev-architect` shapes `progress-tracker.md`, `decision-log.md`, and `build-plan.md` from these two answers, so say them explicitly rather than leaving them to be read back out of the file.
 - The project shape: which halves exist, and whether the layout is the recommended one or a custom one. `/dev-architect` needs both to write the compose file and the folder tree.
 - Any tool, provider, or constraint the user named during the conversation. This is the only place those belong.
 - Any question that came up which is a how question, not a what question, so `/dev-architect` starts with it.

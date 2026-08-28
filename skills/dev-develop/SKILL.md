@@ -42,8 +42,7 @@ The whole chain, once per project then once per task:
 - `.konteksto/progress-tracker.md`, on every task. This is what tells the next session where things stand, so it is updated as part of finishing a task, never batched up for later. You own every column of its Progress tables **except Verify Check**, which is `/dev-check verify`'s and yours to read only. `/dev-sync` may correct your columns afterward from repo evidence, never while you are working.
 
   **Two things in it a person owns.** A task's assignee may be reassigned by hand, and a checkpoint approval is only ever written by hand. You may claim an unassigned task and you may mark a checkpoint due, and that is the whole of it. Do not reassign, and never approve.
-- `.konteksto/decision-log.md`, an appended row whenever the build produced a real decision, a bug with a cause worth knowing, or an assumption you had to state. **Only then.** Most tasks that go to plan write nothing here, and a log padded with narration is one `/dev-document` can no longer mine. `/dev-debug` appends here too, so append your own row and leave its alone.
-- `.konteksto/note-registry.md`, one appended row per task, recording the command that confirmed the build is clean and its result.
+- `.konteksto/decision-log.md`, appended Decision rows when the build produced a real decision, a bug with a cause worth knowing, or an assumption you had to state, plus one Evidence row per task for the command that confirmed the build is clean. **Only then** for decisions. Most tasks that go to plan write no Decision row, and a log padded with narration is one `/dev-document` can no longer mine. `/dev-debug` and `/dev-check` append here too, so append your own rows and leave theirs alone.
 
   **You are one of three writers here.** `/dev-check` appends a row on a verify pass, and `/dev-debug` appends one when it confirms a fix. Append your own row and leave theirs alone, because those rows claim something yours does not: that the behavior was exercised, or that a bug was proven gone. A clean build is neither.
 - `.konteksto/ui-registry.md`, one section per reusable component, at the moment the component is built. `/dev-architect` creates the file empty, and every entry in it comes from here.
@@ -180,9 +179,9 @@ The third option exists so an assumption becomes durable. Written in the tracker
 
 Read `flow/build.md` and follow it. Do not read it when the gate ends the run.
 
-### Step 3: Update the tracker, the decision log, and the note registry
+### Step 3: Update the tracker and the decision and evidence log
 
-Only after something is verified working. Three files, all edited surgically. Read each again immediately before writing, in case a teammate moved it.
+Only after something is verified working. Two files, both edited surgically. Read each again immediately before writing, in case a teammate moved it.
 
 In `progress-tracker.md`, change only these:
 
@@ -194,20 +193,20 @@ In `progress-tracker.md`, change only these:
 - **Team projects:** set this task's **Assigned** cell to `git config user.name` if it still reads `unassigned`. Leave every other task's assignee alone.
 - **Checkpoints on:** when this task was the last one in its phase still short of `DONE`, move that phase's row in the Checkpoints table from `not due` to `due`. That is the only checkpoint change you make. **Never write an approval**, however obviously sound the phase looks, because an approval claims a person reviewed it and you are not one.
 
-In `decision-log.md`, append one row to the bottom of the Entries table for anything real: a bug found and why it happened, a local choice a later session would otherwise wonder about, an assumption you built on. **Not a diary of every edit.** Read the file's What belongs here section before your first append. Nothing worth recording means nothing gets written, which is the normal case for a task that went to plan.
+In `decision-log.md`, append one Decision row for anything real: a bug found and why it happened, a local choice a later session would otherwise wonder about, or an assumption you built on. **Not a diary of every edit.** Nothing worth recording means no Decision row, which is normal for a task that went to plan.
 
-In `note-registry.md`, append one row to the bottom of the Entries table: the command you ran to confirm the build is clean, with its result.
+In `decision-log.md`, append one Evidence row for the command you ran to confirm the build is clean, with its result.
 
-**Both rows carry the same four stamp fields**, filled the same way:
+**Every log row carries the same four stamp fields**, filled the same way:
 
 - **Timestamp**, `YYYY-MM-DD HH:MM`, read from the system clock at the moment you write it. Never from memory.
-- **Author**, your exact model identifier, for example `claude-opus-5`. This column is on both files whether the project is team or personal. Write `unknown-model` and say so in your report rather than guessing one.
+- **Author**, your exact model identifier, for example `claude-opus-5`. This column remains on personal projects. Write `unknown-model` and say so in your report rather than guessing one.
 - **Skill**, `/dev-develop`.
 - **Actor**, `git config user.name`, on a team project only.
 
-Read each file's own section on its columns before your first append, then append and touch nothing else.
+Read the log's own section on its columns before your first append, then append and touch nothing else.
 
-Never rewrite any of the three, never stamp a task you did not build, and never edit a note row or a decision row you did not write.
+Never rewrite either file, never stamp a task you did not build, and never edit a log row you did not write.
 
 ### Step 4: Report
 

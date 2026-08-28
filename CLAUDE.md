@@ -7,11 +7,11 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | Skill | Owns | Answers |
 | --- | --- | --- |
 | `/dev-scope` | `project-overview.md`, and `glossary.md` | What the product is, what its parts are called, and whether a team builds it |
-| `/dev-architect` | `architecture.md`, `tooling.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, additions to `glossary.md`, plus the starting state of `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `ui-registry.md` | How it gets built |
+| `/dev-architect` | `architecture.md`, `tooling.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, additions to `glossary.md`, plus the starting state of `progress-tracker.md`, `decision-log.md`, and `ui-registry.md` | How it gets built |
 | `/dev-design` | `design.md`, `design-registry.md`, `.konteksto/designs/` | How it looks, and whether a person approved it |
-| `/dev-develop` | the code, every column of `progress-tracker.md` except Verify Check, all of `ui-registry.md`, a clean build row in `note-registry.md`, and a `decision-log.md` row when there was one | Builds it |
-| `/dev-check` | `.konteksto/reviews/`, the Verify Check column in `progress-tracker.md`, plus one `note-registry.md` row on a verify pass | Confirms it actually works |
-| `/dev-debug` | the minimal fix, a cause row in `decision-log.md`, and a fix confirmed row in `note-registry.md` | Finds out why it does not |
+| `/dev-develop` | the code, every column of `progress-tracker.md` except Verify Check, all of `ui-registry.md`, and Decision or Evidence rows in `decision-log.md` | Builds it |
+| `/dev-check` | `.konteksto/reviews/`, the Verify Check column in `progress-tracker.md`, plus an Evidence row in `decision-log.md` on a verify pass | Confirms it actually works |
+| `/dev-debug` | the minimal fix, and Decision plus Evidence rows in `decision-log.md` | Finds out why it does not |
 | `/dev-test` | the test files, and `test-preferences.json` | Stops it breaking again |
 | `/dev-document` | `CHANGELOG.md`, `.konteksto/releases/`, `.konteksto/postmortems/` | Explains it to people |
 | `/dev-sync` | corrections to `progress-tracker.md` and `ui-registry.md` from repo evidence | Makes the documents true again |
@@ -80,7 +80,7 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 
 **This overview and `README.md` are the exception, and they still may not carry specifics.** Their job is orientation for somebody maintaining the skills, so they say what a rule is for and why it exists. They do not restate its exact conditions, values, or counts, because a summary that carries operational detail is just another copy waiting to go stale.
 
-**A new artifact needs a fundamentally different owner, lifecycle, or truth source.** There are already six state and knowledge files: `progress-tracker.md`, `decision-log.md`, `note-registry.md`, `ui-registry.md`, `design-registry.md`, and `glossary.md`. Each earns its place on that test. New information goes into an existing artifact unless it can pass the same one, because the cost of another file is paid by every session that has to know it exists.
+**A new artifact needs a fundamentally different owner, lifecycle, or truth source.** There are already five state and knowledge files: `progress-tracker.md`, `decision-log.md`, `ui-registry.md`, `design-registry.md`, and `glossary.md`. Each earns its place on that test. New information goes into an existing artifact unless it can pass the same one, because the cost of another file is paid by every session that has to know it exists.
 
 ## Design
 
@@ -106,7 +106,7 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 
 **A codebase that shipped before this workflow gets a baseline, not a backlog.** Two questions are asked on an existing project, one each: `/dev-design` asks whether the screens that already exist owe prototypes, before it maps a single surface, and `/dev-architect` asks whether the features already built appear in the plan. The default on both is no, and each is asked next to the artifact its answer governs, since a user may well want one and not the other. Work before the line is recorded as predating the workflow, and everything after it follows the process in full, so a new page still needs a prototype and still needs a person to approve it.
 
-**The baseline is a date, and it is never a verdict.** A baseline row says nobody owes a design, not that anybody reviewed one, and it never satisfies a rule asking for `APPROVED`. A baseline task is not `DONE`, because `DONE` claims a build this workflow ran and watched come back clean. Collapsing either into its neighbour is the same failure as a fabricated note row: it reads exactly like a real one to the next session. `design-registry.md` and `progress-tracker.md` each define their own value, and each skill's own `internal/adoption-baseline.md` holds its question.
+**The baseline is a date, and it is never a verdict.** A baseline row says nobody owes a design, not that anybody reviewed one, and it never satisfies a rule asking for `APPROVED`. A baseline task is not `DONE`, because `DONE` claims a build this workflow ran and watched come back clean. Collapsing either into its neighbour is the same failure as fabricated evidence: it reads exactly like a real observation to the next session. `design-registry.md` and `progress-tracker.md` each define their own value, and each skill's own `internal/adoption-baseline.md` holds its question.
 
 **An accessibility departure makes the prototype stale, not the implementation wrong.** The build is correct and the approved design is what now disagrees with reality, so it is the design that gets fixed. Unrouted, the next surface inherits the same inaccessible pattern from a document still claiming somebody blessed it. `design-registry.md` holds the routing.
 
@@ -114,7 +114,7 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 
 **`test-preferences.json` is a cross skill contract.** `/dev-test` owns it, and `/dev-check review` reads it to decide whether missing coverage is a finding at all. A project that deliberately has no test runner records that there, and the review then stops asking for one.
 
-**Where a document has more than one writer, every side says so.** `note-registry.md` is created empty by `/dev-architect` and appended to by three skills: `/dev-develop` records the command that proved the build clean, `/dev-check verify` records what it exercised on a pass, and `/dev-debug` records the check that proved a fix. All four files state the rule from their own side, and so does the registry itself, in its Who writes what section. An unstated extra writer is how this system rots.
+**Where a document has more than one writer, every side says so.** `decision-log.md` is created empty by `/dev-architect` and appended to by three skills: `/dev-develop` records build decisions and clean checks, `/dev-check verify` records what it exercised on a pass, and `/dev-debug` records the cause, fix, and confirming checks. An unstated extra writer is how this system rots.
 
 **`glossary.md` is the second shared document, and it splits by stage rather than by row or column.** `/dev-scope` creates it and writes the words the user used. `/dev-architect` adds a term the design brought into being and sharpens a definition the schema proved imprecise, and **may never rename one**, because a rename is a decision about the product's own language and belongs to the person whose product it is. Everything else reads it, names what it builds from it, and reports drift.
 
@@ -126,17 +126,17 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 
 **Append only, and never across writers.** A row is a claim about a moment that has already passed. A skill appends its own row and edits nobody's, and `/dev-sync` writes none at all, because it has run nothing and a fabricated observation reads exactly like a real one.
 
-`progress-tracker.md` splits differently, **by column rather than by row.** `/dev-architect` creates it, `/dev-develop` owns every column of its phase tables except one, and `/dev-check verify` owns that one, Verify Check, and touches nothing else in the file. `/dev-sync` may still correct `/dev-develop`'s columns from repo evidence after the fact, never during a build, and it writes no Verify Check cell at all, for the same reason it writes no note row: it has run nothing.
+`progress-tracker.md` splits differently, **by column rather than by row.** `/dev-architect` creates it, `/dev-develop` owns every column of its phase tables except one, and `/dev-check verify` owns that one, Verify Check, and touches nothing else in the file. `/dev-sync` may still correct `/dev-develop`'s columns from repo evidence after the fact, never during a build, and it writes no Verify Check cell or Evidence row: it has run nothing.
 
 **A `DONE` Status and a `PASSED` Verify Check are two different claims, so they are two columns.** `DONE` says the code was built and the build is clean. `PASSED` says a model ran the thing and watched it work. A task holding `DONE` with a `FAILED` verify is a real and useful state, and one column could not express it.
 
 **Every Status and Verify Check value is stamped with the model that wrote it and the minute it wrote it**, and a value that changes is superseded by striking the old one through and appending the new, so a cell reads oldest to newest and the last unstruck value is current. Nothing is deleted and nothing is edited in place. A task that went `DONE`, then `BLOCKED`, then `DONE` again is telling a later session something a single final value hides, and the model name is what lets a reader judge how much to trust a stale verdict.
 
-**Three files hold three different things about the same task, and none of them may absorb another.** `progress-tracker.md` says where it stands, in one word per cell, so a phase can be read at a glance. `note-registry.md` says what was run and what it showed, an observation somebody could reproduce. `decision-log.md` says what was decided and why, which no command produces and no repository preserves. The test when placing something is whether you watched it happen or concluded it: watched goes to the registry, concluded goes to the log.
+**Two files hold different things about the same task.** `progress-tracker.md` says where it stands, in one word per cell, so a phase can be read at a glance. `decision-log.md` holds the append only event history: decisions and the evidence that supports them. Its Kind column preserves whether an event was a Decision or Evidence.
 
-`decision-log.md` was inside the tracker until the tracker became a state table, and it moved out for the same reason the note rows did: **the two are indexed differently.** The tracker is one row per task, rewritten in place as that task moves. The log and the registry are one row per event, in the order events happened, and nothing in either is ever rewritten. A file cannot be both at once. The log is also what `/dev-document` mines for changelogs and postmortems, which is why padding it with narration costs something real.
+`decision-log.md` moved out of the tracker because they are indexed differently. The tracker is one row per task, rewritten in place as that task moves. The log is one row per event, in chronological order, and nothing in it is ever rewritten. The log is also what `/dev-document` mines for changelogs and postmortems, which is why padding it with narration costs something real.
 
-**All three tables stamp who wrote each row and when**, to the minute. The tracker stamps inside its Status and Verify Check cells; the log and the registry each carry a Timestamp and an Author column. **Author is the exact model identifier**, and it survives on a personal project even though Actor does not, because the model changes between sessions when the person does not, and a reader weighing a six week old verdict wants to know what produced it.
+**Both tables stamp who wrote each entry and when**, to the minute. The tracker stamps inside its Status and Verify Check cells; the log carries a Timestamp and an Author column. **Author is the exact model identifier**, and it survives on a personal project even though Actor does not, because the model changes between sessions when the person does not, and a reader weighing a six week old verdict wants to know what produced it.
 
 **The tracker's Note column is deliberately narrow.** Only a `BLOCKED` Status or a `FAILED` Verify Check carries one, both must, and every other row reads `—`. A Note means something is wrong right now, so a reader scans for a non empty cell rather than reading every one. It is also the one cell that is overwritten rather than superseded: when its reason goes, it clears, because the struck stamps beside it already keep the history.
 
@@ -148,7 +148,7 @@ The stamp records provenance, not permission. It never licenses overwriting some
 
 ## Team shape and checkpoints
 
-**Team Shape is asked in scope and applied in architect.** `/dev-scope` asks two questions, personal or team, and phase checkpoints on or off, and records the answers in `project-overview.md`. It touches nothing else, because both answers are facts about the work rather than tool choices. `/dev-architect` reads them and shapes three documents: an Assigned column in `progress-tracker.md`, an Actor column in `note-registry.md`, and a Checkpoint block per phase in `build-plan.md` with a Checkpoints table tracking their state. Personal projects get none of it, since a column with one value in it is noise.
+**Team Shape is asked in scope and applied in architect.** `/dev-scope` asks two questions, personal or team, and phase checkpoints on or off, and records the answers in `project-overview.md`. It touches nothing else, because both answers are facts about the work rather than tool choices. `/dev-architect` reads them and shapes three documents: an Assigned column in `progress-tracker.md`, an Actor column in `decision-log.md`, and a Checkpoint block per phase in `build-plan.md` with a Checkpoints table tracking their state. Personal projects get none of it, since a column with one value in it is noise.
 
 **No skill can reserve a task, and no document may pretend otherwise.** The assignee is a convention. `/dev-develop` reads it and stops when a task belongs to someone else, but two people on two machines both pass that check and either can proceed. These are instructions an agent reads, not a server holding a lock. Real enforcement is branch protection or an issue tracker, and every place that mentions assignment says so, because a guarantee the system cannot keep is worse than no guarantee at all.
 
@@ -156,7 +156,7 @@ The stamp records provenance, not permission. It never licenses overwriting some
 
 **Checkpoints are non blocking, and name coverage rather than writing it.** A phase may start with the last one unapproved. The Checkpoint block says what a reviewer must confirm and what needs test coverage, then routes to `/dev-test`, which stays the only writer of test files.
 
-**`/dev-sync` escalates, and never arbitrates.** One task with note rows from two actors is reported with every actor and branch named, and there it stops. Choosing which branch survives, or resolving the conflict, is a person's call: from the outside two branches on one task look identical whether one supersedes the other or both hold work someone needs.
+**`/dev-sync` escalates, and never arbitrates.** One task with log rows from two actors is reported with every actor and branch named, and there it stops. Choosing which branch survives, or resolving the conflict, is a person's call: from the outside two branches on one task look identical whether one supersedes the other or both hold work someone needs.
 
 One rule holds the split together: **`/dev-scope` owns the what and never names a tool. `/dev-architect` owns the how and makes every tool call.** `/dev-design` names no tool either, and installs nothing, including the browser its own review sessions run on. A second skill reaching for a package manager would be a second answer to what this project is built with.
 

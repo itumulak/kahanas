@@ -39,9 +39,7 @@ The whole chain, once per project then once per task:
 
 ## Artifact ownership
 
-**Writes** the minimal code fix for the proven root cause, one appended row in `decision-log.md` recording the cause and the fix, and one appended row in `note-registry.md` recording the reproduction and the check that confirmed the fix.
-
-Those two are different claims and both are needed. The decision row is **why** the bug existed, which is what stops a later session covering this ground again. The note row is **what you ran to prove it is gone**, which is what stops a later session taking the fix on trust. `note-registry.md` has three writers, so read its Who writes what section, append at the bottom, and never edit a row `/dev-develop` or `/dev-check` wrote.
+**Writes** the minimal code fix for the proven root cause and appended Decision and Evidence rows in `decision-log.md`. The Decision explains the cause and fix. The Evidence records the reproduction and confirmation. Read the log's Who writes what section, append at the bottom, and never edit a row another skill wrote.
 
 **Both rows carry the same stamp fields**: the Timestamp as `YYYY-MM-DD HH:MM` from the system clock, the Author as your exact model identifier such as `claude-opus-5`, the Skill as `/dev-debug`, and on a team project the Actor from `git config user.name`. Write `unknown-model` and say so rather than guessing an identifier. Author stays on a personal project even though Actor goes, since the model changes between sessions and the person does not.
 
@@ -134,7 +132,7 @@ For an investigation that is not trivial, spawn a subagent so the iterative tool
 **Fix**: <the smallest change, and the files touched>
 **Regression test**: <added inline | case handed to /dev-test>
 **Siblings**: <the same cause found elsewhere, fixed or reported | none found>
-**Recorded**: <the row appended to decision-log.md, and the row appended to note-registry.md>
+**Recorded**: <the Decision and Evidence rows appended to decision-log.md>
 **Deeper issue**: <a document this proves wrong, run /dev-architect or /dev-design | none>
 ```
 

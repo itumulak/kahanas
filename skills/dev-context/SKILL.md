@@ -21,9 +21,8 @@ Read each existing item completely before moving to the next:
 5. `.konteksto/build-plan.md`
 6. `.konteksto/progress-tracker.md`
 7. `.konteksto/decision-log.md`
-8. `.konteksto/note-registry.md`
-9. `.konteksto/ui-registry.md`
-10. The approved design, as identified by `build-plan.md`, `project-overview.md`, or the design registry.
+8. `.konteksto/ui-registry.md`
+9. The approved design, as identified by `build-plan.md`, `project-overview.md`, or the design registry.
 
 If a required record is absent, do not invent it. State which record is missing and use the owning workflow to resolve it. If no approved design applies to the active task, say so and route UI work to `/dev-design`.
 
