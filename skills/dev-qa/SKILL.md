@@ -15,7 +15,7 @@ Write everything this skill produces, files and messages alike, in plain simple 
 
 The regression gate. It reads `.konteksto/audit-register.md` and reruns the documented reproduction or acceptance case for audit findings that have a runtime behavior to test.
 
-A bare `/dev-qa` checks every bug in state `ready for QA` or `verified`. `/dev-qa AUD-012` checks only that issue. Reject an unknown ID, a non bug issue, or an issue without a reproducible case rather than guessing what to test.
+A bare `/dev-qa` checks every bug or regression in state `ready for QA` or `verified`. `/dev-qa AUD-012` checks only that issue. Reject an unknown ID, a non bug or regression issue, or an issue without a reproducible case rather than guessing what to test.
 
 If the audit register does not exist, report that there are no registered bugs to check. That is a successful no work result, not a reason to block a new project.
 
@@ -25,7 +25,7 @@ This skill appends QA Runs rows in `.konteksto/audit-register.md`. It may update
 
 ## Check a finding
 
-1. Read the audit issue, its linked review report, the decision log, and the task's flow or test evidence.
+1. Read the audit issue, its linked review report, the decision log, and the task's flow or test evidence. For a `ready for QA` issue, confirm that Review basis matches the current revision or reviewed scope fingerprint. If it is stale, do not run QA or change Status; route it to `/dev-audit <linked task>` for a fresh review.
 2. Reproduce the original failing case or run the documented regression test against the real application. Do not substitute a type check or code reading for observed behavior.
 3. Append one QA Runs row with `PASS`, `FAIL`, or `BLOCKED`, timestamped from the system clock. Include the decisive evidence.
 4. On PASS, update the selected issue to `verified`.

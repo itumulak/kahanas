@@ -16,6 +16,8 @@ Entries describe the effect on someone running the skills, not the edit that pro
 
 - **Review findings have a lifecycle.** `audit-register.md` links immutable review reports to open, ready for QA, verified, reopened, or accepted findings. QA records the observed regression result and may transition only its issue status.
 
+- **Older `note-registry.md` references below are historical.** They describe the pre 0.7.0 workflow and are superseded by the decision and evidence log migration above.
+
 ## [0.6.1] — 2026-08-15
 
 Three gaps found by running `/dev-design` on a real project: it could not tell a Playwright it can use from one it cannot, it had no way to prove the browser works before a person was waiting, and ending a session meant killing processes by number.

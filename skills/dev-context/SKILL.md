@@ -28,7 +28,7 @@ Read each existing item completely before moving to the next:
 5. `.konteksto/build-plan.md`
 6. `.konteksto/progress-tracker.md`
 7. `.konteksto/decision-log.md`
-8. `.konteksto/audit-register.md`, when it exists
+8. `.konteksto/audit-register.md`, when it exists, because unresolved findings constrain the active task before its component inventory is read
 9. `.konteksto/ui-registry.md`
 10. The approved design, as identified by `build-plan.md` or the design registry.
 
@@ -45,7 +45,7 @@ After reading, identify:
 - the approved design surface, when the task has UI work
 - document ownership and the next valid workflow step
 
-Read `.konteksto/loop-state.md` after the required records when it exists. It is supplemental execution state, not a replacement for the progress tracker.
+Read `.konteksto/loop-state.md` after the required records when it exists. It is supplemental execution state, not a replacement for the progress tracker. When it describes an active run, its Next action is the current workflow instruction; report it verbatim rather than deriving a competing next step.
 
 ## Apply the protocols
 

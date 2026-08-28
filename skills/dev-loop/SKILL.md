@@ -27,21 +27,7 @@ The runner selects only the tasks named in its argument. A bare `/dev-loop` resu
 
 ## State and ownership
 
-This skill owns `.konteksto/loop-state.md`. Create it only when a run begins. Update it after every phase transition and before any session boundary. It must never edit application code, `progress-tracker.md`, `decision-log.md`, `audit-register.md`, design records, test files, or a subskill's artifact.
-
-Keep these fields in it:
-
-```md
-# Dev loop state
-
-- Selected tasks: <ordered task IDs>
-- Current task: <task ID or none>
-- Phase: <develop | verify | debug | test | qa | complete | blocked>
-- Failed attempts by task: <task ID: count>
-- Total repair attempts: <0 to 30>
-- Last observed result: <short evidence based summary>
-- Next action: <exact skill invocation>
-```
+This skill owns `.konteksto/loop-state.md`. Create it from `templates/loop-state.md` only when a run begins. Update it after every phase transition and before any session boundary. It must never edit application code, `progress-tracker.md`, `decision-log.md`, `audit-register.md`, design records, test files, or a subskill's artifact.
 
 The build plan and progress tracker remain the source of truth for task status. This file records only loop control state, so a fresh agent can resume without guessing whether testing was completed.
 
@@ -57,10 +43,10 @@ The build plan and progress tracker remain the source of truth for task status. 
 For the current task, keep the state file current and perform exactly one phase at a time.
 
 1. **Develop.** Run `/dev-develop <task ID>`. Respect its gates and stop if it routes to an owner such as `/dev-architect` or `/dev-design`.
-2. **Verify.** Run `/dev-check verify <task ID>`. A pass advances to test. On a failure, preserve the verifier's route. A behavioral failure increments that task's repair count and advances to debug. A promised but missing or built but not live surface returns to `/dev-develop <task ID>`. A prototype that is wrong or silent routes to `/dev-design`.
+2. **Verify.** Run `/dev-check verify <task ID>`. A pass advances to test. On a failure, preserve the verifier's route in Attempt history with its observed evidence. A behavioral failure increments that task's `/dev-debug` repair count and the run total, then advances to debug. A promised but missing or built but not live surface increments its `/dev-develop` repair count and the run total, then returns to `/dev-develop <task ID>`. A prototype that is wrong or silent routes to `/dev-design`.
 3. **Debug.** Run `/dev-debug <task ID>`, then return directly to verify.
-4. **Test.** Run `/dev-test`. A passing suite completes the task. If the suite exposes a defect, count it as a failed attempt, record the failing evidence, run `/dev-debug <task ID>`, then verify and test again. If `/dev-test` reports that this project intentionally has no test runner, the Definition of Done in `code-standards.md` is the implementation gate and the task completes once it passes.
-5. At ten failed attempts for one task, or thirty repairs across the run, set the phase to `blocked`, preserve the decisive evidence, and stop. Do not start another selected task.
+4. **Test.** Run `/dev-test`. A passing suite completes the task. If the suite exposes a defect, count it against that task's `/dev-debug` route and the run total, record the failing evidence in Attempt history, run `/dev-debug <task ID>`, then verify and test again. If `/dev-test` reports that this project intentionally has no test runner, the Definition of Done in `code-standards.md` is the implementation gate and the task completes once it passes.
+5. Do not change a task's repair route without new observed evidence from its verifier, test, or audit result. Record that evidence and the new route in Attempt history. At ten failed attempts for one task and route, or thirty repairs across the whole run, set the phase to `blocked`, preserve the decisive evidence, and stop. Do not start another selected task.
 
 Do not call a task passed from a clean build alone. It passes only after observed verification and the required test gate both pass.
 
@@ -72,10 +58,13 @@ Continue with the next selected task in the current session. A fresh session is 
 
 ## Final QA
 
-After every selected task has passed its test gate, run `/dev-audit` over the selected change range. This ingests an existing matching review or runs one when none exists, so the audit register is current. Then set the phase to `qa` and run `/dev-qa` without an argument.
+After every selected task has passed its test gate, run `/dev-audit` over the selected change range. This ingests an existing matching review or runs one when none exists, so the audit register is current. Read the register before starting QA.
 
-- **All pass:** complete the run. If QA reports no eligible bugs, say that the audit ran and no runtime bug had a regression case; do not describe it as a QA pass.
-- **A regression fails:** set the current task to the audit issue's linked task, increment that task's repair count and Total repair attempts, and stop if either cap is reached. Otherwise run `/dev-debug <AUD-ID>`. Then run `/dev-check verify <linked task>`, `/dev-test`, `/dev-audit <linked task>`, and `/dev-qa <AUD-ID>` in that order. The targeted QA run sets the issue to `verified` on PASS; then return to final QA for the remaining register.
+- **Open review finding:** if an open or reopened Blocker or Major in the selected range has a Next route, set its linked task as current and follow that exact route. Record the audit ID, route, and evidence in Attempt history. After the corrective work, run verification, tests, and `/dev-audit <linked task>` again before returning to this gate. If one has no usable Next route, set the run to `blocked` and report that ownership gap. Do not begin or complete final QA while such a finding remains.
+- **No blocking review finding:** set the phase to `qa` and run `/dev-qa` without an argument.
+
+- **All pass:** complete the run. If QA reports no eligible bugs, say that the audit ran, no runtime bug had a regression case, and no open Blocker or Major remained; do not describe it as a QA pass.
+- **A regression fails:** set the current task to the audit issue's linked task, increment that task's `/dev-debug` count and Total repair attempts this run, and stop if either cap is reached. Otherwise run `/dev-debug <AUD-ID>`. Then run `/dev-check verify <linked task>`, `/dev-test`, `/dev-audit <linked task>`, and `/dev-qa <AUD-ID>` in that order. The targeted QA run sets the issue to `verified` on PASS; then return to final QA for the remaining register.
 - **QA is blocked:** preserve the audit ID and blocker in loop state, then stop. A blocked regression cannot be treated as a passed task.
 
 The repair path applies even when the audit issue came from an earlier task. Do not drop it merely because the selected task list has already completed.

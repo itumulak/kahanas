@@ -28,12 +28,12 @@ This skill owns the Issues table in `.konteksto/audit-register.md`. Create the f
 1. Find the newest review report whose scope matches the requested change and whose diff has not changed since the review. If one exists, ingest it. Otherwise run `/dev-check review`, follow its different model requirement, and ingest its dated findings file.
 2. Read the selected review report and the existing audit register, if present.
 3. Add every finding from the report. Include Blockers, Major, Minor, and Nits. Give a new finding the next unused `AUD-<number>` ID. A clean review adds no invented issue.
-4. Deduplicate before adding: match the underlying behavior or root cause, not an exact line number. If it is an existing issue, retain its ID, update Last seen and Sources, and do not create a second row.
-5. Assign the next valid route:
+4. Deduplicate before adding: match the underlying behavior or root cause, not an exact line number. If it is an existing issue, retain its ID, update Last seen and Sources, and do not create a second row. Mark its Type `regression` when the same resolved root cause has returned.
+5. Set the table's Next route, the single per issue route record, from these rules:
    - a reproducible behavioral defect or regression: `/dev-debug <AUD-ID>`
    - a review finding that needs an implementation change but no diagnosis: `/dev-develop <linked task>`
    - a load bearing document or approved design conflict: route to its documented owner
-6. Never close an issue merely because a later review did not mention it. Set `ready for QA` only when the fresh review covered the original area and the finding is no longer present. `/dev-qa` supplies the runtime result and transitions that state to `verified` or `reopened`.
+6. Never close an issue merely because a later review did not mention it. Set `ready for QA` only when the fresh review covered the original area and the finding is no longer present. Record the current Git revision in Review basis when available, otherwise record the reviewed paths and their content checksums. `/dev-qa` supplies the runtime result and transitions that state to `verified` or `reopened`.
 
 ## Issue states
 
