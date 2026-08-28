@@ -79,7 +79,7 @@ Read a template from `templates/`, in this skill's folder, and write the filled 
 
 Do NOT write application code, scaffold a project, or install a package the product itself ships. This skill produces documents and settles decisions. Building starts as a separate, later request.
 
-Some narrow exceptions, and each one states its own edges. Agent tooling found in step 6, meaning skills and MCP servers, may be set up during this skill, but only per the consent rules in that step, and only for a tool the user approved by name. `docker-compose.yml` plus `.env.example` are written in step 5, because they are the structure the build sits in rather than the product itself. On a team project, `.gitignore` gains a line for `.konteksto/role.local.json`, because that file must never be committed and this is the only skill that creates the need for it.
+Some narrow exceptions, and each one states its own edges. Agent tooling found in step 6, meaning skills and MCP servers, may be set up during this skill, but only per the consent rules in that step, and only for a tool the user approved by name. `docker-compose.yml` plus `.env.example` are written in step 5, because they are the structure the build sits in rather than the product itself.
 
 **Playwright and its browser may be installed**, on a project with an `app/`. **You install it and you never use it**, which looks odd until you remember the rule it protects: this skill makes every tool call, so a skill that needed a browser and installed its own would put a second tool caller in the system. `/dev-design` cannot review a design without one and `/dev-check verify` cannot screenshot a breakpoint without one, and both read what you recorded rather than reaching for a package manager.
 
@@ -312,7 +312,7 @@ Extra rules:
 - `progress-tracker.md` mirrors `build-plan.md` exactly, one Progress table per phase and one row per task, same phase and task order. A Phase 0 in the plan gets its Progress table here too, every row reading `BASELINE` with its stamp and an empty Verify Check. **Never `DONE` and never a Verify Check on one of those rows**: nothing was built here and nothing was exercised, and `progress-tracker.md` defines the difference. Every other row reads `PENDING` with no stamp, an empty Verify Check and Note written as `—`, Last completed reads "nothing yet", and Next names the first task not in Phase 0. **Never stamp a `PENDING` row.** A stamp names a model and a minute, and nothing has been built yet. A `BASELINE` row is stamped, and that file's Status section says what its stamp means. Its Worked example section is Reference only: read it for the shape, and delete it from the file you write.
 - `decision-log.md` always ships, and always starts with its headings and an empty Entries table. Nothing has been decided or observed during a build that has not started, so a row here would be invented history. Keep the Entries and Who writes what sections exactly as the template has them, and delete the Worked example.
 
-**Team Shape decides the shape of three of these.** Read that section in `project-overview.md` before writing any of them, and follow it exactly rather than deciding for yourself. `/dev-scope` asked the user, and this is where their answer takes effect.
+**Team Shape decides the shape of these.** Read that section in `project-overview.md` before writing any of them, and follow it exactly rather than deciding for yourself. `/dev-scope` asked the user, and this is where their answer takes effect.
 
 **Mode is `team`:**
 
@@ -322,19 +322,6 @@ Extra rules:
 
 **Mode is `personal`:** drop the Assigned column from every Progress table in `progress-tracker.md`, and delete the Actor column from `decision-log.md` along with its description. One person means one repeated value, and a column with one value is noise. **Keep the Author column.** The person is fixed on a personal project and the model is not.
 
-**On `team`, also set up the role file.** Add `.konteksto/role.local.json` to the project's `.gitignore`, and write nothing into it yourself.
-
-It holds one machine's answer to "am I a developer or a project manager", in the shape `{"role": "developer"}` or `{"role": "project-manager"}`. **It must stay out of git.** Role is a fact about a person, not about the project, so a committed copy would hold whatever the last person to answer said, and every teammate would then read somebody else's role as their own.
-
-Do not ask during this run and do not create the file. You are one person setting the project up, and your own answer is the only one you could record. `/dev-develop` asks on first use, on each machine, and saves it there.
-
-**Keep the scope of this honest when you report it, because it is easy to overstate.** It answers one question only: *is the person at this machine a developer or a project manager*. It cannot answer *who is the project manager on this project*, since it is never committed and every machine holds only its own answer.
-
-That is why it is not how checkpoint sign off is checked. Each approver writes their own role beside their name in the Checkpoints table, so the record is self describing and needs no lookup. What the local file buys is smaller and worth having anyway: a skill can tell whether the person it is talking to may approve a checkpoint or reassign a task, and offer accordingly rather than prompting everybody with everything.
-
-**Checkpoints are on:** give every phase in `build-plan.md` a Checkpoint block as its last subsection, and give `progress-tracker.md` its Checkpoints table with one row per phase, every row starting at `not due` with no approvals. Write real criteria per phase, drawn from what that phase actually delivers, not a generic "review the code". The Needs test coverage line names what should be covered and nothing more, since `/dev-test` writes the tests.
-
-**Checkpoints are off:** omit the Checkpoint blocks and delete the Checkpoints section from `progress-tracker.md` entirely. Do not leave an empty section as a placeholder.
 - `ui-registry.md` is skipped when the project has no component based UI layer, the same condition under which `code-standards.md` has no Component Structure section. Say you skipped it rather than writing an empty file. On a fresh project with a UI layer it starts empty apart from its heading, since no component exists yet.
 
 ### Step 9: Check, cross check, and confirm

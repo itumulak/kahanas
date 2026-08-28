@@ -56,7 +56,6 @@ Name these plainly when you report the answer, because a user who took the defau
 
 - **The dependency audit still runs**, in step 4, in full. A known vulnerability in code that shipped last year is still a known vulnerability.
 - **Only what is finished is baseline.** Half built work is an ordinary task, per the classification above.
-- **A Phase 0 gets no checkpoint**, and `progress-tracker.md`'s Checkpoints section says why: its tasks never reach `DONE`, so the row could only sit at `not due` for the life of the project. A review of the code that was already there is a task in the plan instead.
 - **Nothing here is a claim that the existing code works.** `BASELINE` means it predates this workflow. It does not mean it was reviewed, tested, or verified, and no skill may later read it as though it were.
 - **The design line is a separate question with a separate answer.** On a project with an `app/`, `/dev-design` asks it. Taking the default here says nothing about what surfaces owe.
 

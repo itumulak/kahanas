@@ -43,8 +43,7 @@ These keep the skill from sprawling, which is the failure mode for anything that
 | Clear a task built on an unratified assumption | ❌ flags as decision debt | `/dev-architect` |
 | Add or rewrite any row in `decision-log.md` | ❌ leaves alone | `/dev-develop`, `/dev-check`, `/dev-debug` |
 | Reassign a task, or change an assignee | ❌ flags for escalation | a person |
-| Approve a checkpoint, or change its approvals | ❌ leaves alone | a person |
-| Move a checkpoint row to `due` the repo proves is due | ✅ corrects | `/dev-sync` |
+| A Checkpoints section in an existing tracker | ❌ leaves alone, retired | nobody |
 | Rewrite a line a person wrote by hand | ❌ flags the conflict | the person |
 | Correct a fact in a still stamped document | ✅ corrects surgically | `/dev-sync` |
 
@@ -144,11 +143,6 @@ So the stamp you write here is a narrower claim than the one `/dev-develop` writ
 
 - **A task with log rows from more than one actor.** Two or more people worked the same task. Flag it for escalation and name every actor, every commit involved, and every branch you can see carrying the work. **Stop there.** Deciding which branch survives, or resolving the conflict between them, is a person's call and usually a project manager's. Recommending a branch would be guessing at intent from file contents, and the wrong guess quietly discards somebody's work.
 - **A `DONE` task still reading `unassigned`.** Somebody built it without claiming it. Flag it, and name the actor from its log rows as the likely owner. **Do not write that name in.** A log row proves who ran a check, not who owns the task.
-
-**Checkpoints.** One correction only: a phase whose tasks all read `DONE` but whose checkpoint row still reads `not due` moves to `due`, because the repository proves that much. Never write an approval and never clear one. An approval is a claim that a person reviewed something, and you have reviewed nothing. A phase sitting at `due` is reported, not resolved, and it blocks nothing, so never treat it as a reason to hold anything up.
-
-Report, without changing anything, a phase approved by developers only where the project wanted a project manager's sign off. The roles are written beside the names in the Approved by column, so this is read directly rather than worked out. Say it once in the report and leave the table alone.
-
 **A task built on an unratified assumption stays off `DONE`**, however finished the code looks. Only `/dev-architect` clears that, and stamping it here would erase the one signal that a decision is still owed.
 
 **The registry.** For every reusable component in the code with no entry, add one: what it is for, its props, and a short real usage example read from an actual call site. For an entry whose props no longer match the code, correct the entry, because the code is the truth and a stale registry causes duplicates.

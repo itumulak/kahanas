@@ -1,6 +1,6 @@
 # Progress Tracker
 
-*Purpose: the live state of the build, so any agent picking up the project mid session immediately knows what is done, what is in progress, and what is next. Three sections: Current Status, a Progress section whose phase tables mirror build-plan.md's phases, and Checkpoints on a team project that wants them. Shown here with one demonstrative phase rather than an invented full project history.*
+*Purpose: the live state of the build, so any agent picking up the project mid session immediately knows what is done, what is in progress, and what is next. Two sections: Current Status and a Progress section whose phase tables mirror build-plan.md's phases. Shown here with one demonstrative phase rather than an invented full project history.*
 
 Update this file after every completed feature. Any AI agent reading this should immediately know what is done, what is in progress, and what is next.
 
@@ -133,35 +133,11 @@ A Note is cleared the moment its reason goes: when `BLOCKED` is superseded by `D
 
 ---
 
-## Checkpoints
-
-*Purpose: the review state of each finished phase, so a later session can see which phases a second pair of eyes has actually signed off and which are still waiting. Optional: only present when Team Shape in `project-overview.md` says checkpoints are on.*
-
-| Phase | State | Approved by | Outstanding |
-| --- | --- | --- | --- |
-| Phase 1 — <PHASE_NAME> | <NOT_DUE_OR_DUE_OR_APPROVED> | <NAME_AND_ROLE_PER_APPROVER_OR_NONE> | <WHAT_WAS_RAISED_AND_NOT_YET_ADDRESSED_OR_NONE> |
-
-One row per phase in `build-plan.md`, **except a Phase 0 of baseline rows, which gets no row here and no Checkpoint block there.** A checkpoint asks a reviewer to confirm what a phase delivered, and that phase delivered nothing: its tasks were finished before this workflow arrived and by design never reach `DONE`, so its row could only ever sit at `not due` forever. Reviewing the code that was already there is a real thing to want, and it is a task in the plan rather than a checkpoint on a phase nobody built.
-
-What each phase's reviewer must confirm lives in that phase's Checkpoint block in `build-plan.md`, not here. This table only tracks state.
-
-**State** is one of three. `not due` means the phase still has tasks whose Status is not `DONE`. `due` means every task in the phase reads `DONE` and nobody has approved yet. `approved` means a reviewer other than the builder confirmed the phase against its criteria.
-
-**Approved by** carries each approver's name and their role in brackets, as `Sam (project manager), Ali (developer)`. **The role is written by the approver, about themselves, at the moment they approve.** It is recorded here rather than looked up because there is nowhere to look it up: role is per person, so it is never committed, and a reader months later has no way to recover who held which role at the time. A self recorded role is accurate the day it is written and stays accurate afterwards.
-
-Where a project wants a project manager's sign off and only developers have approved, that is visible directly in this column, and it belongs in Outstanding until it happens.
-
-**Checkpoints are non blocking.** A phase sitting at `due` does not stop the next phase starting. It is a flag, and the Outstanding column is what a later session reads to see what was raised and never dealt with. Addressing an outstanding item before building on top of it is the recommendation, not a rule.
-
-**Who writes here.** `/dev-develop` moves a row from `not due` to `due` when it sets the last task in a phase to `DONE`, which is the one transition the repository can prove. **Approvals are recorded by a person**, because an approval is a claim that a human reviewed something, and no skill may write one. A skill that filled in its own approval would defeat the entire point of having a checkpoint.
-
----
-
 ## Worked example
 
 **Reference only. Delete this whole section when writing the real file**, and never copy a task, a name, a model, or a date out of it. Every task below is invented, and an invented task in a real tracker sends the next session looking for code nobody wrote.
 
-A team project with checkpoints on, part way through its second phase, shown in full so the stamp shape and the superseding rule can be read against real looking content rather than placeholders.
+A team project, part way through its second phase, shown in full so the stamp shape and the superseding rule can be read against real looking content rather than placeholders.
 
 ````markdown
 ## Current Status
@@ -192,14 +168,6 @@ A team project with checkpoints on, part way through its second phase, shown in 
 | 07 Confirmation email | unassigned | PENDING | — | — |
 | 08 Cancellation flow | unassigned | PENDING | — | — |
 
----
-
-## Checkpoints
-
-| Phase | State | Approved by | Outstanding |
-| --- | --- | --- | --- |
-| Phase 1 — Foundation | approved | Ana Reyes (developer), Sam Okafor (project manager) | none |
-| Phase 2 — Booking flow | not due | none | none |
 ````
 
 What each part of it demonstrates:

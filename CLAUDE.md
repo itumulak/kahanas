@@ -154,15 +154,13 @@ The stamp records provenance, not permission. It never licenses overwriting some
 
 **A gap and a contradiction are different problems.** A gap is a fact missing that the repo can prove, and it gets filled. A contradiction is a document disagreeing with the code, and it never gets resolved automatically, because from the outside you cannot tell whether the code drifted or the document was deliberate and the code broke it.
 
-## Team shape and checkpoints
+## Team shape
 
-**Team Shape is asked in scope and applied in architect.** `/dev-scope` asks two questions, personal or team, and phase checkpoints on or off, and records the answers in `project-overview.md`. It touches nothing else, because both answers are facts about the work rather than tool choices. `/dev-architect` reads them and shapes three documents: an Assigned column in `progress-tracker.md`, an Actor column in `decision-log.md`, and a Checkpoint block per phase in `build-plan.md` with a Checkpoints table tracking their state. Personal projects get none of it, since a column with one value in it is noise.
+**Team Shape is asked in scope and applied in architect.** `/dev-scope` asks whether the project is personal or team and records the answer in `project-overview.md`. `/dev-architect` uses it to add an Assigned column in `progress-tracker.md` and an Actor column in `decision-log.md`. Personal projects get neither, since a column with one value in it is noise.
 
 **No skill can reserve a task, and no document may pretend otherwise.** The assignee is a convention. `/dev-develop` reads it and stops when a task belongs to someone else, but two people on two machines both pass that check and either can proceed. These are instructions an agent reads, not a server holding a lock. Real enforcement is branch protection or an issue tracker, and every place that mentions assignment says so, because a guarantee the system cannot keep is worse than no guarantee at all.
 
-**A person owns anything a skill cannot honestly claim.** `/dev-develop` claims an unassigned task and moves a checkpoint to due, both of which the repository proves. **Reassigning a task and approving a checkpoint are hand edits**, and no skill writes either. A reassignment needs a reason that exists only in a conversation, and an approval asserts that a human reviewed something, so a skill writing its own would defeat the entire point of having a checkpoint.
-
-**Checkpoints are non blocking, and name coverage rather than writing it.** A phase may start with the last one unapproved. The Checkpoint block says what a reviewer must confirm and what needs test coverage, then routes to `/dev-test`, which stays the only writer of test files.
+**A person owns anything a skill cannot honestly claim.** `/dev-develop` claims an unassigned task because the repository proves that much. **Reassigning a task is a hand edit**, because it needs a reason that exists only in a conversation.
 
 **`/dev-sync` escalates, and never arbitrates.** One task with log rows from two actors is reported with every actor and branch named, and there it stops. Choosing which branch survives, or resolving the conflict, is a person's call: from the outside two branches on one task look identical whether one supersedes the other or both hold work someone needs.
 

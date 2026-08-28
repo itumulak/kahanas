@@ -41,7 +41,7 @@ The whole chain, once per project then once per task:
 - `Dockerfile.dev` per half, when the compose file refers to one that does not exist yet.
 - `.konteksto/progress-tracker.md`, on every task. This is what tells the next session where things stand, so it is updated as part of finishing a task, never batched up for later. You own every column of its Progress tables **except Verify Check**, which is `/dev-check verify`'s and yours to read only. `/dev-sync` may correct your columns afterward from repo evidence, never while you are working.
 
-  **Two things in it a person owns.** A task's assignee may be reassigned by hand, and a checkpoint approval is only ever written by hand. You may claim an unassigned task and you may mark a checkpoint due, and that is the whole of it. Do not reassign, and never approve.
+  **One thing in it a person owns.** A task's assignee may be reassigned by hand. You may claim an unassigned task, but never reassign it.
 - `.konteksto/decision-log.md`, appended Decision rows when the build produced a real decision, a bug with a cause worth knowing, or an assumption you had to state, plus one Evidence row per task for the command that confirmed the build is clean. **Only then** for decisions. Most tasks that go to plan write no Decision row, and a log padded with narration is one `/dev-document` can no longer mine. `/dev-debug` and `/dev-check` append here too, so append your own rows and leave theirs alone.
 
   **You are one of three writers here.** `/dev-check` appends a row on a verify pass, and `/dev-debug` appends one when it confirms a fix. Append your own row and leave theirs alone, because those rows claim something yours does not: that the behavior was exercised, or that a bug was proven gone. A clean build is neither.
@@ -119,10 +119,6 @@ Warnings, not blocks, but say them out loud.
 
 **Picking a task up.** When the task's Assigned cell reads `unassigned` and you are going to build it, replace it with `git config user.name` as part of the tracker update in step 3. That is the only assignee change any skill makes. **Never reassign a task away from someone else**, not even when they appear to have stopped: a person decides that, by editing the cell themselves, because the reason a task should move is never in the repository.
 
-**The role file**, on a team project only. Read `.konteksto/role.local.json`. Missing means asking once, developer or project manager, and saving the answer as `{"role": "developer"}` or `{"role": "project-manager"}`. It is gitignored and holds this machine's answer only, so ask on each machine and never copy one person's answer to another.
-
-Use it for one thing: knowing what to offer. A project manager gets told they may reassign a task or record a checkpoint approval by hand; a developer does not, since offering everybody every action is how the wrong person takes one. **It grants nothing.** You still never reassign and never approve, whatever it says, and it cannot tell you who the project manager on this project is, only what the person in front of you answered.
-
 ### Step 1: The decision gate
 
 **Do not judge this by feel.** Asking yourself "am I inventing something?" fails, because a build in progress rationalizes a real decision as ordinary wiring and waves it through. Use a mechanical test instead:
@@ -191,7 +187,6 @@ In `progress-tracker.md`, change only these:
 - Set **Last completed** to this task, and **Next** to the following one in `build-plan.md`.
 - Set **Phase** when this task closed out a phase.
 - **Team projects:** set this task's **Assigned** cell to `git config user.name` if it still reads `unassigned`. Leave every other task's assignee alone.
-- **Checkpoints on:** when this task was the last one in its phase still short of `DONE`, move that phase's row in the Checkpoints table from `not due` to `due`. That is the only checkpoint change you make. **Never write an approval**, however obviously sound the phase looks, because an approval claims a person reviewed it and you are not one.
 
 In `decision-log.md`, append one Decision row for anything real: a bug found and why it happened, a local choice a later session would otherwise wonder about, or an assumption you built on. **Not a diary of every edit.** Nothing worth recording means no Decision row, which is normal for a task that went to plan.
 
@@ -217,8 +212,7 @@ Say six things:
 - Anything installed, and why the design called for it.
 - The command you ran to confirm it works, and its result. Quote the failing line if something failed, rather than describing it.
 - Anything you noticed that belongs to another skill: a design document the build proved wrong, a missing compose service, a component worth extracting later.
-- **When this task closed a phase and checkpoints are on**: that the phase's checkpoint is now due, what `build-plan.md` says a reviewer must confirm, and that it needs a person other than whoever built the phase. Say that the next phase may start regardless, since checkpoints are non blocking, and that an unapproved one stays visible in the Checkpoints table until somebody deals with it.
-- The next step: `/dev-check verify` to prove this task works against its flow, then `/dev-test` to lock the behavior in, then the next task from `build-plan.md`. A failure at verify goes to `/dev-debug`, not back here.
+- The next step: `/dev-check verify` to prove this task works against its flow, then `/dev-test` to lock the behavior in, then the next task from `build-plan.md`. A behavioral verify failure goes to `/dev-debug`; a promised but missing or built but not live surface returns here.
 
 Then stop. Do not start the next task.
 

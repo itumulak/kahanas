@@ -45,7 +45,7 @@ The whole chain, once per project then once per task:
 
 **Both rows carry the same stamp fields**: the Timestamp as `YYYY-MM-DD HH:MM` from the system clock, the Author as your exact model identifier such as `claude-opus-5`, the Skill as `/dev-debug`, and on a team project the Actor from `git config user.name`. Write `unknown-model` and say so rather than guessing an identifier. Author stays on a personal project even though Actor goes, since the model changes between sessions and the person does not.
 
-**`progress-tracker.md` is not yours at all.** Leave the Status column to `/dev-develop`, the Verify Check column and its Note to `/dev-check verify`, and the checkpoint rows to neither. A `FAILED` verify stays `FAILED` until `/dev-check verify` runs again and supersedes it, which is the point: you fixed the cause, and somebody still has to watch the behavior work.
+**`progress-tracker.md` is not yours at all.** Leave the Status column to `/dev-develop` and the Verify Check column and its Note to `/dev-check verify`. A `FAILED` verify stays `FAILED` until `/dev-check verify` runs again and supersedes it, which is the point: you fixed the cause, and somebody still has to watch the behavior work.
 
 **Never writes** a feature, a refactor of unrelated code, or any of the design documents. If the bug turns out to be a flawed decision rather than a coding mistake, say so and point at its owner: `/dev-architect` for a technical one, `/dev-design` for a visual one. Papering over a wrong design with a code patch buys one day and costs many.
 

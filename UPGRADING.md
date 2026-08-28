@@ -154,6 +154,16 @@ After reinstalling, use `/dev-context` for a handoff, `/dev-loop` for a task
 sequence, `/dev-audit` after review, and `/dev-qa` to rerun eligible runtime
 findings.
 
+### Retired phase checkpoints
+
+Phase checkpoints are no longer part of this workflow. Do not create or update
+Checkpoint blocks or Checkpoints tables. Keep any existing checkpoint records
+as historical project data, but do not treat them as a gate, an approval, or
+active work for any skill.
+
+`role.local.json` is retired with checkpoints. It is no longer read or
+created, so it may be removed from `.konteksto/` and `.gitignore`.
+
 ### Coming from 0.1.0
 
 **New file: `decision-log.md`.** Copy the template and start it empty, or move the old Decisions Made During Build section out of `progress-tracker.md` into it. Both are fine. That section no longer exists in the tracker template.

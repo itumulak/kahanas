@@ -29,7 +29,7 @@ Owns no whole file. Chat output only, plus screenshots and logs saved to a scrat
 
 **That is about the task, not about the surfaces.** An ordinary new task touching a surface at `BASELINE` is verified normally, with the one adjustment in the design conformance list below.
 
-**That column is the only thing in `progress-tracker.md` you may touch.** Status is `/dev-develop`'s, the Assigned cell is a person's, and checkpoint rows are nobody's here. Never change one, however plainly wrong it looks. Report it instead.
+**That column is the only thing in `progress-tracker.md` you may touch.** Status is `/dev-develop`'s and the Assigned cell is a person's. Never change either, however plainly wrong it looks. Report it instead.
 
 **`design-registry.md` and the prototypes in `.konteksto/designs/` are read only to you, and completely.** Not a status, not a row, and never a line of a prototype, however plainly it needs fixing. That whole folder is `/dev-design`'s, `APPROVED` is a person's word alone, and a design you corrected to match the build is a design nobody approved.
 
