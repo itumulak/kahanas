@@ -2,7 +2,7 @@
 name: dev-loop
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion
 argument-hint: [task selector]
-description: "Run /dev-loop to complete one or more build plan tasks through /dev-develop, /dev-check verify, /dev-test, and final /dev-qa regression checks. Recovers failures through /dev-debug, persists the handoff state, and stops only after all selected tasks and QA checks pass or one repair reaches ten failed attempts."
+description: "Run /dev-loop to complete one or more build plan tasks through /dev-develop, /dev-check verify, /dev-test, and final /dev-qa regression checks. Recovers failures through /dev-debug, persists the handoff state, and stops at a per task route cap or a whole run repair cap."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -58,12 +58,13 @@ Continue with the next selected task in the current session. A fresh session is 
 
 ## Final QA
 
-After every selected task has passed its test gate, run `/dev-audit` over the selected change range. This ingests an existing matching review or runs one when none exists, so the audit register is current. Read the register before starting QA.
+After every selected task has passed its test gate, set the phase to `audit` and run `/dev-audit` over the selected change range. This ingests an existing matching review or runs one when none exists, so the audit register is current. Read the selected review report and the register before starting QA.
 
-- **Open review finding:** if an open or reopened Blocker or Major in the selected range has a Next route, set its linked task as current and follow that exact route. Record the audit ID, route, and evidence in Attempt history. After the corrective work, run verification, tests, and `/dev-audit <linked task>` again before returning to this gate. If one has no usable Next route, set the run to `blocked` and report that ownership gap. Do not begin or complete final QA while such a finding remains.
+- **Degraded review:** if the report does not prove a reviewer model different from the author model, set the phase to `blocked`, preserve that fact and the report path in loop state, and stop. A degraded review may record findings, but its absence of findings cannot clear the selected range. Resume only after `/dev-check review` runs on a contrasting model for the current diff.
+- **Open review finding:** for an open or reopened Blocker or Major in the selected range, follow the exact route only when its Task is a real task ID and the route is `/dev-debug <AUD-ID>` or `/dev-develop <task ID>`. Record the audit ID, route, and evidence in Attempt history. After the corrective work, run verification, tests, and `/dev-audit <linked task>` again before returning to this gate. If its Task is `—`, its route is absent, or its route names an owner outside this loop, set the run to `blocked`, preserve the exact route and ownership gap in loop state, and stop for that owner or a person to resolve it. Do not begin or complete final QA while such a finding remains.
 - **No blocking review finding:** set the phase to `qa` and run `/dev-qa` without an argument.
 
-- **All pass:** complete the run. If QA reports no eligible bugs, say that the audit ran, no runtime bug had a regression case, and no open Blocker or Major remained; do not describe it as a QA pass.
+- **All pass:** complete the run. If QA reports no eligible bugs, say that the audit ran, no runtime bug had a regression case, and no open Blocker or Major remained in the selected range; do not describe it as a QA pass.
 - **A regression fails:** set the current task to the audit issue's linked task, increment that task's `/dev-debug` count and Total repair attempts this run, and stop if either cap is reached. Otherwise run `/dev-debug <AUD-ID>`. Then run `/dev-check verify <linked task>`, `/dev-test`, `/dev-audit <linked task>`, and `/dev-qa <AUD-ID>` in that order. The targeted QA run sets the issue to `verified` on PASS; then return to final QA for the remaining register.
 - **QA is blocked:** preserve the audit ID and blocker in loop state, then stop. A blocked regression cannot be treated as a passed task.
 

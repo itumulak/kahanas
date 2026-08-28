@@ -26,7 +26,7 @@ This skill owns the Issues table in `.konteksto/audit-register.md`. Create the f
 ## Run the audit
 
 1. Find the newest review report whose scope matches the requested change and whose diff has not changed since the review. If one exists, ingest it. Otherwise run `/dev-check review`, follow its different model requirement, and ingest its dated findings file.
-2. Read the selected review report and the existing audit register, if present.
+2. Read the selected review report and the existing audit register, if present. Confirm from the report header that reviewer and author models differ. If it does not prove that, report the review as degraded; do not call an empty report independent or clean.
 3. Add every finding from the report. Include Blockers, Major, Minor, and Nits. Give a new finding the next unused `AUD-<number>` ID. A clean review adds no invented issue.
 4. Deduplicate before adding: match the underlying behavior or root cause, not an exact line number. If it is an existing issue, retain its ID, update Last seen and Sources, and do not create a second row. Mark its Type `regression` when the same resolved root cause has returned.
 5. Set the table's Next route, the single per issue route record, from these rules:
@@ -49,4 +49,4 @@ The register tracks findings, not only runtime bugs. Nits and static concerns st
 
 ## Report
 
-Report the review file, added and updated issue IDs, the counts by severity and state, and the next route for every open Blocker or Major. Do not claim an issue is fixed without review and QA evidence.
+Report the review file, whether its reviewer model differed from the author model, added and updated issue IDs, the counts by severity and state, and the next route for every open Blocker or Major. Do not claim an issue is fixed without review and QA evidence.
