@@ -29,12 +29,16 @@ Every skill answers to `/dev-scope`, `/dev-architect`, and so on.
 | Skill | What it does |
 |---|---|
 | `/dev-scope` | Turns an idea into what the product is: pages, flows, and what is deliberately out of scope. Stays tool agnostic. |
+| `/dev-context` | Reads the project records in order for a fresh session or handoff, then reports the active task, constraints, and next valid workflow step. |
 | `/dev-architect` | Settles the stack, the local containers, and the build plan. Makes every tool call there is. |
 | `/dev-design` | Designs every surface the flows require, renders each one in a real browser, and gets a person to approve it. Frontend only. |
 | `/dev-develop` | Builds one task from the plan, then stops. Refuses to invent a decision the documents do not record. |
 | `/dev-check` | Two modes. `verify` runs the real app and proves the task works. `review` reads the diff on a different model than wrote it. |
 | `/dev-debug` | Finds the root cause of a bug by evidence, one hypothesis at a time, then makes the smallest fix. |
 | `/dev-test` | Writes the suite, grounded in the recorded invariants and value sources rather than in a coverage number. |
+| `/dev-audit` | Turns independent review findings into a durable register with stable IDs, ownership routes, and review evidence. |
+| `/dev-qa` | Reruns documented runtime cases for eligible audit findings and records the observed regression result. |
+| `/dev-loop` | Runs selected tasks through development, verification, testing, audit, and final regression QA, with resumable control state. |
 | `/dev-document` | Writes the prose about a change: a pull request, a changelog, a release note, or a postmortem. |
 | `/dev-sync` | Makes the documents true again after a change, from repo evidence, and flags what needs a person. |
 
