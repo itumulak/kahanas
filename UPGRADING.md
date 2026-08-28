@@ -43,7 +43,8 @@ now installed. Migrate my .konteksto/ documents to match the new templates.
 
 Read the templates that shipped with the upgrade before changing anything.
 They are in the installed skills folder, under dev-architect/templates/,
-dev-design/templates/, and dev-scope/templates/, wherever the skills were
+dev-design/templates/, dev-scope/templates/, dev-audit/templates/, and
+dev-loop/templates/, wherever the skills were
 installed (.claude/skills or .agents/skills). Compare each one against my
 existing document.
 
@@ -70,6 +71,15 @@ Then do this:
   except glossary.md, where you should record the terms already used in
   project-overview.md. You are recording settled terms, not inventing them,
   so tell me which ones you took and which you were unsure about.
+- If note-registry.md exists, migrate every row into decision-log.md as an
+  Evidence row. Preserve the original Timestamp, Author, Skill, Task, Actor
+  where present, and evidence text. Do not change an existing decision-log
+  row. Check that every source row has one destination row before removing
+  note-registry.md. Report the row counts before and after.
+- If audit-register.md is new, copy dev-audit/templates/audit-register.md and
+  leave both tables empty. Do not invent findings, statuses, routes, or QA
+  runs. Do not create loop-state.md: /dev-loop creates it only when a run
+  begins.
 - Add any section the new templates have that my existing documents lack.
   Where a section needs a real value you cannot derive, leave the placeholder
   and list it for me rather than guessing.
@@ -120,7 +130,39 @@ about. Do not smooth over a gap. I want the list.
 
 ## What each version needs
 
-Templates live in `skills/dev-architect/templates/`, except `design.md` and `design-registry.md`, which are in `skills/dev-design/templates/`, and `project-overview.md` and `glossary.md`, which are in `skills/dev-scope/templates/`.
+Templates live in `skills/dev-architect/templates/`, except `design.md` and `design-registry.md`, which are in `skills/dev-design/templates/`, `project-overview.md` and `glossary.md`, which are in `skills/dev-scope/templates/`, `audit-register.md`, which is in `skills/dev-audit/templates/`, and `loop-state.md`, which is in `skills/dev-loop/templates/`.
+
+### Coming from 0.6.x or earlier
+
+**Merge `note-registry.md` into `decision-log.md` before removing it.** Every
+note row becomes one new Evidence row. Preserve its timestamp, author, skill,
+task, actor when present, and the evidence it recorded. Do not stamp or
+rewrite historic evidence, and do not alter existing decision-log rows.
+Compare the row counts and report any source row that cannot be mapped before
+removing the old file.
+
+**New file: `audit-register.md`.** Copy
+`skills/dev-audit/templates/audit-register.md` and leave its Issues and QA
+Runs tables empty. It starts tracking future review findings and regression
+observations; it must not reconstruct old ones.
+
+**Do not create `loop-state.md`.** `/dev-loop` creates it from its template
+only when a delivery run begins. `/dev-context` is read only, and the other
+new skills need no migration record.
+
+After reinstalling, use `/dev-context` for a handoff, `/dev-loop` for a task
+sequence, `/dev-audit` after review, and `/dev-qa` to rerun eligible runtime
+findings.
+
+### Retired phase checkpoints
+
+Phase checkpoints are no longer part of this workflow. Do not create or update
+Checkpoint blocks or Checkpoints tables. Keep any existing checkpoint records
+as historical project data, but do not treat them as a gate, an approval, or
+active work for any skill.
+
+`role.local.json` is retired with checkpoints. It is no longer read or
+created, so it may be removed from `.konteksto/` and `.gitignore`.
 
 ### Coming from 0.1.0
 

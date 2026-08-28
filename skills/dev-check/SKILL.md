@@ -24,7 +24,7 @@ The gate between a task being built and a task being trusted. It confirms soundn
 
 **Before this:** `/dev-develop`, for verify. Any finished change, for review.
 
-**After this:** `/dev-test` once verify passes, `/dev-debug` when it fails, and `/dev-document pr` plus `/dev-sync` before a merge.
+**After this:** `/dev-test` once verify passes, `/dev-debug` when it fails, `/dev-audit` after review to track findings, and `/dev-document pr` plus `/dev-sync` before a merge.
 
 The whole chain, once per project then once per task:
 
@@ -37,7 +37,7 @@ The whole chain, once per project then once per task:
 
 ## Artifact ownership
 
-**Verify** owns no whole file. Chat output only, plus screenshots and logs in a scratch area, and two narrow writes. It stamps the task's **Verify Check** cell in `progress-tracker.md`, `PASSED` or `FAILED`, and it appends a row to `note-registry.md` on a pass, which is how a later session tells an exercised task from an assumed one. That one column is all of `progress-tracker.md` it may touch: Status belongs to `/dev-develop`, and checkpoint rows and assignees to neither of them.
+**Verify** owns no whole file. Chat output only, plus screenshots and logs in a scratch area, and two narrow writes. It stamps the task's **Verify Check** cell in `progress-tracker.md`, `PASSED` or `FAILED`, and it appends an Evidence row to `decision-log.md` on a pass, which is how a later session tells an exercised task from an assumed one. That one column is all of `progress-tracker.md` it may touch: Status belongs to `/dev-develop`, and assignees to neither of them.
 
 **Review** owns `.konteksto/reviews/<date>-<task-slug>.md`, one file per run. Dated records, never edited afterwards. A later run writes a new file.
 

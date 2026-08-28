@@ -4,6 +4,24 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
+## [0.7.0] — 2026-08-29
+
+### Added
+
+- **`/dev-loop`, `/dev-context`, `/dev-audit`, and `/dev-qa`.** The delivery loop persists its control state, review findings gain stable audit IDs, and QA can rerun documented bug cases without confusing them with task acceptance checks.
+
+### Changed
+
+- **The decision and evidence log replaces `note-registry.md`.** New projects receive only `decision-log.md`. Existing projects should merge their note rows into it as Evidence rows, retain the original timestamps and writing skills, then remove `note-registry.md` after every row is migrated.
+
+- **Review findings have a lifecycle.** `audit-register.md` links immutable review reports to open, ready for QA, verified, reopened, or accepted findings. QA records the observed regression result and may transition only its issue status.
+
+- **Older `note-registry.md` references below are historical.** They describe the pre 0.7.0 workflow and are superseded by the decision and evidence log migration above.
+
+### Removed
+
+- **Phase checkpoints and `role.local.json`.** New plans and trackers omit checkpoint blocks and tables. Existing checkpoint records remain historical and no skill updates them.
+
 ## [0.6.1] — 2026-08-15
 
 Three gaps found by running `/dev-design` on a real project: it could not tell a Playwright it can use from one it cannot, it had no way to prove the browser works before a person was waiting, and ending a session meant killing processes by number.
@@ -225,5 +243,5 @@ The first working set. Not tagged, so this records the state of `main` before th
 - **Eight skills**, each prefixed `dev-` so a personal skill of the same name cannot shadow it: `/dev-scope`, `/dev-architect`, `/dev-develop`, `/dev-check`, `/dev-debug`, `/dev-test`, `/dev-document`, `/dev-sync`.
 - **Ten documents in `.konteksto/`**, written from templates, carrying the reasoning a chat log would have lost.
 - **`note-registry.md`**, split out of `progress-tracker.md`, recording what was actually run and what it proved. Three skills append to it, each making a different claim.
-- **Team Shape**, asked once by `/dev-scope` and applied by `/dev-architect`: an assignee per task, an actor per note row, and a review checkpoint per phase. Personal projects get none of it.
+- **Team Shape**, asked once by `/dev-scope` and applied by `/dev-architect`: an assignee per task, an actor per note row, and a review checkpoint per phase (retired in 0.7.0). Personal projects get none of it.
 - **A local installer**, for trying the skills before publishing them.

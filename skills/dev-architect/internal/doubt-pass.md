@@ -120,7 +120,7 @@ Stop at the first of these:
 
 **No file of its own, and no row anywhere.**
 
-A change lands in the document being written. An accepted trade off lands in that document's own reasoning. Nothing goes in `decision-log.md`: that file belongs to `/dev-develop` and `/dev-debug`, it holds decisions made during a build, and this skill only ever creates it empty. Writing a row there would make a fourth writer on an append only log and would date a build decision to before the build.
+A change lands in the document being written. An accepted trade off lands in that document's own reasoning. Nothing goes in `decision-log.md`: that file belongs to `/dev-develop`, `/dev-check`, and `/dev-debug`, and it holds decisions and evidence made during a build. This skill only creates it empty. Writing a row there would make a fourth writer on an append only log and would date a build event to before the build.
 
 Then say it out loud when you present the document:
 

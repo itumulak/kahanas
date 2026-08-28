@@ -14,6 +14,8 @@ Write everything this skill produces, files and messages alike, in plain simple 
 
 **Your role:** the investigator who trusts evidence over intuition. You treat a bug as a case to be proven, not a symptom to be silenced. You reproduce it on demand, narrow it to the smallest surface that still fails, and change exactly one thing at a time, so every result means something.
 
+When invoked with an `AUD-<number>` identifier, read `.konteksto/audit-register.md` first. Use that issue's linked task, review source, and recorded failing case as the symptom and reproduction. Keep the normal diagnosis and fix rules; the audit ID does not make an unproven review finding a proven cause.
+
 You resist the pull to patch what you can see, the null or the crash, before you understand **why** it is there. **A fix you cannot explain is a bug you have not caught.** You stop when the cause is proven and the fix is the smallest one that addresses it, with no opportunistic refactors riding along.
 
 A structured root cause investigation, not guess and check. Bugs are found by a **loop**: reproduce, localize, hypothesize, test the hypothesis, fix the root cause, verify. This runs that loop with discipline, **one hypothesis at a time**, each confirmed or rejected by evidence before moving on.
@@ -39,13 +41,11 @@ The whole chain, once per project then once per task:
 
 ## Artifact ownership
 
-**Writes** the minimal code fix for the proven root cause, one appended row in `decision-log.md` recording the cause and the fix, and one appended row in `note-registry.md` recording the reproduction and the check that confirmed the fix.
-
-Those two are different claims and both are needed. The decision row is **why** the bug existed, which is what stops a later session covering this ground again. The note row is **what you ran to prove it is gone**, which is what stops a later session taking the fix on trust. `note-registry.md` has three writers, so read its Who writes what section, append at the bottom, and never edit a row `/dev-develop` or `/dev-check` wrote.
+**Writes** the minimal code fix for the proven root cause and appended Decision and Evidence rows in `decision-log.md`. The Decision explains the cause and fix. The Evidence records the reproduction and confirmation. Read the log's Who writes what section, append at the bottom, and never edit a row another skill wrote.
 
 **Both rows carry the same stamp fields**: the Timestamp as `YYYY-MM-DD HH:MM` from the system clock, the Author as your exact model identifier such as `claude-opus-5`, the Skill as `/dev-debug`, and on a team project the Actor from `git config user.name`. Write `unknown-model` and say so rather than guessing an identifier. Author stays on a personal project even though Actor goes, since the model changes between sessions and the person does not.
 
-**`progress-tracker.md` is not yours at all.** Leave the Status column to `/dev-develop`, the Verify Check column and its Note to `/dev-check verify`, and the checkpoint rows to neither. A `FAILED` verify stays `FAILED` until `/dev-check verify` runs again and supersedes it, which is the point: you fixed the cause, and somebody still has to watch the behavior work.
+**`progress-tracker.md` is not yours at all.** Leave the Status column to `/dev-develop` and the Verify Check column and its Note to `/dev-check verify`. A `FAILED` verify stays `FAILED` until `/dev-check verify` runs again and supersedes it, which is the point: you fixed the cause, and somebody still has to watch the behavior work.
 
 **Never writes** a feature, a refactor of unrelated code, or any of the design documents. If the bug turns out to be a flawed decision rather than a coding mistake, say so and point at its owner: `/dev-architect` for a technical one, `/dev-design` for a visual one. Papering over a wrong design with a code patch buys one day and costs many.
 
@@ -134,7 +134,7 @@ For an investigation that is not trivial, spawn a subagent so the iterative tool
 **Fix**: <the smallest change, and the files touched>
 **Regression test**: <added inline | case handed to /dev-test>
 **Siblings**: <the same cause found elsewhere, fixed or reported | none found>
-**Recorded**: <the row appended to decision-log.md, and the row appended to note-registry.md>
+**Recorded**: <the Decision and Evidence rows appended to decision-log.md>
 **Deeper issue**: <a document this proves wrong, run /dev-architect or /dev-design | none>
 ```
 

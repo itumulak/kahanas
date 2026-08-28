@@ -45,7 +45,6 @@ Add one row per check this project genuinely requires. Two rules that hold on ev
 
 - **Runtime proof.** `/dev-check verify` observes it and records `PASSED`. A task may honestly hold `DONE` with a failing verify, and that state is useful information rather than a contradiction.
 - **Tests.** `/dev-test` owns every test file, and `test-preferences.json` records whether this project has a runner at all. A project that deliberately has none is not failing a check here.
-- **Human review.** A phase checkpoint is approved by a person, by hand, and no skill writes its own approval.
 
 ---
 

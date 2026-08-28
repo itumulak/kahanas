@@ -29,40 +29,87 @@ Every skill answers to `/dev-scope`, `/dev-architect`, and so on.
 | Skill | What it does |
 |---|---|
 | `/dev-scope` | Turns an idea into what the product is: pages, flows, and what is deliberately out of scope. Stays tool agnostic. |
+| `/dev-context` | Reads the project records in order for a fresh session or handoff, then reports the active task, constraints, and next valid workflow step. |
 | `/dev-architect` | Settles the stack, the local containers, and the build plan. Makes every tool call there is. |
 | `/dev-design` | Designs every surface the flows require, renders each one in a real browser, and gets a person to approve it. Frontend only. |
 | `/dev-develop` | Builds one task from the plan, then stops. Refuses to invent a decision the documents do not record. |
 | `/dev-check` | Two modes. `verify` runs the real app and proves the task works. `review` reads the diff on a different model than wrote it. |
 | `/dev-debug` | Finds the root cause of a bug by evidence, one hypothesis at a time, then makes the smallest fix. |
 | `/dev-test` | Writes the suite, grounded in the recorded invariants and value sources rather than in a coverage number. |
+| `/dev-audit` | Turns independent review findings into a durable register with stable IDs, ownership routes, and review evidence. |
+| `/dev-qa` | Reruns documented runtime cases for eligible audit findings and records the observed regression result. |
+| `/dev-loop` | Runs selected tasks through development, verification, testing, audit, and final regression QA, with resumable control state. |
 | `/dev-document` | Writes the prose about a change: a pull request, a changelog, a release note, or a postmortem. |
 | `/dev-sync` | Makes the documents true again after a change, from repo evidence, and flags what needs a person. |
 
 ## The usual loop
 
-Once per project:
+`/dev-loop <tasks>` runs the delivery chain for selected build plan tasks. A bare `/dev-loop` resumes its saved state or selects the next unfinished task. The diagram shows the normal path and the guarded recovery routes.
+
+```mermaid
+flowchart TD
+    scope["/dev-scope"] --> architect["/dev-architect"]
+    architect --> design["/dev-design<br/>frontend only, person approves"]
+    design --> loop["/dev-loop tasks"]
+
+    subgraph delivery["One selected task at a time"]
+        develop["/dev-develop"] --> verify{"/dev-check verify"}
+        verify -- "passed" --> test["/dev-test"]
+        verify -- "behavior failed" --> debug["/dev-debug"]
+        verify -- "missing or not live" --> develop
+        verify -- "design issue" --> design_handoff["/dev-design handoff"]
+        debug --> verify
+        test -- "defect" --> debug
+        test -- "passed" --> next{"More selected tasks?"}
+        next -- "yes" --> develop
+    end
+
+    loop --> develop
+    design_handoff --> blocked
+    next -- "no" --> audit["/dev-audit"]
+    audit --> review_ok{"Independent review and<br/>no open Blocker or Major<br/>in selected range?"}
+    review_ok -- "audit finding to repair" --> repair["/dev-debug or /dev-develop"]
+    repair --> verify
+    review_ok -- "degraded review, taskless, or external route" --> blocked["BLOCKED<br/>persist handoff in loop state"]
+    review_ok -- "yes" --> qa["/dev-qa"]
+    qa -- "regression fails" --> debug
+    qa -- "blocked" --> blocked
+    qa -- "pass or no eligible runtime case" --> complete["Complete selected run"]
+    complete --> merge_review["/dev-check review"]
+    merge_review --> document["/dev-document pr"]
+    document --> sync["/dev-sync"]
+```
+
+`/dev-design` runs again whenever a surface needs a new or revised design. `/dev-loop` records every phase and handoff in `loop-state.md`, and stops at its per task and per run repair caps.
+
+### Run it manually
+
+Use `/dev-context` at the start of a fresh session or handoff. Once per project, run `/dev-scope`, `/dev-architect`, and `/dev-design` for frontend work. `/dev-loop <tasks>` is the automated alternative to the task sequence below, so do not run it alongside the manual steps.
+
+For each task, run:
 
 ```
-/dev-scope      what the product is
-/dev-architect  how it gets built
-/dev-design     how it looks, and a person approves it (frontend only)
+/dev-develop <task>         build it
+/dev-check verify <task>    prove it works
+/dev-test                   keep it working
 ```
 
-`/dev-design` also runs again whenever a surface needs a new or revised design, which is the one part of the setup that recurs.
+Follow the verifier's route on a failure: behavioral defects go to `/dev-debug`, missing or not live work returns to `/dev-develop`, and design gaps go to `/dev-design`.
 
-Then per task:
+After all selected tasks pass, run:
 
 ```
-/dev-develop         build it
-/dev-check verify    prove it works
-/dev-test            keep it working
+/dev-audit <selected range>  record review findings and routes
+/dev-qa                      rerun eligible runtime findings
 ```
 
-A verify failure goes to `/dev-debug`, and a surface with no approved design goes to `/dev-design`. Before a merge: `/dev-check review`, then `/dev-document pr`, then `/dev-sync`.
+Resolve open Blockers and Majors through their recorded owners before QA. A degraded review, a taskless finding, or an external route is a handoff, not a pass.
+
+Before a merge, run `/dev-check review`, `/dev-audit`, `/dev-document pr`, and `/dev-sync`.
 
 ## What it produces
 
-Thirteen documents in `.konteksto/`, plus the design prototypes:
+The project records in `.konteksto/`, plus the design prototypes:
 
 ```
 .konteksto/
@@ -82,28 +129,31 @@ Thirteen documents in `.konteksto/`, plus the design prototypes:
 ├── build-plan.md          the ordered task list
 ├── progress-tracker.md    live state       (/dev-develop, plus the Verify
 │                                            Check column from /dev-check)
-├── decision-log.md        what was decided, and why
-│                                    (/dev-develop, /dev-debug append)
-├── note-registry.md       what was run, and what it proved
+├── decision-log.md        decisions and observed evidence
 │                                    (/dev-develop, /dev-check, /dev-debug append)
+├── audit-register.md      review findings and QA history
+│                                    (/dev-audit, /dev-qa update)
+├── loop-state.md          active delivery loop state    (/dev-loop only)
 └── ui-registry.md         reusable components           (/dev-develop updates)
 ```
 
-Three of them describe the same task from three angles, and they stay separate on purpose. The tracker says **where it stands**, one word per cell, scannable a phase at a time. `note-registry.md` says **what was run** and what it showed. `decision-log.md` says **why**, which no command produces and git does not preserve. Watched it happen goes to the registry, concluded it goes to the log.
+Two of them describe the same task from complementary angles. The tracker says **where it stands**, one word per cell, scannable a phase at a time. `decision-log.md` is the chronological record of **what was decided and why**, plus **what was run and what it showed**.
+
+Start a fresh agent or handoff with `/dev-context`. Use `/dev-loop` when a sequence of build plan tasks should run through implementation, verification, tests, audit, and regression QA.
 
 `design-registry.md` splits between a skill and a person: `/dev-design` writes every status except `APPROVED`, which only a person decides. A skill may record an approval somebody actually gave, on strict conditions, and may never originate one. It still marks an approved design `CHANGE REQUIRED` when something invalidates it, because noticing a thing has gone stale is an observation and deciding it is fixed is not.
 
 **A product that already shipped gets a baseline rather than a backlog.** On an existing codebase each skill asks where its own line sits: `/dev-design` asks whether the screens that already exist owe prototypes, and `/dev-architect` asks whether the features that are already built appear in the plan. The usual answer to both is no, and the work before the line is recorded as such instead of being stamped as though this workflow built it. Everything after the line follows the process in full.
 
-All but five have exactly one writer. `progress-tracker.md` splits by column: `/dev-develop` owns the Status of every task, and `/dev-check verify` owns the Verify Check beside it, because "the build is clean" and "somebody watched it work" are different claims and neither skill may make the other's. Both cells carry the model that stamped them and when, and a value that changes is struck through with the new one appended after it, so the whole history stays readable.
+The shared documents have explicit ownership. `progress-tracker.md` splits by column: `/dev-develop` owns the Status of every task, and `/dev-check verify` owns the Verify Check beside it, because "the build is clean" and "somebody watched it work" are different claims and neither skill may make the other's. Both cells carry the model that stamped them and when, and a value that changes is struck through with the new one appended after it, so the whole history stays readable.
 
-`decision-log.md` takes appends from `/dev-develop` and `/dev-debug`, and only when there was something to decide. Most tasks add nothing.
+`decision-log.md` takes Decision and Evidence rows from `/dev-develop`, `/dev-check`, and `/dev-debug`. Most tasks add no Decision row, but every completed build adds its clean build Evidence row.
 
-Both append only files are tables carrying a Timestamp and an **Author**, the exact model identifier that wrote the row. The Actor column beside it, the person, is team only. Author is not: the model changes between sessions when the person does not, and it is what tells a reader how much to trust a six week old row.
+The append only log carries a Timestamp and an **Author**, the exact model identifier that wrote the row. The Actor column beside it, the person, is team only. Author is not: the model changes between sessions when the person does not, and it is what tells a reader how much to trust a six week old row.
 
 `glossary.md` splits differently again, by stage. `/dev-scope` writes the words the user used, `/dev-architect` adds what designing the system revealed and may sharpen a definition but never rename a term, and every other skill reads it, names what it builds from it, and reports drift without writing.
 
-`note-registry.md` is the fourth: three skills append to it, each a different claim. `/dev-develop` says the build is clean, `/dev-check verify` says the behavior was exercised, `/dev-debug` says a bug was proven gone. Every row carries its timestamp and the skill that wrote it, nobody edits anybody else's row, and `/dev-sync` writes none, having run nothing itself.
+The Evidence rows preserve three distinct claims: `/dev-develop` says the build is clean, `/dev-check verify` says the behavior was exercised, and `/dev-debug` says a bug was proven gone. Every row carries its timestamp and writing skill, nobody edits another writer's rows, and `/dev-sync` writes none, having run nothing itself.
 
 Plus `docker-compose.yml` and `.env.example` at the root, and a project laid out as:
 
@@ -122,9 +172,7 @@ Plus `docker-compose.yml` and `.env.example` at the root, and a project laid out
 
 **One owner per document.** Two skills writing one file is how a system like this rots. Where a file genuinely has two writers, every side says so.
 
-**Nothing claims a guarantee it cannot keep.** On a team project every task carries an assignee and every note row carries the git user who ran it, and `/dev-develop` stops when a task belongs to somebody else. That is a convention, not a lock, and the documents say as much where they describe it. Two people on two machines both pass the check. Real enforcement is branch protection or an issue tracker, and pretending otherwise would be worse than offering nothing.
-
-**A skill never signs off on itself.** Phase checkpoints are approved by a person, by hand. A skill may mark one due, because the repository proves the phase is finished, but an approval asserts that a human reviewed the work, and a tool writing its own would empty the word. Checkpoints are non blocking: the next phase starts regardless, and an unapproved one stays visible rather than stopping the line.
+**Nothing claims a guarantee it cannot keep.** On a team project every task carries an assignee and every log row carries the git user who ran it, and `/dev-develop` stops when a task belongs to somebody else. That is a convention, not a lock, and the documents say as much where they describe it. Two people on two machines both pass the check. Real enforcement is branch protection or an issue tracker, and pretending otherwise would be worse than offering nothing.
 
 **A decision is never invented mid build.** `/dev-develop` runs a mechanical test before writing code: every value it must produce needs a named source. Anything unnamed stops the build and routes to `/dev-architect`, because a build in progress will rationalize a real decision as ordinary wiring.
 

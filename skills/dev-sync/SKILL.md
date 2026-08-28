@@ -41,11 +41,9 @@ These keep the skill from sprawling, which is the failure mode for anything that
 | Edit `design.md` | ❌ flags as stale | `/dev-design` |
 | Edit `project-overview.md` | ❌ flags as stale | `/dev-scope` |
 | Clear a task built on an unratified assumption | ❌ flags as decision debt | `/dev-architect` |
-| Add or rewrite any row in `note-registry.md` | ❌ leaves alone | `/dev-develop`, `/dev-check`, `/dev-debug` |
-| Add or rewrite any row in `decision-log.md` | ❌ leaves alone | `/dev-develop`, `/dev-debug` |
+| Add or rewrite any row in `decision-log.md` | ❌ leaves alone | `/dev-develop`, `/dev-check`, `/dev-debug` |
 | Reassign a task, or change an assignee | ❌ flags for escalation | a person |
-| Approve a checkpoint, or change its approvals | ❌ leaves alone | a person |
-| Move a checkpoint row to `due` the repo proves is due | ✅ corrects | `/dev-sync` |
+| A Checkpoints section in an existing tracker | ❌ leaves alone, retired | nobody |
 | Rewrite a line a person wrote by hand | ❌ flags the conflict | the person |
 | Correct a fact in a still stamped document | ✅ corrects surgically | `/dev-sync` |
 
@@ -121,7 +119,7 @@ For each task in `progress-tracker.md` whose Status is neither `DONE` nor `BASEL
 
 **Be conservative.** Stamp on clearly present evidence, and when unsure, leave it. A finished task still reading `PENDING` is a small annoyance. An unfinished one stamped `DONE` sends the next session past work that was never done.
 
-**You cannot confirm the Definition of Done, so say so rather than implying you did.** That table in `code-standards.md` is the bar `/dev-develop` clears before stamping, and clearing it means running its commands. You run nothing, for the same reason you write no note row: a check you did not run and an observation you did not make are the two things this skill must never fabricate.
+**You cannot confirm the Definition of Done, so say so rather than implying you did.** That table in `code-standards.md` is the bar `/dev-develop` clears before stamping, and clearing it means running its commands. You run nothing, for the same reason you write no Evidence row: a check you did not run and an observation you did not make are the two things this skill must never fabricate.
 
 So the stamp you write here is a narrower claim than the one `/dev-develop` writes, and your report says which tasks carry it: the code the task promised is plainly in the repo, and nobody has confirmed it meets the project's bar. Point those at `/dev-develop` to finish the check, alongside `/dev-check verify` for the ones with an empty Verify Check.
 
@@ -135,23 +133,16 @@ So the stamp you write here is a narrower claim than the one `/dev-develop` writ
 
 **A `BASELINE` row is never promoted**, which is why step 2 leaves it out of the scan rather than finding evidence for it and then declining to act. Those rows say the feature was finished before this workflow arrived. Finding its code proves nothing new, since that is exactly what the row already says, and stamping it `DONE` would claim a build nobody here ran. Leave it, and the row for the task that changes it later is an ordinary row.
 
-**The Verify Check column is read only to you**, exactly as the note registry is, and for the same reason. That cell says a model ran the app and watched a behavior, and you have run nothing. Stamping it would be fabricating an observation. A task stamped `DONE` here with an empty Verify Check is reported as never verified, and pointed at `/dev-check verify`.
+**The Verify Check column is read only to you**, exactly as the decision and evidence log is, and for the same reason. That cell says a model ran the app and watched a behavior, and you have run nothing. Stamping it would be fabricating an observation. A task stamped `DONE` here with an empty Verify Check is reported as never verified, and pointed at `/dev-check verify`.
 
-**The note registry is read only to you.** Never append a row, and never edit one. Every row there is a claim that a specific skill ran a specific thing and saw a specific result, and you have run nothing. A row you wrote would be a fabricated observation, which is worse than a missing one, because it reads exactly like a real one to the next session.
-
-**`decision-log.md` is read only to you for the same reason.** Every row there is somebody's reasoning at a moment, and you did not build anything, so you decided nothing. Read it for the rows marked `assumed, not yet ratified`, which are what keep their tasks off `DONE`, and write nothing into it. Its Task column is what lets you match a row to a task without guessing.
+**`decision-log.md` is read only to you.** Never append or edit a row. Its Evidence rows claim a specific skill ran a specific thing and saw a result, while its Decision rows record reasoning at a moment. You have neither evidence nor a build decision to add. Read it for rows marked `assumed, not yet ratified`, which are what keep their tasks off `DONE`; its Task column lets you match a row without guessing.
 
 **Read it for evidence, though.** It is the best record of who touched what, and on a team project its Actor column is the only place that says so.
 
 **Assignments.** Do not change one, ever, in either direction. Claiming a task belongs to somebody needs a reason that lives in a conversation, not in the repository. Two things get flagged instead:
 
-- **A task with note rows from more than one actor.** Two or more people worked the same task. Flag it for escalation and name every actor, every commit involved, and every branch you can see carrying the work. **Stop there.** Deciding which branch survives, or resolving the conflict between them, is a person's call and usually a project manager's. Recommending a branch would be guessing at intent from file contents, and the wrong guess quietly discards somebody's work.
-- **A `DONE` task still reading `unassigned`.** Somebody built it without claiming it. Flag it, and name the actor from its note rows as the likely owner. **Do not write that name in.** A note row proves who ran a check, not who owns the task.
-
-**Checkpoints.** One correction only: a phase whose tasks all read `DONE` but whose checkpoint row still reads `not due` moves to `due`, because the repository proves that much. Never write an approval and never clear one. An approval is a claim that a person reviewed something, and you have reviewed nothing. A phase sitting at `due` is reported, not resolved, and it blocks nothing, so never treat it as a reason to hold anything up.
-
-Report, without changing anything, a phase approved by developers only where the project wanted a project manager's sign off. The roles are written beside the names in the Approved by column, so this is read directly rather than worked out. Say it once in the report and leave the table alone.
-
+- **A task with log rows from more than one actor.** Two or more people worked the same task. Flag it for escalation and name every actor, every commit involved, and every branch you can see carrying the work. **Stop there.** Deciding which branch survives, or resolving the conflict between them, is a person's call and usually a project manager's. Recommending a branch would be guessing at intent from file contents, and the wrong guess quietly discards somebody's work.
+- **A `DONE` task still reading `unassigned`.** Somebody built it without claiming it. Flag it, and name the actor from its log rows as the likely owner. **Do not write that name in.** A log row proves who ran a check, not who owns the task.
 **A task built on an unratified assumption stays off `DONE`**, however finished the code looks. Only `/dev-architect` clears that, and stamping it here would erase the one signal that a decision is still owed.
 
 **The registry.** For every reusable component in the code with no entry, add one: what it is for, its props, and a short real usage example read from an actual call site. For an entry whose props no longer match the code, correct the entry, because the code is the truth and a stale registry causes duplicates.
@@ -181,7 +172,7 @@ Give the stub the Source line the template defines for exactly this case:
 - **A word the glossary rejects** is a **contradiction**. Two things disagree, and which one is wrong is invisible from here: either somebody named a thing carelessly, or the term was deliberately changed and the document is behind. Name both words and where each appears.
 - **A concept with no entry at all** looks like a **gap**, and by the letter of step 4 it is one: nothing disagrees, something is simply absent. **You still do not fill it**, and the reason is not the gap and contradiction rule. It is that the repo cannot prove the fact this file holds.
 
-**The code proves a word is in use. The glossary claims that word is the one this project chose.** Those are different facts, and only the first is in the repository. Naming is a decision, and this skill records nothing it did not observe, which is the same reason it writes no note row and no decision row.
+**The code proves a word is in use. The glossary claims that word is the one this project chose.** Those are different facts, and only the first is in the repository. Naming is a decision, and this skill records nothing it did not observe, which is the same reason it writes no Evidence or Decision row.
 
 That is also what separates this from the two registries above, which otherwise look like the same job. `ui-registry.md` records what exists, so the code proves it end to end and you add the missing entry. A `library-docs.md` stub records that a package is present, which the manifest proves, and its Source line says plainly that nobody has verified anything further. A glossary records what was chosen, and no amount of reading the code will ever prove that.
 
@@ -214,7 +205,7 @@ Flag when:
 
 Each flag names the document, what the repo shows instead, and which skill fixes it.
 
-**Escalations are a separate list**, because they go to a person rather than to a skill, and burying them among the document flags is how they get skimmed past. Raise one when a task's note rows carry more than one actor, or when a `DONE` task is still unassigned. Name the task, every actor on it, and the branches involved, then stop. **Never recommend which branch to keep.** From the outside, two branches touching one task look the same whether one is a rewrite of the other or both hold work nobody wants lost, and picking wrong throws away someone's day.
+**Escalations are a separate list**, because they go to a person rather than to a skill, and burying them among the document flags is how they get skimmed past. Raise one when a task's log rows carry more than one actor, or when a `DONE` task is still unassigned. Name the task, every actor on it, and the branches involved, then stop. **Never recommend which branch to keep.** From the outside, two branches touching one task look the same whether one is a rewrite of the other or both hold work nobody wants lost, and picking wrong throws away someone's day.
 
 ### Step 6: Report
 

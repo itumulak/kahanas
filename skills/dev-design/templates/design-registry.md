@@ -63,7 +63,7 @@ And one complex surface may warrant several files. The registry is the mapping, 
 | `APPROVED` | a person looked at it and accepted it | **only a person decides**, see below |
 | `BASELINE` | the surface existed and was finished before this workflow was adopted, and owes no prototype | `/dev-design`, on an existing codebase only |
 
-**No skill may ever originate an approval.** An approval asserts that a human reviewed something. A tool deciding its own would empty the word, and every rule downstream that depends on approval would then depend on nothing. This is the same rule that governs phase checkpoints, for the same reason.
+**No skill may ever originate an approval.** An approval asserts that a human reviewed something. A tool deciding its own would empty the word, and every rule downstream that depends on approval would then depend on nothing.
 
 **A skill may record an approval a person actually gave.** Deciding and writing down are different acts, and requiring somebody to hand edit markdown after saying yes is ceremony rather than safety. Three conditions, all required:
 
@@ -194,7 +194,7 @@ The Note is overwritten rather than superseded, because the struck stamps beside
 
 *This section is an example. It is not part of a real project's registry, and the skill writing this file deletes it. The surfaces, names, and dates in it are invented.*
 
-Same invented booking product as the worked examples in `progress-tracker.md`, `decision-log.md`, `note-registry.md`, and `glossary.md`.
+Same invented booking product as the worked examples in `progress-tracker.md`, `decision-log.md`, and `glossary.md`.
 
 | Surface | Required by | File | Status | Note |
 | --- | --- | --- | --- | --- |
