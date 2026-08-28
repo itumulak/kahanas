@@ -62,7 +62,7 @@ A verify failure goes to `/dev-debug`, and a surface with no approved design goe
 
 ## What it produces
 
-Thirteen documents in `.konteksto/`, plus the design prototypes:
+The project records in `.konteksto/`, plus the design prototypes:
 
 ```
 .konteksto/
@@ -86,10 +86,13 @@ Thirteen documents in `.konteksto/`, plus the design prototypes:
 │                                    (/dev-develop, /dev-check, /dev-debug append)
 ├── audit-register.md      review findings and QA history
 │                                    (/dev-audit, /dev-qa update)
+├── loop-state.md          active delivery loop state    (/dev-loop only)
 └── ui-registry.md         reusable components           (/dev-develop updates)
 ```
 
 Two of them describe the same task from complementary angles. The tracker says **where it stands**, one word per cell, scannable a phase at a time. `decision-log.md` is the chronological record of **what was decided and why**, plus **what was run and what it showed**.
+
+Start a fresh agent or handoff with `/dev-context`. Use `/dev-loop` when a sequence of build plan tasks should run through implementation, verification, tests, audit, and regression QA.
 
 `design-registry.md` splits between a skill and a person: `/dev-design` writes every status except `APPROVED`, which only a person decides. A skill may record an approval somebody actually gave, on strict conditions, and may never originate one. It still marks an approved design `CHANGE REQUIRED` when something invalidates it, because noticing a thing has gone stale is an observation and deciding it is fixed is not.
 
@@ -97,7 +100,7 @@ Two of them describe the same task from complementary angles. The tracker says *
 
 The shared documents have explicit ownership. `progress-tracker.md` splits by column: `/dev-develop` owns the Status of every task, and `/dev-check verify` owns the Verify Check beside it, because "the build is clean" and "somebody watched it work" are different claims and neither skill may make the other's. Both cells carry the model that stamped them and when, and a value that changes is struck through with the new one appended after it, so the whole history stays readable.
 
-`decision-log.md` takes Decision and Evidence rows from `/dev-develop`, `/dev-check`, and `/dev-debug`. Most tasks add no Decision row, but every completed build adds its clean-build Evidence row.
+`decision-log.md` takes Decision and Evidence rows from `/dev-develop`, `/dev-check`, and `/dev-debug`. Most tasks add no Decision row, but every completed build adds its clean build Evidence row.
 
 The append only log carries a Timestamp and an **Author**, the exact model identifier that wrote the row. The Actor column beside it, the person, is team only. Author is not: the model changes between sessions when the person does not, and it is what tells a reader how much to trust a six week old row.
 

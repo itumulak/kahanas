@@ -14,13 +14,15 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | `/dev-debug` | the minimal fix, and Decision plus Evidence rows in `decision-log.md` | Finds out why it does not |
 | `/dev-audit` | the Issues table in `audit-register.md` | Tracks review findings across changes |
 | `/dev-qa` | QA Runs in `audit-register.md` | Checks resolved bugs for regression |
+| `/dev-loop` | `loop-state.md` | Orchestrates the delivery and regression loop |
+| `/dev-context` | nothing, read only | Establishes context for a fresh session or handoff |
 | `/dev-test` | the test files, and `test-preferences.json` | Stops it breaking again |
 | `/dev-document` | `CHANGELOG.md`, `.konteksto/releases/`, `.konteksto/postmortems/` | Explains it to people |
 | `/dev-sync` | corrections to `progress-tracker.md` and `ui-registry.md` from repo evidence | Makes the documents true again |
 
 `design.md` and `design-registry.md` are the optional ones, skipped together with `.konteksto/designs/` for a backend with no `app/`, which is the same condition under which `/dev-design` does not run at all.
 
-**The usual loop:** `/dev-scope` once, `/dev-architect` once, `/dev-design` once for the first pass of surfaces and again whenever one needs a new or revised design, then per task `/dev-develop`, `/dev-check verify`, `/dev-test`. A verify failure goes to `/dev-debug`, and a visual gap goes to `/dev-design`. Before a merge, `/dev-check review`, then `/dev-document pr`, then `/dev-sync`.
+**The usual loop:** `/dev-scope` once, `/dev-architect` once, `/dev-design` once for the first pass of surfaces and again whenever one needs a new or revised design, then per task `/dev-develop`, `/dev-check verify`, and `/dev-test`. `/dev-loop` runs that chain across selected tasks, then `/dev-audit` and `/dev-qa`. A verify failure follows the verifier's route. Before a merge, `/dev-check review`, `/dev-audit`, `/dev-document pr`, then `/dev-sync`.
 
 **Do not write a document count into a skill's instructions.** The number above is here, in the overview, where a person maintaining the set will see it. A count written beside a list inside a procedure is wrong the first time anybody extends the list, and this project has already shipped that bug twice.
 
@@ -35,7 +37,11 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | `/dev-design` | design intent | product or technical intent |
 | `/dev-develop` | implementation | design or product intent |
 | `/dev-check` | observations | any intent at all |
+| `/dev-audit` | review finding state | code, product, technical, or design intent |
+| `/dev-qa` | regression observations | any intent at all |
 | `/dev-test` | regression protection | any intent at all |
+| `/dev-loop` | loop control state | application, product, technical, or design intent |
+| `/dev-context` | nothing | anything at all |
 | `/dev-sync` | corrections the repo proves | any intent at all |
 
 Most of the individual rules below are this one rule applied to a particular file. `/dev-develop` finding a missing design cannot design it. `/dev-check` finding a wrong prototype cannot fix it. `/dev-sync` finding a term in the code cannot make it the project's word. `/dev-architect` finding a product requirement cannot add it to the scope.
@@ -82,7 +88,7 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 
 **This overview and `README.md` are the exception, and they still may not carry specifics.** Their job is orientation for somebody maintaining the skills, so they say what a rule is for and why it exists. They do not restate its exact conditions, values, or counts, because a summary that carries operational detail is just another copy waiting to go stale.
 
-**A new artifact needs a fundamentally different owner, lifecycle, or truth source.** There are already five state and knowledge files: `progress-tracker.md`, `decision-log.md`, `ui-registry.md`, `design-registry.md`, and `glossary.md`. Each earns its place on that test. New information goes into an existing artifact unless it can pass the same one, because the cost of another file is paid by every session that has to know it exists.
+**A new artifact needs a fundamentally different owner, lifecycle, or truth source.** The state and knowledge files include `progress-tracker.md`, `decision-log.md`, `audit-register.md`, `loop-state.md`, `ui-registry.md`, `design-registry.md`, and `glossary.md`. Each earns its place on that test. New information goes into an existing artifact unless it can pass the same one, because the cost of another file is paid by every session that has to know it exists.
 
 ## Design
 

@@ -4,6 +4,18 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
+## [0.7.0] — 2026-08-29
+
+### Added
+
+- **`/dev-loop`, `/dev-context`, `/dev-audit`, and `/dev-qa`.** The delivery loop persists its control state, review findings gain stable audit IDs, and QA can rerun documented bug cases without confusing them with task acceptance checks.
+
+### Changed
+
+- **The decision and evidence log replaces `note-registry.md`.** New projects receive only `decision-log.md`. Existing projects should merge their note rows into it as Evidence rows, retain the original timestamps and writing skills, then remove `note-registry.md` after every row is migrated.
+
+- **Review findings have a lifecycle.** `audit-register.md` links immutable review reports to open, ready for QA, verified, reopened, or accepted findings. QA records the observed regression result and may transition only its issue status.
+
 ## [0.6.1] — 2026-08-15
 
 Three gaps found by running `/dev-design` on a real project: it could not tell a Playwright it can use from one it cannot, it had no way to prove the browser works before a person was waiting, and ending a session meant killing processes by number.

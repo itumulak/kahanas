@@ -1,0 +1,6 @@
+# OpenAI Codex adapter. This file supplies the interface metadata Codex shows in
+# its agent picker. The skill's actual instructions live in ../SKILL.md.
+interface:
+  display_name: "Dev Audit"
+  short_description: "Track review findings across repeated changes"
+  default_prompt: "Use $dev-audit for the current change, task, or review report, then update the audit register without editing code."

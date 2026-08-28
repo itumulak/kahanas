@@ -1,8 +1,15 @@
 ---
 name: dev-loop
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion
+argument-hint: [task selector]
 description: "Run /dev-loop to complete one or more build plan tasks through /dev-develop, /dev-check verify, /dev-test, and final /dev-qa regression checks. Recovers failures through /dev-debug, persists the handoff state, and stops only after all selected tasks and QA checks pass or one repair reaches ten failed attempts."
 ---
+
+## Output style (plain words, no dashes, no hyphens)
+
+<!-- OUTPUT-STYLE:START -->
+Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. A structural separator inside a template format other skills parse, such as the em dash in `## Phase 1 — <NAME>`, is part of that format: reproduce it exactly, since changing it breaks the mirroring. Use short sentences, commas, or parentheses. Clear beats clever.
+<!-- OUTPUT-STYLE:END -->
 
 ## What this skill does
 
@@ -14,13 +21,13 @@ The task runner for the delivery chain. It completes one task at a time, in buil
 
 After every selected task passes, the run ends with `/dev-qa` to check the audit register for regressions.
 
-Verification is the acceptance gate. If it fails, run `/dev-debug`, then return to `/dev-check verify`. Do not send a failed verification back to `/dev-develop`: that skill has already marked the task `DONE`, while `/dev-debug` owns the smallest corrective fix.
+Verification is the acceptance gate. Route each failure from its verdict: behavioral failure to `/dev-debug`, promised but missing or built but not live to `/dev-develop`, and a prototype that is wrong or silent to `/dev-design`. A `DONE` task that fails behavior goes to `/dev-debug`; a missing or not live surface remains incomplete implementation work.
 
 The runner selects only the tasks named in its argument. A bare `/dev-loop` resumes its saved state, or starts the next unfinished task in `.konteksto/build-plan.md` when there is no saved run.
 
 ## State and ownership
 
-This skill owns `.konteksto/loop-state.md`. Create it only when a run begins. Update it after every phase transition and before any session boundary.
+This skill owns `.konteksto/loop-state.md`. Create it only when a run begins. Update it after every phase transition and before any session boundary. It must never edit application code, `progress-tracker.md`, `decision-log.md`, `audit-register.md`, design records, test files, or a subskill's artifact.
 
 Keep these fields in it:
 
@@ -30,7 +37,8 @@ Keep these fields in it:
 - Selected tasks: <ordered task IDs>
 - Current task: <task ID or none>
 - Phase: <develop | verify | debug | test | qa | complete | blocked>
-- Failed attempts for current task: <0 to 10>
+- Failed attempts by task: <task ID: count>
+- Total repair attempts: <0 to 30>
 - Last observed result: <short evidence based summary>
 - Next action: <exact skill invocation>
 ```
@@ -49,10 +57,10 @@ The build plan and progress tracker remain the source of truth for task status. 
 For the current task, keep the state file current and perform exactly one phase at a time.
 
 1. **Develop.** Run `/dev-develop <task ID>`. Respect its gates and stop if it routes to an owner such as `/dev-architect` or `/dev-design`.
-2. **Verify.** Run `/dev-check verify <task ID>`. A pass advances to test. A failure increments `Failed attempts for current task`, records the checker evidence, and advances to debug.
-3. **Debug.** Run `/dev-debug <task ID>`, then return directly to verify. Do not rerun develop for a task already marked `DONE`.
-4. **Test.** Run `/dev-test`. A passing suite completes the task. If the suite exposes a defect, count it as a failed attempt, record the failing evidence, run `/dev-debug <task ID>`, then verify and test again. If `/dev-test` reports that this project intentionally has no test runner, its configured gate is sufficient and the task completes once that gate passes.
-5. At ten failed attempts, set the phase to `blocked`, preserve the decisive evidence, and stop. Do not start another selected task.
+2. **Verify.** Run `/dev-check verify <task ID>`. A pass advances to test. On a failure, preserve the verifier's route. A behavioral failure increments that task's repair count and advances to debug. A promised but missing or built but not live surface returns to `/dev-develop <task ID>`. A prototype that is wrong or silent routes to `/dev-design`.
+3. **Debug.** Run `/dev-debug <task ID>`, then return directly to verify.
+4. **Test.** Run `/dev-test`. A passing suite completes the task. If the suite exposes a defect, count it as a failed attempt, record the failing evidence, run `/dev-debug <task ID>`, then verify and test again. If `/dev-test` reports that this project intentionally has no test runner, the Definition of Done in `code-standards.md` is the implementation gate and the task completes once it passes.
+5. At ten failed attempts for one task, or thirty repairs across the run, set the phase to `blocked`, preserve the decisive evidence, and stop. Do not start another selected task.
 
 Do not call a task passed from a clean build alone. It passes only after observed verification and the required test gate both pass.
 
@@ -60,16 +68,14 @@ Do not call a task passed from a clean build alone. It passes only after observe
 
 After each completed task, record the next task and exact next action in `loop-state.md`.
 
-If the host can create and start a new agent session programmatically, start a fresh session with `/dev-loop` and let it resume the saved state. If it cannot, continue with the next selected task in the current session. Do not claim that a fresh session was created unless the host confirmed it.
-
-The saved state is mandatory in both cases. It makes the workflow portable across Codex, Claude Code, OpenCode, and any host that cannot delegate session creation to a skill.
+Continue with the next selected task in the current session. A fresh session is used only when the user or host explicitly starts one; it resumes from the saved state. Do not claim that a fresh session was created unless the host confirmed it.
 
 ## Final QA
 
-After every selected task has passed its test gate, set the phase to `qa` and run `/dev-qa` without an argument.
+After every selected task has passed its test gate, run `/dev-audit` over the selected change range. This ingests an existing matching review or runs one when none exists, so the audit register is current. Then set the phase to `qa` and run `/dev-qa` without an argument.
 
-- **All pass or no eligible bugs:** complete the run.
-- **A regression fails:** set the current task to the audit issue's linked task, increment its failed attempts, and run `/dev-debug <AUD-ID>`. Then run `/dev-check verify <linked task>`, `/dev-test`, `/dev-audit <linked task>`, and `/dev-qa <AUD-ID>` in that order. A passing targeted QA check returns to final QA for the remaining register.
+- **All pass:** complete the run. If QA reports no eligible bugs, say that the audit ran and no runtime bug had a regression case; do not describe it as a QA pass.
+- **A regression fails:** set the current task to the audit issue's linked task, increment that task's repair count and Total repair attempts, and stop if either cap is reached. Otherwise run `/dev-debug <AUD-ID>`. Then run `/dev-check verify <linked task>`, `/dev-test`, `/dev-audit <linked task>`, and `/dev-qa <AUD-ID>` in that order. The targeted QA run sets the issue to `verified` on PASS; then return to final QA for the remaining register.
 - **QA is blocked:** preserve the audit ID and blocker in loop state, then stop. A blocked regression cannot be treated as a passed task.
 
 The repair path applies even when the audit issue came from an earlier task. Do not drop it merely because the selected task list has already completed.

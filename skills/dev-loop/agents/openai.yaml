@@ -1,0 +1,6 @@
+# OpenAI Codex adapter. This file supplies the interface metadata Codex shows in
+# its agent picker. The skill's actual instructions live in ../SKILL.md.
+interface:
+  display_name: "Dev Loop"
+  short_description: "Complete tasks through build, checks, audit, and QA"
+  default_prompt: "Use $dev-loop for the current task or the supplied task selector, follow its saved state, route failures to their owning skill, and finish with audit and QA."

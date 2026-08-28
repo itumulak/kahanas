@@ -110,7 +110,7 @@ Run `git fetch` quietly, pick the base branch (`main` if it exists, else `master
 
 - **Behind by any commits.** Warn that a teammate may have already built this, and recommend pulling first.
 - **Uncommitted changes in the folders this task touches.** Warn that the build will tangle with them. Let the user proceed if they say so.
-- **The task's Status already reads `DONE` in `progress-tracker.md`.** Stop and ask before rebuilding.
+- **The task's Status already reads `DONE` in `progress-tracker.md`.** Stop and ask before rebuilding, except when `/dev-check verify` explicitly routed a promised but missing or built but not live surface back here. In that case, repair only the reported implementation gap, then run the normal implementation checks. Do not treat a behavioral bug as permission to rebuild: that belongs to `/dev-debug`.
 - **The task is assigned to someone else.** Only on a team project, meaning the Progress tables in `progress-tracker.md` carry an Assigned column. Read `git config user.name`, and when the assignee is a different name, stop and ask whether to build it anyway.
 
 Warnings, not blocks, but say them out loud.

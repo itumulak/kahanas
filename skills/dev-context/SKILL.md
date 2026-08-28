@@ -1,12 +1,19 @@
 ---
 name: dev-context
 allowed-tools: Bash, Read, Grep, Glob
+argument-hint: [task]
 description: "Run /dev-context to establish project context before development, verification, or a handoff. Reads the project records in their required order, identifies the active task and governing decisions, then follows their ownership and workflow rules."
 ---
 
+## Output style (plain words, no dashes, no hyphens)
+
+<!-- OUTPUT-STYLE:START -->
+Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. A structural separator inside a template format other skills parse, such as the em dash in `## Phase 1 — <NAME>`, is part of that format: reproduce it exactly, since changing it breaks the mirroring. Use short sentences, commas, or parentheses. Clear beats clever.
+<!-- OUTPUT-STYLE:END -->
+
 ## What this skill does
 
-The context entry point for a fresh agent or a task that needs a complete project view. It reads the project records in a fixed order, so the plan, current state, and documented decisions are interpreted against the architecture and standards that govern them.
+The context entry point for a fresh agent or a task that needs a complete project view. It reads the project records in a fixed order, so the plan, current state, and documented decisions are interpreted against the architecture and standards that govern them. It prepares a session; it does not replace the narrower records each delivery skill must read for its own work.
 
 This skill is read only. It does not repair stale documents or change code. Report contradictions with the document and owner that must resolve them.
 
@@ -23,7 +30,7 @@ Read each existing item completely before moving to the next:
 7. `.konteksto/decision-log.md`
 8. `.konteksto/audit-register.md`, when it exists
 9. `.konteksto/ui-registry.md`
-10. The approved design, as identified by `build-plan.md`, `project-overview.md`, or the design registry.
+10. The approved design, as identified by `build-plan.md` or the design registry.
 
 If a required record is absent, do not invent it. State which record is missing and use the owning workflow to resolve it. If no approved design applies to the active task, say so and route UI work to `/dev-design`.
 

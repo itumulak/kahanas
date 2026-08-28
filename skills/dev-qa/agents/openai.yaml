@@ -1,0 +1,6 @@
+# OpenAI Codex adapter. This file supplies the interface metadata Codex shows in
+# its agent picker. The skill's actual instructions live in ../SKILL.md.
+interface:
+  display_name: "Dev QA"
+  short_description: "Check audit findings for runtime regressions"
+  default_prompt: "Use $dev-qa for all eligible audit findings or the supplied AUD ID, exercise the documented regression case, and record the observed result."
