@@ -44,25 +44,68 @@ Every skill answers to `/dev-scope`, `/dev-architect`, and so on.
 
 ## The usual loop
 
-Once per project:
+`/dev-loop <tasks>` runs the delivery chain for selected build plan tasks. A bare `/dev-loop` resumes its saved state or selects the next unfinished task. The diagram shows the normal path and the guarded recovery routes.
+
+```mermaid
+flowchart TD
+    scope["/dev-scope"] --> architect["/dev-architect"]
+    architect --> design["/dev-design<br/>frontend only, person approves"]
+    design --> loop["/dev-loop tasks"]
+
+    subgraph delivery["One selected task at a time"]
+        develop["/dev-develop"] --> verify{"/dev-check verify"}
+        verify -- "passed" --> test["/dev-test"]
+        verify -- "behavior failed" --> debug["/dev-debug"]
+        verify -- "missing or not live" --> develop
+        verify -- "design issue" --> design_handoff["/dev-design handoff"]
+        debug --> verify
+        test -- "defect" --> debug
+        test -- "passed" --> next{"More selected tasks?"}
+        next -- "yes" --> develop
+    end
+
+    loop --> develop
+    design_handoff --> blocked
+    next -- "no" --> audit["/dev-audit"]
+    audit --> review_ok{"Independent review and<br/>no open Blocker or Major<br/>in selected range?"}
+    review_ok -- "audit finding to repair" --> repair["/dev-debug or /dev-develop"]
+    repair --> verify
+    review_ok -- "degraded review, taskless, or external route" --> blocked["BLOCKED<br/>persist handoff in loop state"]
+    review_ok -- "yes" --> qa["/dev-qa"]
+    qa -- "regression fails" --> debug
+    qa -- "blocked" --> blocked
+    qa -- "pass or no eligible runtime case" --> complete["Complete selected run"]
+    complete --> merge_review["/dev-check review"]
+    merge_review --> document["/dev-document pr"]
+    document --> sync["/dev-sync"]
+```
+
+`/dev-design` runs again whenever a surface needs a new or revised design. `/dev-loop` records every phase and handoff in `loop-state.md`, and stops after ten failed attempts on one task route or thirty repairs in one run.
+
+### Run it manually
+
+Use `/dev-context` at the start of a fresh session or handoff. Once per project, run `/dev-scope`, `/dev-architect`, and `/dev-design` for frontend work. `/dev-loop <tasks>` is the automated alternative to the task sequence below, so do not run it alongside the manual steps.
+
+For each task, run:
 
 ```
-/dev-scope      what the product is
-/dev-architect  how it gets built
-/dev-design     how it looks, and a person approves it (frontend only)
+/dev-develop <task>         build it
+/dev-check verify <task>    prove it works
+/dev-test                   keep it working
 ```
 
-`/dev-design` also runs again whenever a surface needs a new or revised design, which is the one part of the setup that recurs.
+Follow the verifier's route on a failure: behavioral defects go to `/dev-debug`, missing or not live work returns to `/dev-develop`, and design gaps go to `/dev-design`.
 
-Then per task:
+After all selected tasks pass, run:
 
 ```
-/dev-develop         build it
-/dev-check verify    prove it works
-/dev-test            keep it working
+/dev-audit <selected range>  record review findings and routes
+/dev-qa                      rerun eligible runtime findings
 ```
 
-A verify failure goes to `/dev-debug`, and a surface with no approved design goes to `/dev-design`. Before a merge: `/dev-check review`, then `/dev-document pr`, then `/dev-sync`.
+Resolve open Blockers and Majors through their recorded owners before QA. A degraded review, a taskless finding, or an external route is a handoff, not a pass.
+
+Before a merge, run `/dev-check review`, `/dev-audit`, `/dev-document pr`, and `/dev-sync`.
 
 ## What it produces
 
