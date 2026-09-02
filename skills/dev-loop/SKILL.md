@@ -25,6 +25,8 @@ Verification is the acceptance gate. Route each failure from its verdict: behavi
 
 The runner selects only the tasks named in its argument. A bare `/dev-loop` resumes its saved state, or starts the next unfinished task in `.konteksto/build-plan.md` when there is no saved run.
 
+One `/dev-loop` invocation owns the whole selected sequence. Treat `/dev-develop`, `/dev-check verify`, `/dev-test`, and the recovery skills as phases to execute within this run, not as commands to hand back to the user. Do not stop after a passing task to ask the user to run the next skill or task.
+
 ## State and ownership
 
 This skill owns `.konteksto/loop-state.md`. Create it from `templates/loop-state.md` only when a run begins. Update it after every phase transition and before any session boundary. It must never edit application code, `progress-tracker.md`, `decision-log.md`, `audit-register.md`, design records, test files, or a subskill's artifact.
@@ -45,16 +47,14 @@ For the current task, keep the state file current and perform exactly one phase 
 1. **Develop.** Run `/dev-develop <task ID>`. Respect its gates and stop if it routes to an owner such as `/dev-architect` or `/dev-design`.
 2. **Verify.** Run `/dev-check verify <task ID>`. A pass advances to test. On a failure, preserve the verifier's route in Attempt history with its observed evidence. A behavioral failure increments that task's `/dev-debug` repair count and the run total, then advances to debug. A promised but missing or built but not live surface increments its `/dev-develop` repair count and the run total, then returns to `/dev-develop <task ID>`. A prototype that is wrong or silent routes to `/dev-design`.
 3. **Debug.** Run `/dev-debug <task ID>`, then return directly to verify.
-4. **Test.** Run `/dev-test`. A passing suite completes the task. If the suite exposes a defect, count it against that task's `/dev-debug` route and the run total, record the failing evidence in Attempt history, run `/dev-debug <task ID>`, then verify and test again. If `/dev-test` reports that this project intentionally has no test runner, the Definition of Done in `code-standards.md` is the implementation gate and the task completes once it passes.
+4. **Test.** Run `/dev-test`. A passing suite completes the task. If `/dev-test` reports that this project intentionally has no test runner, the Definition of Done in `code-standards.md` is the implementation gate and the task completes once it passes. After either form of passing test gate, if another selected task remains, set Current task to it, Phase to `develop`, and Next action to `/dev-develop <task ID>`, then immediately begin its Develop phase in this same run. Do not report a passing task as a handoff or ask whether to continue. If no selected task remains, advance to Final QA. If the suite exposes a defect, count it against that task's `/dev-debug` route and the run total, record the failing evidence in Attempt history, run `/dev-debug <task ID>`, then verify and test again.
 5. Do not change a task's repair route without new observed evidence from its verifier, test, or audit result. Record that evidence and the new route in Attempt history. At ten failed attempts for one task and route, or thirty repairs across the whole run, set the phase to `blocked`, preserve the decisive evidence, and stop. Do not start another selected task.
 
 Do not call a task passed from a clean build alone. It passes only after observed verification and the required test gate both pass.
 
 ## Session boundaries
 
-After each completed task, record the next task and exact next action in `loop-state.md`.
-
-Continue with the next selected task in the current session. A fresh session is used only when the user or host explicitly starts one; it resumes from the saved state. Do not claim that a fresh session was created unless the host confirmed it.
+After each completed task, record the next task and exact next action in `loop-state.md`, then execute that action immediately. A fresh session is used only when the user or host explicitly starts one; it resumes from the saved state and continues automatically. Do not claim that a fresh session was created unless the host confirmed it.
 
 ## Final QA
 

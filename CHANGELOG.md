@@ -4,6 +4,12 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
+## [0.7.1] — 2026-09-02
+
+### Fixed
+
+- **`/dev-loop` continues selected tasks automatically.** After a task passes its test gate, it records the next task and immediately starts it in the same loop run rather than asking the user to invoke the next command.
+
 ## [0.7.0] — 2026-08-29
 
 ### Added
