@@ -51,8 +51,8 @@ The documents below, all created and updated by this skill only, filled from the
 
 | Order | Document | Depends on |
 | --- | --- | --- |
-| 5 | `build-plan.md` | Features in Scope, plus the architecture |
-| 6 | `progress-tracker.md` | the exact phases and tasks in `build-plan.md` |
+| 5 | `build-plan.md` | Features in Scope, plus every build affecting commitment in the architecture |
+| 6 | `progress-tracker.md` | the exact phases, tasks, and goals in `build-plan.md` |
 | 7 | `decision-log.md` | nothing, it starts empty |
 | 8 | `ui-registry.md` | the component rules in `code-standards.md` |
 
@@ -71,7 +71,7 @@ Never touch `project-overview.md`. It is `/dev-scope`'s file. If this work prove
 
 **`design.md`, `design-registry.md`, and `.konteksto/designs/` are `/dev-design`'s, and you write none of them.** Not a row, not a status, not a line of a prototype, and not on the first run when none of them exists yet. A design need that turns out to be a technical decision comes back here; the design itself never does.
 
-**Three of these are living files, created here and updated elsewhere.** `progress-tracker.md`, `decision-log.md`, and `ui-registry.md` are written once by this skill, in their starting state, and every update after that belongs to another skill: a task's Status and a new component section to `/dev-develop`, a task's Verify Check to `/dev-check verify`, and Decision or Evidence rows to `/dev-develop`, `/dev-check`, or `/dev-debug`. Do not stamp a task, register a component, or log an event for something that does not exist yet.
+**Three of these are living files, created here and updated elsewhere.** `progress-tracker.md`, `decision-log.md`, and `ui-registry.md` are written once by this skill, in their starting state, and every update after that belongs to another skill: task and subtask Status cells and a new component section to `/dev-develop`, task and subtask Verify Check cells to `/dev-check verify`, and Decision or Evidence rows to `/dev-develop`, `/dev-check`, or `/dev-debug`. Do not stamp a task or subtask, register a component, or log an event for something that does not exist yet.
 
 Read a template from `templates/`, in this skill's folder, and write the filled copy to `.konteksto/<same-file-name>`. Never edit a template in place.
 
@@ -309,18 +309,19 @@ Extra rules:
 
 - `build-plan.md` writes the history line step 2a settled, on an existing codebase: either `## Phase 0 — Already built` with one task per existing feature, or no Phase 0 at all, plus the one line under Core Principle that says which it is. `internal/adoption-baseline.md` has the wording. On a fresh project neither applies.
 - `build-plan.md` covers every feature in the Features in Scope list and nothing from the out of scope list. Its Feature Count table must match the number of tasks actually written. Order the phases so each one is visible and testable before the next starts.
-- `progress-tracker.md` mirrors `build-plan.md` exactly, one Progress table per phase and one row per task, same phase and task order. A Phase 0 in the plan gets its Progress table here too, every row reading `BASELINE` with its stamp and an empty Verify Check. **Never `DONE` and never a Verify Check on one of those rows**: nothing was built here and nothing was exercised, and `progress-tracker.md` defines the difference. Every other row reads `PENDING` with no stamp, an empty Verify Check and Note written as `—`, Last completed reads "nothing yet", and Next names the first task not in Phase 0. **Never stamp a `PENDING` row.** A stamp names a model and a minute, and nothing has been built yet. A `BASELINE` row is stamped, and that file's Status section says what its stamp means. Its Worked example section is Reference only: read it for the shape, and delete it from the file you write.
+- Every task in `build-plan.md` has one plain Goal sentence and checkable UI and/or Logic subtask goals. Build a coverage list from the Stack table, System Boundaries, data flow, Invariants, Security model, Value Sourcing table, and operator duties in `architecture.md`. Assign every build affecting commitment to at least one task. **Use its exact approved name in every task that establishes or relies on it.** A generic phrase does not cover a named runtime, service, protocol, boundary, or invariant. This is what keeps a lower reasoning builder from losing an architecture decision between files.
+- `progress-tracker.md` mirrors `build-plan.md` exactly, one Progress table per phase. Every task gets one aggregate row carrying its number, name, and Goal, followed by one child row per UI and Logic subtask goal in plan order. Never summarize or combine them. A Phase 0 in the plan gets its Progress table here too, every aggregate and child row reading `BASELINE` with its three line stamp and an empty Verify Check. **Never `DONE` and never a Verify Check on one of those rows**: nothing was built here and nothing was exercised, and `progress-tracker.md` defines the difference. Every other aggregate and child row reads `PENDING` with no stamp, an empty Verify Check and Note written as `—`, Last completed reads "nothing yet", and Next names the first task and its first child outside Phase 0. **Never stamp a `PENDING` row.** A stamp names a value, model, and minute on separate rendered lines, and nothing has been built yet. A `BASELINE` row is stamped, and that file's Status section says what its stamp means. Its Worked example section is Reference only: read it for the shape, and delete it from the file you write.
 - `decision-log.md` always ships, and always starts with its headings and an empty Entries table. Nothing has been decided or observed during a build that has not started, so a row here would be invented history. Keep the Entries and Who writes what sections exactly as the template has them, and delete the Worked example.
 
 **Team Shape decides the shape of these.** Read that section in `project-overview.md` before writing any of them, and follow it exactly rather than deciding for yourself. `/dev-scope` asked the user, and this is where their answer takes effect.
 
 **Mode is `team`:**
 
-- Every task row in `progress-tracker.md` keeps its Assigned column, and every cell in it reads `unassigned`. Never fill in a name here. Nobody has picked up a task yet, and an assignee you invented would send someone to the wrong person.
+- Every aggregate task row in `progress-tracker.md` keeps its Assigned column and reads `unassigned`. Every child row reads `inherits task`. Never fill in a name here. Nobody has picked up a task yet, and an assignee you invented would send someone to the wrong person.
 - `decision-log.md` keeps its Actor column. Its Author column stays either way, since the model varies between sessions even when the person does not.
 - Say plainly in your handoff that the assignee is a convention rather than a lock, so nobody reads the column as a reservation the system enforces. It does not, and cannot.
 
-**Mode is `personal`:** drop the Assigned column from every Progress table in `progress-tracker.md`, and delete the Actor column from `decision-log.md` along with its description. One person means one repeated value, and a column with one value is noise. **Keep the Author column.** The person is fixed on a personal project and the model is not.
+**Mode is `personal`:** drop the Assigned column from every Progress table in `progress-tracker.md`, including both aggregate and child rows, and delete the Actor column from `decision-log.md` along with its description. One person means one repeated value, and a column with one value is noise. **Keep the Author column.** The person is fixed on a personal project and the model is not.
 
 - `ui-registry.md` is skipped when the project has no component based UI layer, the same condition under which `code-standards.md` has no Component Structure section. Say you skipped it rather than writing an empty file. On a fresh project with a UI layer it starts empty apart from its heading, since no component exists yet.
 

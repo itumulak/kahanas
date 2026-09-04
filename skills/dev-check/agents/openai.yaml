@@ -4,4 +4,4 @@
 interface:
   display_name: "Dev Check"
   short_description: "Prove a change works, or review it, before merge"
-  default_prompt: "Run the dev-check skill: read its SKILL.md, then pick a mode. Use verify to drive the real app and prove the task works against its flow, or review for a fresh model read of the diff."
+  default_prompt: "Use $dev-check in verify mode to check every condition of every task subtask, stamp each child verdict after it is checked, and roll up the aggregate task only after all children resolve."

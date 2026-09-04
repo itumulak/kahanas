@@ -75,7 +75,7 @@ Five documents, and they decide different things:
 
 ## The visual gap rule
 
-**What this rule covers, and nothing else: a surface.** It applies on the UI track of a project that has an `app/` and a `design.md`. A backend only project has no prototypes to be missing, and a task with only Logic bullets never reaches this file. Neither is ever blocked by this rule, and a missing design is not a reason to hold up work that displays nothing.
+**What this rule covers, and nothing else: a surface.** It applies on the UI track of a project that has an `app/` and a `design.md`. A backend only project has no prototypes to be missing, and a task with only Logic subtask goals never reaches this file. Neither is ever blocked by this rule, and a missing design is not a reason to hold up work that displays nothing.
 
 **Stop the affected work and route it back to `/dev-design` whenever any of these is true:**
 
@@ -100,7 +100,7 @@ An ordinary engineering choice inside an approved design is still yours: which r
 
 ## How the UI fits the task
 
-Read the **Core Principle** at the top of `build-plan.md`, and this task's own UI bullets. They decide whether this surface binds to a real data source now or stands on placeholder data to be wired later. A stub is a defect when the plan expected a real binding, and it is the plan working as intended when the plan said to defer it.
+Read the **Core Principle** at the top of `build-plan.md`, and this task's own Goal and UI subtask goals. They decide whether this surface binds to a real data source now or stands on placeholder data to be wired later. A stub is a defect when the plan expected a real binding, and it is the plan working as intended when the plan said to defer it.
 
 ---
 

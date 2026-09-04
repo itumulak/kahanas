@@ -39,7 +39,7 @@ If a required record is absent, do not invent it. State which record is missing 
 After reading, identify:
 
 - the project shape, runtime, and verification commands
-- the active or next task, its dependencies, and its progress and verification state
+- the active or next task, its Goal and subtask goals, its dependencies, and its progress and verification state
 - the decisions and terminology that constrain that task
 - open audit findings and any QA regressions that affect that task
 - the approved design surface, when the task has UI work
@@ -52,8 +52,9 @@ Read `.konteksto/loop-state.md` after the required records when it exists. It is
 Follow the ownership, approval, and routing rules recorded in the documents. In particular:
 
 - Build only the active task and do not make load bearing decisions without the documented owner.
+- Confirm the aggregate task row reproduces the task number, title, and Goal from `build-plan.md`, and that every UI and Logic subtask has its own child row in plan order with its goal copied word for word. Report any missing, extra, combined, reordered, or reworded row as stale planning owned by `/dev-architect`.
 - Treat a `DONE` status as a build claim, not acceptance proof. A `PASSED` Verify Check is the observed runtime signal.
 - Do not edit records owned by another workflow merely to remove a contradiction.
 - Preserve the approved design boundary for UI work.
 
-Finish with a concise context brief: active task, current phase, governing constraints, applicable design, blockers, and next valid skill. Do not claim verification or approval that the records do not support.
+Finish with a concise context brief: active aggregate task, first unfinished subtask, all task and subtask goals, current phase, governing constraints, applicable design, blockers, and next valid skill. Do not claim verification or approval that the records do not support.

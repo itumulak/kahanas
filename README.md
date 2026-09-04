@@ -33,7 +33,7 @@ Every skill answers to `/dev-scope`, `/dev-architect`, and so on.
 | `/dev-architect` | Settles the stack, the local containers, and the build plan. Makes every tool call there is. |
 | `/dev-design` | Designs every surface the flows require, renders each one in a real browser, and gets a person to approve it. Frontend only. |
 | `/dev-develop` | Builds one task from the plan, then stops. Refuses to invent a decision the documents do not record. |
-| `/dev-check` | Two modes. `verify` runs the real app and proves the task works. `review` reads the diff on a different model than wrote it. |
+| `/dev-check` | Two modes. `verify` exercises every condition in every task subtask. `review` traces those conditions through the diff on a different model than wrote it. |
 | `/dev-debug` | Finds the root cause of a bug by evidence, one hypothesis at a time, then makes the smallest fix. |
 | `/dev-test` | Writes the suite, grounded in the recorded invariants and value sources rather than in a coverage number. |
 | `/dev-audit` | Turns independent review findings into a durable register with stable IDs, ownership routes, and review evidence. |
@@ -127,8 +127,8 @@ The project records in `.konteksto/`, plus the design prototypes:
 ├── code-standards.md      the conventions every session follows
 ├── library-docs.md        version specific notes
 ├── build-plan.md          the ordered task list
-├── progress-tracker.md    live state       (/dev-develop, plus the Verify
-│                                            Check column from /dev-check)
+├── progress-tracker.md    aggregate task and child subtask goals with live
+│                          build and verification state on every row
 ├── decision-log.md        decisions and observed evidence
 │                                    (/dev-develop, /dev-check, /dev-debug append)
 ├── audit-register.md      review findings and QA history
@@ -145,7 +145,7 @@ Start a fresh agent or handoff with `/dev-context`. Use `/dev-loop` when a seque
 
 **A product that already shipped gets a baseline rather than a backlog.** On an existing codebase each skill asks where its own line sits: `/dev-design` asks whether the screens that already exist owe prototypes, and `/dev-architect` asks whether the features that are already built appear in the plan. The usual answer to both is no, and the work before the line is recorded as such instead of being stamped as though this workflow built it. Everything after the line follows the process in full.
 
-The shared documents have explicit ownership. `progress-tracker.md` splits by column: `/dev-develop` owns the Status of every task, and `/dev-check verify` owns the Verify Check beside it, because "the build is clean" and "somebody watched it work" are different claims and neither skill may make the other's. Both cells carry the model that stamped them and when, and a value that changes is struck through with the new one appended after it, so the whole history stays readable.
+The shared documents have explicit ownership. `progress-tracker.md` gives every task an aggregate row with its Goal and every UI or Logic subtask its own child row, so a person or a smaller model can understand the active work without reconstructing it from several files. `/dev-architect` mirrors every label and goal word for word from `build-plan.md`, `/dev-develop` stamps Status on each child before rolling up the aggregate, and `/dev-check verify` checks and stamps every child before rolling up its verdict. The two state columns stay separate because "the build is clean" and "somebody watched it work" are different claims. A stamp renders its value, model, and timestamp on separate lines with `<br>`, never commas. A changed value keeps the struck old stamp, a blank rendered line, and the new stamp.
 
 `decision-log.md` takes Decision and Evidence rows from `/dev-develop`, `/dev-check`, and `/dev-debug`. Most tasks add no Decision row, but every completed build adds its clean build Evidence row.
 

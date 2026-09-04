@@ -162,7 +162,7 @@ Ground every test in what the code is actually contracted to do:
 
 - **`project-overview.md`**, the Core User Flow steps for anything user facing. Those are the real acceptance criteria.
 - **`architecture.md`**, the Invariants list and the Value Sourcing table. **An invariant is a test waiting to be written**, and a value with a named source is a test that the source is the one actually used.
-- **`build-plan.md`**, this task's bullets, for what was supposed to be built.
+- **`build-plan.md`**, this task's Goal and UI and Logic subtask goals, for what was supposed to be built.
 
 Match the conventions in `code-standards.md`. A test file that ignores the project's own naming and import rules is the first place drift creeps in.
 

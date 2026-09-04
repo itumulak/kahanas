@@ -12,17 +12,17 @@ Guide paths below are relative to the develop skill folder, which is the parent 
 
 | Signals | Track |
 |---|---|
-| page, component, screen, layout, anything under the task's **UI** bullets | **UI**, follow `ui-guide.md` |
-| API, endpoint, service, data, job, webhook, integration, anything under the task's **Logic** bullets | **Logical**, follow `logical-guide.md` |
+| page, component, screen, layout, anything under the task's **UI subtask goals** | **UI**, follow `ui-guide.md` |
+| API, endpoint, service, data, job, webhook, integration, anything under the task's **Logic subtask goals** | **Logical**, follow `logical-guide.md` |
 | Both kinds of bullet present | **Both**, run each track for its part |
 
-`build-plan.md` labels this for you: a task's bullets are already split into **UI** and **Logic**. Trust that split. Ask only when a task has neither, which means the plan itself is thin.
+`build-plan.md` labels this for you: a task's subtask goals are already split into **UI** and **Logic**. Trust that split. Ask only when a task has neither, which means the plan itself is thin.
 
 ## Step 2: Load the decision and the conventions
 
 Read, in this order, and no more than this:
 
-1. **This task's entry in `build-plan.md`**, with its UI and Logic bullets, and the **Core Principle** at the top of the file, which sets the bar for what "working" means here.
+1. **This task's entry in `build-plan.md`**, with its Goal and UI and Logic subtask goals, and the **Core Principle** at the top of the file, which sets the bar for what "working" means here.
 2. **`architecture.md`**, the parts this task touches: the Stack table, the folder structure, the System Boundaries, the data flow, the schema, the Invariants, and **the Value Sourcing table**. That table names where every value comes from, and it is what the input coverage test checks against.
 3. **`code-standards.md`**, the whole file. It is the convention set, and it is short by design.
 4. **`glossary.md`**, the whole file. It is short, and it is the project's own word for each thing in its domain. **Name what you write from it**: types, variables, functions, routes, and every user facing string. A word on an Avoid line does not appear in code you write. **Write nothing into that file**, even a term the build obviously needs, since it has two writers already and you are not one of them. Report the missing term instead, and `/dev-architect` adds it.
@@ -75,15 +75,15 @@ Where you do need it, spawn a read only subagent with web access on a cheap mode
 
 **Resume first. Never rebuild what is already done.**
 
-Read `progress-tracker.md`. Find the first task whose Status is not `DONE`, or the one you were asked for. A `DONE` stamp means someone believed it was finished, so stop and ask before rebuilding it. A `BLOCKED` one means someone stopped on purpose: read its Note before doing anything, since the reason may still hold.
+Read `progress-tracker.md`. Find the first aggregate task row whose Status is not `DONE`, or the task you were asked for. A `DONE` aggregate stamp means someone believed the whole task was finished, so stop and ask before rebuilding it. A `BLOCKED` aggregate means someone stopped on purpose: read its Note and the child rows before doing anything, since the reason may still hold. Inside an open task, resume at the first child whose Status is not `DONE`; do not rebuild a completed child.
 
-**Skip every `BASELINE` row, and skip a whole Phase 0 of them.** That value means the feature was finished before this workflow arrived, so it is not a task waiting to be picked up, and building it would rewrite working code nobody asked you to touch. **Never stamp one `DONE`**, since `DONE` claims a build you ran and a clean result you saw, and neither happened. `progress-tracker.md` defines the value.
+**Skip every aggregate task whose aggregate and child rows read `BASELINE`, and skip a whole Phase 0 of them.** That value means the feature was finished before this workflow arrived, so it is not a task waiting to be picked up, and building it would rewrite working code nobody asked you to touch. **Never stamp one `DONE`**, since `DONE` claims a build you ran and a clean result you saw, and neither happened. `progress-tracker.md` defines the value.
 
 **A baseline row asked for by name is refused, not obeyed.** Say what the row means and offer the two things that are real: an ordinary new task in `build-plan.md` to change that feature, which is `/dev-architect`'s to write, or `/dev-debug` when the complaint is that it is broken. **This is the one place a direct instruction does not settle it**, because the row is a claim about history and building against it would quietly make that claim false.
 
 Say where you are picking up, plainly: "this plan is 4 of 12 done, resuming at the session handling task." **Count only real tasks in that fraction.** A Phase 0 of baseline rows is not progress this build made, and folding it in reports a plan as nearly finished on its first day.
 
-**Cross check before building.** Hold the task's bullets against the Core User Flow steps they serve. A flow step with no covering bullet is a gap in the plan itself: flag it and say so, rather than quietly building something the plan never described or quietly skipping it.
+**Cross check before building.** First compare the task Goal with its aggregate tracker row, then compare every UI and Logic subtask goal with one child row in the same order. They must match word for word, with no missing, combined, or extra child. Then hold those goals against the Core User Flow steps they serve and the architecture sections this task touches. A flow step or relevant architecture commitment with no covering goal is a gap in the plan itself. A named runtime, service, protocol, boundary, or invariant hidden behind a generic phrase is also a gap. Flag it and route the documents to `/dev-architect`, rather than quietly inventing work or skipping it.
 
 **Build the coherent slice the Core Principle calls for.** Let it visibly shape what you assemble. A principle that asks for a thin path wired end to end produces something different from one that asks for the smallest usable piece, and neither is the same build relabeled.
 
@@ -118,7 +118,7 @@ The design proves wrong or incomplete partway through: the schema cannot hold th
 - **Only stamp `DONE` on what actually landed.** Confirm first: the files exist, the code type checks, and for a data layer task the schema is live. An interrupted task stays `PENDING`, or goes to `BLOCKED` with the reason in its Note, and you report exactly what is incomplete and why.
 - **Run the Definition of Done in `code-standards.md` before you stamp, every row of it, and report each result.** That table is the project's own standing bar, and it exists so the bar is the same on a quiet Tuesday and on the last task before a deadline. A row you skipped is a row that failed: say which ones you ran, with their output, and leave the task off `DONE` if any did not pass. **Never lower the bar for the task in front of you.** Where a row is genuinely wrong, say so and route to `/dev-architect`, since that table is theirs and changing it changes it for every task.
 - **Never mark a task done on an unverified build.** A `DONE` stamp is a claim that someone else will rely on.
-- Edit `progress-tracker.md` surgically, per `SKILL.md` step 3: the task's Status cell, Last completed, and Next, plus a Note only when you are leaving the task `BLOCKED`. Supersede an existing Status by striking it through and appending the new stamp, never by overwriting it. **Leave the Verify Check column alone**, it is `/dev-check verify`'s. On a team project, also claim the task's Assigned cell if it reads `unassigned`.
+- Edit `progress-tracker.md` surgically, per `SKILL.md` step 3: each child Status, the aggregate task Status, Last completed, and Next, plus Notes on rows left `BLOCKED`. The first stamp replaces bare `PENDING`. Supersede an existing stamp by striking through its whole three line value and appending the new three line stamp after `<br><br>`, never by overwriting it. **Leave aggregate and child labels and every Verify Check alone.** On a team project, also claim the aggregate task's Assigned cell if it reads `unassigned`.
 - Append one Evidence row to `decision-log.md`, also per `SKILL.md` step 3: the clean build command and its result. Leave the rows `/dev-check` and `/dev-debug` wrote alone.
 - Append one Decision row there only when this task produced a real decision, a cause worth knowing, or a stated assumption. A task that went to plan writes no Decision row.
 - Both rows carry the Timestamp, the Author as your exact model identifier, the Skill, and the Actor on a team project. `SKILL.md` step 3 has the exact fields.

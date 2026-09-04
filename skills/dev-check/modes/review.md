@@ -95,7 +95,7 @@ Then collect the values the prompt template needs:
 | `CODE_STANDARDS` | the full contents of `code-standards.md` |
 | `INVARIANTS_AND_BOUNDARIES` | the Invariants list and System Boundaries table from `architecture.md`, those two sections only |
 | `VALUE_SOURCING` | the Value Sourcing table from `architecture.md`, or `none` |
-| `TASK_ENTRY` | this task's entry in `build-plan.md`, with its bullets, or `none` |
+| `TASK_ENTRY` | this task's entry in `build-plan.md`, with its Goal and UI and Logic subtask goals, or `none` |
 | `USER_FLOWS` | the Core User Flow steps for any page the change touches, or `none` |
 | `UI_REGISTRY_SUMMARY` | component names and paths from `ui-registry.md`, or `none` |
 | `DESIGN` | the Build mandate and Component rules from `design.md`, for a diff touching the interface, or `none` |

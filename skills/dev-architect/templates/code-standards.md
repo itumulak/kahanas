@@ -18,7 +18,7 @@ Implementation rules and conventions for the entire project. The AI agent must f
 
 *Purpose: the standing bar a task clears before anything may stamp its Status `DONE`. Written once, here, and read by every skill that stamps. Keep this section as a section; a bar nobody wrote down is a bar each session invents for itself, and it drifts downward under time pressure every single time.*
 
-**This is not the acceptance criteria, and the difference is the whole point.** Acceptance criteria change with every task and live in that task's bullets in `build-plan.md` and in the Core User Flow in `project-overview.md`. They answer "was the right thing built". The definition of done is identical for every task in the project and answers "is it finished to this project's standard". A task needs both, and neither one covers for the other.
+**This is not the acceptance criteria, and the difference is the whole point.** Acceptance criteria change with every task and live in that task's Goal and subtask goals in `build-plan.md` and in the Core User Flow in `project-overview.md`. They answer "was the right thing built". The definition of done is identical for every task in the project and answers "is it finished to this project's standard". A task needs both, and neither one covers for the other.
 
 **It is written once and it does not move.** A bar renegotiated for the task in front of you is not a bar. Where it turns out to be genuinely wrong, change it here, for every task, as a deliberate edit, and say so. Never lower it for one task because that task is late.
 

@@ -45,7 +45,7 @@ INVARIANTS_AND_BOUNDARIES
 
 ## What the change was supposed to do
 
-- **Task**: TASK_ENTRY (the task's entry in `build-plan.md`, with its UI and Logic bullets, or "none" for an unplanned change)
+- **Task**: TASK_ENTRY (the task's entry in `build-plan.md`, with its Goal and UI and Logic subtask goals, or "none" for an unplanned change)
 - **Flows it must satisfy**: USER_FLOWS (the Core User Flow steps from `project-overview.md` for any page this change touches, or "none")
 - **Existing components**: UI_REGISTRY_SUMMARY (component names and paths from `ui-registry.md`, so you can spot a near duplicate, or "none")
 - **Value sourcing**: VALUE_SOURCING (the Value Sourcing table from `architecture.md`, naming where each value comes from, or "none")
@@ -63,7 +63,7 @@ OUTPUT_PATH (for example `.konteksto/reviews/2026-07-30-01-user-login.md`. Creat
 1. **Follow the review guide above.** It is your rubric: what to inspect, the severity scale, how to judge test adequacy, and the exact format for both the findings file and your summary.
 2. Run the diff command to see exactly what changed. Then **read each changed file in full**, for context. A diff hunk on its own hides the surrounding code that decides whether the change is correct.
 3. Check the change against `CODE_STANDARDS`, then against `INVARIANTS_AND_BOUNDARIES`. A violation of either is a real finding, not a preference.
-4. Check the change against `TASK_ENTRY`. A bullet the task promised with no matching code is a missing surface, and it is a finding even when nothing is broken.
+4. Check the change against `TASK_ENTRY` one subtask at a time. Number its UI and Logic subtask goals in plan order. Split every compound subtask into its independently checkable conditions, then trace each condition to code, configuration, and tests. When a subtask names an architecture commitment whose conditions are not fully present in `INVARIANTS_AND_BOUNDARIES` or `VALUE_SOURCING`, read the relevant section of `.konteksto/architecture.md`. Do not sample, merge similar subtasks, or treat general project startup as proof of a specific condition. Record every condition in the findings file's Task contract coverage table. A promised condition with no matching implementation is a finding even when no existing code is broken. Mark a condition `RUNTIME ONLY` when static review cannot establish it, since `/dev-check verify` owns that proof.
 5. Check `UI_REGISTRY_SUMMARY` before judging any new component. A component that duplicates a registered one is a finding.
 6. Check every value the diff produces against `VALUE_SOURCING`. Code that derives a value from somewhere other than its named source is a correctness finding, and usually a quiet one: it looks right for the common case and breaks for another timezone, locale, or tenant.
 7. Check an interface diff against `DESIGN`. A surface contradicting the recorded Build mandate or Component rules is a real finding, not a matter of taste, because the direction was already settled and agreed.

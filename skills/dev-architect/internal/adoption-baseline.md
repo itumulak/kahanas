@@ -30,9 +30,9 @@ An existing product is already built and already being used. This workflow arriv
 **This question is about the finished pile only.** A half built feature is an ordinary task in an ordinary phase either way, and it is the first thing the plan should carry, so never fold one into Phase 0 on the grounds that it predates the workflow.
 
 1. **Unrecorded, the plan starts at the next task** (recommended): `build-plan.md` and `progress-tracker.md` hold only work that is not finished, which includes the half built pile. What is already finished is described in `architecture.md`, which is where a reader looks to find out what the system is made of anyway. Cheapest, and it keeps the tracker meaning what it says: live state of a build in progress.
-2. **Recorded as baseline**: `build-plan.md` gains `## Phase 0 — Already built`, one task per finished feature, mirrored in `progress-tracker.md` with Status `BASELINE` and an empty Verify Check. Worth its cost when the user wants one table showing the whole product rather than only the part this workflow touched. It is a survey pass over the codebase, so say that before they pick.
+2. **Recorded as baseline**: `build-plan.md` gains `## Phase 0 — Already built`, one task per finished feature. `progress-tracker.md` mirrors each one with an aggregate task row and one child row per UI and Logic subtask. Every row carries Status `BASELINE` and an empty Verify Check. Worth its cost when the user wants one table showing the whole product rather than only the part this workflow touched. It is a survey pass over the codebase, so say that before they pick.
 
-**A recorded row never reads `DONE`, and never carries a Verify Check.** `DONE` says this workflow built it and watched the build come back clean, and `PASSED` says a model exercised the behavior and saw it work. Neither happened. A fabricated `DONE` reads exactly like a real one to every later session.
+**A recorded aggregate or child row never reads `DONE`, and never carries a Verify Check.** `DONE` says this workflow built it and watched the build come back clean, and `PASSED` says a model exercised the behavior and saw it work. Neither happened. A fabricated `DONE` reads exactly like a real one to every later session.
 
 ## Record it under Core Principle
 

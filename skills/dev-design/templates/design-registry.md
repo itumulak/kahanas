@@ -137,11 +137,11 @@ That is the same test as surface versus state above: would a designer compose th
 
 ## Stamping
 
-**`progress-tracker.md`'s Progress section defines stamping and superseding**, and this file follows it exactly: a value carries who set it and when, and a change is struck through with the new one appended rather than overwritten.
+**`progress-tracker.md`'s Progress section defines stamping and superseding**, and this file follows it exactly: the value, author, and timestamp render on separate lines with literal `<br>` tags. Never join those fields with commas. A change is struck through as one whole stamp, then the new stamp is appended after a blank rendered line rather than overwriting it.
 
 ```
-DRAFT, claude-opus-5, 2026-08-11 14:02
-~~DRAFT, claude-opus-5, 2026-08-11 14:02~~ APPROVED, Ian Tumulak, 2026-08-11 16:30
+DRAFT<br>claude-opus-5<br>2026-08-11 14:02
+~~DRAFT<br>claude-opus-5<br>2026-08-11 14:02~~<br><br>APPROVED<br>Ian Tumulak<br>2026-08-11 16:30
 ```
 
 One thing here differs from the tracker and is easy to get wrong. **An `APPROVED` stamp carries the approving person's name**, whether they wrote the row or a skill recorded their explicit yes. Never a model identifier, and never a name read out of `git config`. The evidence that matters is the approval interaction, not who owns the checkout, and a shared machine makes the git identity worth nothing.
@@ -198,13 +198,13 @@ Same invented booking product as the worked examples in `progress-tracker.md`, `
 
 | Surface | Required by | File | Status | Note |
 | --- | --- | --- | --- | --- |
-| Venue list | Find a venue, steps 1 to 2 | `designs/venue-list.html` | ~~DRAFT, claude-opus-5, 2026-08-04 10:12~~ APPROVED, Ian Tumulak, 2026-08-04 15:20 | — |
-| Venue detail | Find a venue, step 3 | `designs/venue-detail.html` | APPROVED, Ian Tumulak, 2026-08-04 15:22 | — |
-| Slot picker | Book a slot, steps 1 to 2 | `designs/slot-picker.html` | ~~APPROVED, Ian Tumulak, 2026-08-05 09:40~~ ~~CHANGE REQUIRED, claude-opus-5, 2026-08-08 16:45~~ DRAFT, claude-sonnet-5, 2026-08-09 11:02 | — |
-| Payment | Book a slot, step 4 | `designs/payment.html` | READY FOR REVIEW, claude-opus-5, 2026-08-09 12:15 | — |
-| Booking confirmed | Book a slot, step 5 | `designs/booking-confirmed.html` | APPROVED, Ana Reyes, 2026-08-06 11:30 | — |
-| Hold expired | Book a slot, step 4 fails | — | MISSING, claude-opus-5, 2026-08-09 12:20 | A hold expires after fifteen minutes and the flow says so, and nothing designs what the guest sees when it does |
-| Host slot editor | Publish slots, steps 1 to 3 | `designs/host-slot-editor.html` | DRAFT, claude-sonnet-5, 2026-08-10 09:05 | — |
+| Venue list | Find a venue, steps 1 to 2 | `designs/venue-list.html` | ~~DRAFT<br>claude-opus-5<br>2026-08-04 10:12~~<br><br>APPROVED<br>Ian Tumulak<br>2026-08-04 15:20 | — |
+| Venue detail | Find a venue, step 3 | `designs/venue-detail.html` | APPROVED<br>Ian Tumulak<br>2026-08-04 15:22 | — |
+| Slot picker | Book a slot, steps 1 to 2 | `designs/slot-picker.html` | ~~APPROVED<br>Ian Tumulak<br>2026-08-05 09:40~~<br><br>~~CHANGE REQUIRED<br>claude-opus-5<br>2026-08-08 16:45~~<br><br>DRAFT<br>claude-sonnet-5<br>2026-08-09 11:02 | — |
+| Payment | Book a slot, step 4 | `designs/payment.html` | READY FOR REVIEW<br>claude-opus-5<br>2026-08-09 12:15 | — |
+| Booking confirmed | Book a slot, step 5 | `designs/booking-confirmed.html` | APPROVED<br>Ana Reyes<br>2026-08-06 11:30 | — |
+| Hold expired | Book a slot, step 4 fails | — | MISSING<br>claude-opus-5<br>2026-08-09 12:20 | A hold expires after fifteen minutes and the flow says so, and nothing designs what the guest sees when it does |
+| Host slot editor | Publish slots, steps 1 to 3 | `designs/host-slot-editor.html` | DRAFT<br>claude-sonnet-5<br>2026-08-10 09:05 | — |
 
 Four things in that table are worth copying, and none of them is the wording.
 
