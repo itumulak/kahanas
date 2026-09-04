@@ -2,7 +2,7 @@
 name: dev-context
 allowed-tools: Bash, Read, Grep, Glob
 argument-hint: [task]
-description: "Run /dev-context to establish project context before development, verification, or a handoff. Reads the project records in their required order, identifies the active task and governing decisions, then follows their ownership and workflow rules."
+description: "Run /dev-context to establish project context before development, verification, or a handoff. Reads the project records in their required order, including the person's recorded choices and recommendation overrides, identifies the active task and governing decisions, then follows their ownership and workflow rules."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -21,16 +21,19 @@ This skill is read only. It does not repair stale documents or change code. Repo
 
 Read each existing item completely before moving to the next:
 
-1. `.konteksto/architecture.md`
-2. `.konteksto/tooling.md`
-3. `.konteksto/code-standards.md`
-4. `.konteksto/library-docs.md`
-5. `.konteksto/build-plan.md`
-6. `.konteksto/progress-tracker.md`
-7. `.konteksto/decision-log.md`
-8. `.konteksto/audit-register.md`, when it exists, because unresolved findings constrain the active task before its component inventory is read
-9. `.konteksto/ui-registry.md`
-10. The approved design, as identified by `build-plan.md` or the design registry.
+1. `.konteksto/project-overview.md`
+2. `.konteksto/glossary.md`
+3. `.konteksto/human-decisions.md`
+4. `.konteksto/architecture.md`
+5. `.konteksto/tooling.md`
+6. `.konteksto/code-standards.md`
+7. `.konteksto/library-docs.md`
+8. `.konteksto/build-plan.md`
+9. `.konteksto/progress-tracker.md`
+10. `.konteksto/decision-log.md`
+11. `.konteksto/audit-register.md`, when it exists, because unresolved findings constrain the active task before its component inventory is read
+12. `.konteksto/ui-registry.md`
+13. The approved design, as identified by `build-plan.md` or the design registry.
 
 If a required record is absent, do not invent it. State which record is missing and use the owning workflow to resolve it. If no approved design applies to the active task, say so and route UI work to `/dev-design`.
 
@@ -41,6 +44,7 @@ After reading, identify:
 - the project shape, runtime, and verification commands
 - the active or next task, its Goal and subtask goals, its dependencies, and its progress and verification state
 - the decisions and terminology that constrain that task
+- the human choices that departed from the recommendation presented, especially any that govern the active task
 - open audit findings and any QA regressions that affect that task
 - the approved design surface, when the task has UI work
 - document ownership and the next valid workflow step

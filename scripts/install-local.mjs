@@ -1,12 +1,11 @@
 #!/usr/bin/env node
-// Installs the skills in this repo into a project, the way
-// `npx skills add <owner>/<repo>` would, but from this working copy.
+// Installs the skills in this repo into a project. OpenCode also receives
+// command wrappers because its slash menu does not suggest skills by itself.
 //
 //   node scripts/install-local.mjs ~/Projects/scratch/app -a claude-code --link
 //
-// --link is the one thing the real installer does not do: it symlinks instead
-// of copying, so edits here are live in the target and you can fix and re-run
-// without reinstalling. Use it for testing, never for a real install.
+// --link is for development from a checkout: edits here stay live in the
+// target project, so a skill or wrapper can be fixed and rerun immediately.
 
 import { readdir, readFile, mkdir, rm, cp, symlink, lstat, realpath } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -16,10 +15,12 @@ import { fileURLToPath } from "node:url";
 
 const REPO = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const SRC = join(REPO, "skills");
+const OPENCODE_COMMANDS = join(REPO, ".opencode", "commands");
 
 const AGENTS = {
-  "claude-code": ".claude/skills",
-  agents: ".agents/skills",
+  "claude-code": { skills: ".claude/skills" },
+  agents: { skills: ".agents/skills" },
+  opencode: { skills: ".agents/skills", commands: ".opencode/commands" },
 };
 
 function parseArgs(argv) {
@@ -48,13 +49,14 @@ function fail(msg) {
 }
 
 const HELP = `
-  install-local  install this repo's skills into a project
+  kahanas  install this repo's skills into a project
 
   Usage
-    node scripts/install-local.mjs [target] [options]
+    kahanas [target] [options]
 
   Options
-    -a, --agent <name>   claude-code (.claude/skills) or agents (.agents/skills). Default: claude-code
+    -a, --agent <name>   claude-code, agents, or opencode. OpenCode also gets
+                         slash command wrappers. Default: claude-code
     --only <a,b,c>       install a subset by name
     --link               symlink instead of copy, so edits here are live in the target
     --force              replace a skill that is already there
@@ -64,9 +66,10 @@ const HELP = `
     -h, --help
 
   Examples
-    node scripts/install-local.mjs ~/Projects/scratch/app
-    node scripts/install-local.mjs ~/Projects/scratch/app --link
-    node scripts/install-local.mjs ~/Projects/scratch/app --remove
+    kahanas ~/Projects/scratch/app
+    kahanas ~/Projects/scratch/app --link
+    kahanas ~/Projects/scratch/app -a opencode
+    kahanas ~/Projects/scratch/app --remove
 `;
 
 // A skill folder is valid when it holds a SKILL.md whose frontmatter name
@@ -98,6 +101,17 @@ async function readSkills() {
   return found.sort((a, b) => a.name.localeCompare(b.name));
 }
 
+async function readOpenCodeCommands(skills) {
+  if (!existsSync(OPENCODE_COMMANDS)) fail(`No OpenCode commands directory at ${OPENCODE_COMMANDS}`);
+  const commands = [];
+  for (const skill of skills) {
+    const file = join(OPENCODE_COMMANDS, `${skill.name}.md`);
+    if (!existsSync(file)) fail(`No OpenCode command wrapper for ${skill.name}: ${file}`);
+    commands.push({ name: skill.name, file });
+  }
+  return commands;
+}
+
 // The personal skills directory is read for every project, so a skill of the
 // same name there shadows the copy we are about to install, and nothing in the
 // session says which one ran. This is checked before anything is written,
@@ -126,8 +140,8 @@ async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (opts.help) return console.log(HELP);
 
-  const subdir = AGENTS[opts.agent];
-  if (!subdir) fail(`Unknown agent "${opts.agent}". Use one of: ${Object.keys(AGENTS).join(", ")}`);
+  const agent = AGENTS[opts.agent];
+  if (!agent) fail(`Unknown agent "${opts.agent}". Use one of: ${Object.keys(AGENTS).join(", ")}`);
 
   const target = resolve(opts.target);
   if (!existsSync(target)) fail(`Target does not exist: ${target}`);
@@ -142,11 +156,13 @@ async function main() {
   }
   if (!skills.length) fail("No valid skills found.");
 
+  const commands = agent.commands ? await readOpenCodeCommands(skills) : [];
+
   if (!opts.remove && !opts.allowCollision) {
     await checkCollisions(skills.map((s) => s.name), opts.agent);
   }
 
-  const dest = join(target, subdir);
+  const dest = join(target, agent.skills);
   const label = opts.dryRun ? "would " : "";
   console.log(`\n  ${opts.remove ? "Removing from" : "Installing into"} ${dest}`);
 
@@ -188,7 +204,44 @@ async function main() {
     changed++;
   }
 
-  console.log(`\n  ${changed} skill${changed === 1 ? "" : "s"} ${opts.dryRun ? "would change" : "changed"}.`);
+  if (commands.length) {
+    const commandDest = join(target, agent.commands);
+    console.log(`\n  ${opts.remove ? "Removing from" : "Installing into"} ${commandDest}`);
+    for (const command of commands) {
+      const out = join(commandDest, `${command.name}.md`);
+      const present = existsSync(out);
+
+      if (opts.remove) {
+        if (!present) continue;
+        const installed = await readFile(out, "utf8");
+        const source = await readFile(command.file, "utf8");
+        if (installed !== source) {
+          console.log(`  kept     ${command.name}  (wrapper was modified)`);
+          continue;
+        }
+        console.log(`  ${label}remove  ${command.name}`);
+        if (!opts.dryRun) await rm(out, { force: true });
+        changed++;
+        continue;
+      }
+
+      if (present && !opts.force) {
+        console.log(`  exists   ${command.name}  (use --force to replace)`);
+        continue;
+      }
+
+      console.log(`  ${label}${opts.link ? "link" : "copy"}    ${command.name}`);
+      if (opts.dryRun) { changed++; continue; }
+
+      await mkdir(commandDest, { recursive: true });
+      if (present) await rm(out, { force: true });
+      if (opts.link) await symlink(command.file, out, "file");
+      else await cp(command.file, out);
+      changed++;
+    }
+  }
+
+  console.log(`\n  ${changed} item${changed === 1 ? "" : "s"} ${opts.dryRun ? "would change" : "changed"}.`);
   if (changed && !opts.dryRun && !opts.remove) {
     console.log(`  Restart your agent to pick them up.`);
     if (opts.link) console.log(`  Linked, so edits in ${basename(REPO)} are live in the target.`);

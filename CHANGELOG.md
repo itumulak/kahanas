@@ -4,6 +4,18 @@ What changed in these skills, and what it means for a project already using them
 
 Entries describe the effect on someone running the skills, not the edit that produced it.
 
+## [0.8.0] — 2026-09-04
+
+### Added
+
+- **OpenCode slash command wrappers for every Kahanas skill.** The OpenCode installer now writes the normal skills to `.agents/skills/` and thin command definitions to `.opencode/commands/`, so `/dev-develop` and the rest of the workflow appear in slash command autocomplete. Each wrapper loads the real skill through OpenCode's skill tool and forwards the command arguments rather than duplicating the skill instructions.
+
+- **A human decision record that preserves the question and recommendation.** `/dev-scope` creates `.konteksto/human-decisions.md`, and `/dev-architect` plus `/dev-design` append their own choices. Every entry keeps all presented options, checks the person's selection, and leaves `(recommended)` on the option that originally carried it, so recommendation overrides remain visible. Existing projects start the file empty because the finished documents cannot prove what options were shown in an earlier conversation.
+
+### Changed
+
+- **Build tasks now carry explicit goals from architecture into task and subtask tracker rows.** Every task in `build-plan.md` has one Goal and checkable UI and Logic subtask goals. `/dev-architect` accounts for every build affecting stack choice, boundary, invariant, security rule, value source, and operator duty by exact name instead of weakening it to a generic category. `progress-tracker.md` mirrors the task as an aggregate row and every numbered subtask as its own child row, word for word, so a person, builder, verifier, or smaller review model can see each obligation and its state without reconstructing it from several documents. `/dev-develop` stamps child Status cells as each subtask finishes and rolls up the aggregate only when all are done. `/dev-check verify` splits every subtask into concrete conditions, requires evidence for each, stamps that child only after the check, and then rolls up the aggregate verdict. Every stamp renders its value, model, and timestamp on separate lines with `<br>` instead of commas.
+
 ## [0.7.1] — 2026-09-02
 
 ### Fixed

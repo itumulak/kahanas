@@ -1,7 +1,7 @@
 ---
 name: dev-scope
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion
-description: "Run /dev-scope to start a project. Checks the root folder for an existing codebase, then turns the idea into .konteksto/project-overview.md: what the product is, who it is for, its pages, its flows, and what is deliberately out of scope. Also writes .konteksto/glossary.md, the project's own word for each thing in its domain. Owns those two files and nothing else. Stays tool agnostic; /dev-architect picks the stack."
+description: "Run /dev-scope to start a project. Checks the root folder for an existing codebase, then turns the idea into .konteksto/project-overview.md: what the product is, who it is for, its pages, its flows, and what is deliberately out of scope. Also writes the project glossary and starts the append only human decision record, preserving each selected option beside the recommendation. Stays tool agnostic; /dev-architect picks the stack."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -14,7 +14,7 @@ Write everything this skill produces, files and messages alike, in plain simple 
 
 The front door of the workflow, and the answer to one question: **what is being built, and for whom.**
 
-Surveys the project root, then fills `.konteksto/project-overview.md` from `templates/project-overview.md` in this skill's own folder, then stops.
+Surveys the project root, fills `.konteksto/project-overview.md` and `.konteksto/glossary.md`, and records the person's scope choices in `.konteksto/human-decisions.md`, using the templates in this skill's own folder, then stops.
 
 It does not answer how. Stack, structure, conventions, tooling, and the build order all belong to `/dev-architect`, and every one of those documents reads this file as its input.
 
@@ -35,10 +35,11 @@ The whole chain, once per project then once per task:
 
 ## Artifact ownership
 
-Two files, both filled from a template in `templates/`, in this skill's own folder.
+Three files, all filled from a template in `templates/`, in this skill's own folder.
 
 - **`.konteksto/project-overview.md`**, created and updated by this skill only.
 - **`.konteksto/glossary.md`**, created here and **shared with `/dev-architect`**, which may add a term the design forced into existence and sharpen a definition the schema proved imprecise. It may not rename a term you recorded. Everything else reads the file and writes nothing.
+- **`.konteksto/human-decisions.md`**, created here and shared append only with `/dev-architect` and `/dev-design`. This skill records product scope, language, team, and project shape choices. The file's Who writes what section defines the split.
 
 The glossary is the project's own words: what each thing in the domain is called, and which words are rejected for it. It is the one place the product, the documents, and the code agree on a name, and its Who writes what section states the split from its own side as well.
 
@@ -72,6 +73,8 @@ Every user facing choice is an options panel: 2 to 4 concrete options real to th
 
 Ask in small rounds, up to 4 related questions per round. Do not fire one question at a time when four related ones could be answered together, and do not dump twenty at once.
 
+**Record every answered panel that settles durable project intent.** Immediately after the answer, append one entry to `.konteksto/human-decisions.md` in the format that file defines. Preserve the exact question, all options, which option was marked recommended, and which option the person selected. Do not wait until the end of the interview and reconstruct the panels from memory.
+
 **One exception, and it is narrow.** Rounds work because you can already name the options, so the answer to one question does not change what the others are. When the idea is still vague enough that you cannot name them, read `interview.md` in this skill's folder and follow it: one question per turn, each carrying your guess, until you can build a real panel again. Then come back here.
 
 ## Execution
@@ -91,6 +94,8 @@ Getting this backwards is expensive in both directions: treating a real codebase
 Also check `.konteksto/`. If `project-overview.md` already exists, do not overwrite it silently: show what it says and ask whether to update it in place or start over. If the other documents exist too, say so, and note that changing the overview may make them stale.
 
 Carry what you learn here into your closing report, so `/dev-architect` does not survey the same ground again.
+
+Before asking any decision panel, read `templates/human-decisions.md` in full. If `.konteksto/human-decisions.md` does not exist, create it from that template. If it exists, read it in full and append to it. Never replace or clear it when the user chooses to restart the scope, because an earlier answer remains part of the decision history even when a later entry replaces it.
 
 ### Step 2: Get the idea
 
@@ -200,19 +205,20 @@ Do not create any folder, move any file, or write `docker-compose.yml`. This ste
 
 ### Step 6: Present and get approval
 
-Show both finished files. Call out plainly:
+Show all three finished files. Call out plainly:
 
 - Anything you recommended rather than were told, so the user can push back on your judgment and not only on your transcription.
 - Anything that came up and was deliberately left out.
 - **Every glossary entry where you picked between the user's own words**, with the word you rejected. This is the one part they are most likely to want changed and least likely to notice on their own, since a rejected word only becomes visible once somebody tries to use it.
 
-Get approval before you finish. If the user changes something, edit the file in place.
+Get approval before you finish. If the user changes something, edit `project-overview.md` or `glossary.md` in place as needed, and append a new `human-decisions.md` entry that replaces the earlier answer. Never edit the earlier decision entry.
 
 ### Step 7: Hand off
 
 Report:
 
-- That `.konteksto/project-overview.md` and `.konteksto/glossary.md` are written and approved.
+- That `.konteksto/project-overview.md`, `.konteksto/glossary.md`, and `.konteksto/human-decisions.md` are written and approved.
+- **Every human decision where the selected option was not the recommended option.** Name the ID and subject so `/dev-architect` sees the deliberate override before making its own recommendations.
 - **The glossary's terms, and any concept you could not name.** `/dev-architect` writes every table, boundary, and component name from these words, and it is the other writer on that file, so say which terms are settled and which the design still has to sharpen.
 - What the root survey found: whether a codebase exists, and what it showed.
 - The team shape: personal or team. `/dev-architect` shapes `progress-tracker.md` and `decision-log.md` from that answer, so say it explicitly rather than leaving it to be read back out of the file.

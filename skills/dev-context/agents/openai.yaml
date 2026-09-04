@@ -3,4 +3,4 @@
 interface:
   display_name: "Dev Context"
   short_description: "Read the project records before starting work"
-  default_prompt: "Use $dev-context to read the project records in the required order, identify the active task and constraints, and report the next valid workflow step."
+  default_prompt: "Use $dev-context to read the project records in the required order, call out human choices that overrode a recommendation, identify the active task and constraints, and report the next valid workflow step."

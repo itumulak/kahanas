@@ -36,7 +36,7 @@ Repeat one entry per term. Keep them in alphabetical order, so a reader checking
 
 **Not a specification.** What a Booking does, when it may be cancelled, and who may see it are flows in `project-overview.md` and rules in `architecture.md`. This file says only what a Booking is.
 
-**Not a decision or evidence record.** Choosing `Booking` over `Reservation` is a decision, and if it was a hard one with a real reason, that reason goes in `decision-log.md` during a build, or in the Why these choices list in `architecture.md` at design time. What lands here is the outcome: one word, and the words it beat.
+**Not a decision or evidence record.** Choosing `Booking` over `Reservation` is a human decision when the person picked it from a panel, and that question and answer go in `human-decisions.md`. A choice made during a build goes in `decision-log.md`. Architecture reasoning also belongs in the Why these choices list in `architecture.md`. What lands here is only the outcome: one word, and the words it beat.
 
 **Not a scratch pad.** A term nobody has settled is not an entry. Leave it out and ask.
 

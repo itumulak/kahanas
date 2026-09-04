@@ -16,6 +16,8 @@ Answers **how the product looks and behaves**, given a `project-overview.md` tha
 
 It finds every surface the flows require, settles the design system once, builds an interactive prototype for each surface, and runs the review that puts a rendered design in front of a person to approve. Nothing else in the workflow may originate a design decision, and nothing else may write the three files this skill owns.
 
+It also appends every durable design choice the person makes to `.konteksto/human-decisions.md`, preserving the selected option beside the recommendation they saw.
+
 **Skip this skill entirely on a backend with no `app/`.** A service with no screens has no surfaces, no prototypes, and no design system, and `/dev-architect` says so in its report rather than sending you here.
 
 ## Where this sits
@@ -43,6 +45,8 @@ Three artifacts, owned here and nowhere else:
 | `design.md` | the design system: character, tokens, states vocabulary, breakpoints, component rules |
 | `design-registry.md` | one row per required surface, with its design status |
 | `.konteksto/designs/` | the prototypes, plus `sources/`, `shared/`, and `drafts/` |
+
+**One shared record is append only here.** `.konteksto/human-decisions.md` is created by `/dev-scope`; `/dev-architect` and this skill append their own human choices. This skill records design direction, system, surface, revision, and formal review choices. It never edits an earlier entry.
 
 **Nobody else writes any of them.** `/dev-develop` builds from a prototype and never edits one. `/dev-check` compares against one and never edits one. `/dev-sync` writes nothing there at all, including a row for a surface it found in the code, because the code proves a page exists and never that anybody designed it.
 
@@ -88,6 +92,8 @@ Do NOT fill a document with a guess. Every value is read from the existing codeb
 
 Every user facing choice is an options panel: 2 to 4 concrete options real to this project, exactly one marked as recommended with a one line why. Use `AskUserQuestion` where available, otherwise the same options as plain text. Ask in rounds of up to 4 related questions.
 
+Immediately after an answer that settles durable design intent, append it to `.konteksto/human-decisions.md` in that file's format. Preserve the exact question, all options, the recommendation marker, and the selected option. Do not record an inference, your own unpresented judgment, a permission prompt, or a routine execution choice.
+
 ## Execution
 
 ### Step 1: Pre flight
@@ -95,6 +101,7 @@ Every user facing choice is an options panel: 2 to 4 concrete options real to th
 - **Read `.konteksto/project-overview.md` in full**, and its Core User Flow section twice. That section is what this skill works from. If the file does not exist, stop and tell the user to run `/dev-scope` first.
 - **Read `.konteksto/architecture.md`.** The client framework, the folder layout, and whether there is an `app/` at all. **No `app/` means stop**: say the project has no surfaces and this skill does not apply.
 - **Read `.konteksto/glossary.md` in full, and use its words from here on.** Every surface name comes out of it.
+- **Read `.konteksto/human-decisions.md` in full.** Earlier scope and architecture choices constrain the design, and an overridden recommendation is deliberate rather than a gap for you to correct. If it is missing, stop and route to `/dev-scope`; this project has no durable record for new design answers.
 - **Read `.konteksto/tooling.md`**, its Visual verification section in particular. It names the browser this skill renders and reviews with. Missing or empty on a project with an `app/` is a stop: report it and route to `/dev-architect`, which owns that file and every install.
 - **Then run `review-harness/preflight.mjs`**, on a project with an `app/`, passing the Package root that section records. The document says which browser this project chose; the probe says whether it actually works here, and they are different questions. Any non zero exit is a stop: report what it printed and route to `/dev-architect`. **Do not install it yourself**, and **do not treat a Playwright you found in the project as an answer**, since an end to end suite installs one for its own reasons and choosing what reviews designs is a tool decision. `internal/design-review.md` step 1 holds the three way outcome and the three facts behind it.
 - **Read `.konteksto/code-standards.md`.** The conventions a prototype should not fight.
@@ -226,6 +233,8 @@ Three rules worth seeing from here.
 
 **You may record the approval they gave**, in their name, from the decision record. The registry's Status values section sets the conditions.
 
+After the review endpoint accepts the person's decision, append the same decision to `human-decisions.md`. Use the review prompt as the question and list `Approve`, `Request changes`, and `Reject` exactly as the controls presented them. Mark the chosen control `[x]`. These controls have no recommended option, so do not invent one. The effect names the surface, proposal revision, and resulting registry status.
+
 ### Step 6: Report
 
 Say all of this:
@@ -234,6 +243,7 @@ Say all of this:
 - **Every surface still at `MISSING`**, with the flow that needs it, and that a task cannot be built against it. It does not stop the plan; it stops that one task.
 - **The `BASELINE` count separately**, as a count rather than a list, and what it does not mean: not reviewed, not accessible, not approved.
 - Every review session run: the surface, who decided, what they decided, and where the row landed. **Say which surfaces were never put in front of anybody**, since a prototype nobody reviewed is not a design anybody agreed to.
+- Every human decision recorded during this run where the selected option was not the recommended option, by ID and subject.
 - Anything the design needed that `/dev-architect` owns, routed back rather than done.
 - That no application code was written.
 

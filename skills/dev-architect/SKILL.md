@@ -1,7 +1,7 @@
 ---
 name: dev-architect
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion, WebSearch, WebFetch
-description: "Run /dev-architect after /dev-scope to settle how the product gets built. Weighs options and settles the stack layer by layer, writes the local development containers, and on a codebase that already exists settles whether features already built appear in the plan, then audits it for outdated or vulnerable packages and finds the MCP servers and skills that fit. Writes architecture, tooling, code standards, library docs, build plan, progress tracker, and ui registry into .konteksto/. On a project with a frontend, /dev-design designs the surfaces afterwards."
+description: "Run /dev-architect after /dev-scope to settle how the product gets built. Weighs options and settles the stack layer by layer, records the person's choices beside its recommendations, writes the local development containers, and on a codebase that already exists settles whether features already built appear in the plan, then audits it for outdated or vulnerable packages and finds the MCP servers and skills that fit. Writes the architecture and planning documents into .konteksto/. On a project with a frontend, /dev-design designs the surfaces afterwards."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -35,6 +35,8 @@ The whole chain, once per project then once per task:
 ## Artifact ownership
 
 The documents below, all created and updated by this skill only, filled from the matching template in `templates/`, which lives in this skill's own folder.
+
+**One shared record sits beside them.** `.konteksto/human-decisions.md` is created by `/dev-scope` and appended to by this skill for requirements, data, stack, standards, tooling, risk, and architecture acceptance choices the person makes. Preserve the question, every option, the recommendation marker, and their selected option in the format that file defines. `/dev-design` is its third and final writer.
 
 **No count appears anywhere in these instructions, deliberately.** A number written beside a list that later grows is wrong the first time somebody adds to it, and it had already gone wrong twice here before anybody noticed. The list is the list.
 
@@ -107,12 +109,15 @@ Every user facing choice is an options panel: 2 to 4 concrete options real to th
 
 The full mechanics, including the free text slot, generating options fresh rather than from a canned list, and never bundling a whole decision into one panel, are in `internal/design-conversation.md`.
 
+**Record every answered panel that settles durable project intent.** Immediately after the answer, append one entry to `.konteksto/human-decisions.md` in the format that file defines. Do not reconstruct a batch at the end. Do not record an inference, the recommendation you formed yourself, a permission prompt, or a routine choice about running a tool.
+
 ## Execution
 
 ### Step 1: Pre flight
 
 - **Read `.konteksto/project-overview.md` in full.** If it does not exist, stop and tell the user to run `/dev-scope` first. Everything here depends on it.
 - **Read `.konteksto/glossary.md` in full, and use its words from here on.** Every table, boundary, component, and phase name you write comes out of it, because a schema that renames the product's concepts forces every later reader to translate, and eventually one of them translates wrongly. Where the file is missing on a project that has a `project-overview.md`, say so and write it from the terms already in that file rather than proceeding without one.
+- **Read `.konteksto/human-decisions.md` in full.** It prevents this conversation from asking the person to settle something they already chose, and makes a deliberate override of an earlier recommendation visible before you form a new one. On an upgraded project where the file is missing, read `../dev-scope/templates/human-decisions.md` and create an empty copy before the first panel. Never reconstruct old questions or recommendation markers from the resulting architecture documents.
 - **Read what `/dev-scope` handed you**, if anything: whether a codebase exists, the stack it showed, and any tool or constraint the user named during scoping. Do not survey the same ground again.
 - **Work out whether the code is actually somebody else's.** A manifest and a source tree are not proof of an existing codebase, because `/dev-develop` scaffolds this project itself as the first task in the plan. Code whose stack matches what `.konteksto/architecture.md` already specifies is **our own scaffold**, and it is not brownfield. Only code with no matching documents, or code that diverges from them, is a real existing codebase.
 - **If a real codebase exists and you were not handed a survey**, read it now: the directory tree, every package manifest, the lint and build config, the entry points. The stack that is already there is a decision already made. Record it, do not re litigate it.
@@ -143,7 +148,7 @@ Steps 2 through 6 here are the outline. That file is the protocol.
 | Containers and data lifecycle | step 5 below |
 | Tooling discovery | step 6 below |
 
-Nothing gets written until the completeness gate in that file passes.
+Nothing except a newly answered entry in `human-decisions.md` gets written until the completeness gate in that file passes. Each human answer is appended immediately, because losing the session must not lose which options the person rejected.
 
 #### Settle the stack
 
@@ -342,6 +347,7 @@ Say all of this:
 - **The adoption baseline, on an existing codebase**: where the history line landed and what it does not exempt. Say the exemptions out loud, because a user who took the default is usually picturing a wider amnesty than they got. Say too that `/dev-design` will ask a separate question about the surfaces.
 - Every skill installed, by name.
 - Every MCP server the user still needs to connect themselves, with the exact command.
+- Every human decision recorded during this run where the selected option was not the recommended option, by ID and subject.
 - That no application code was written.
 
 Then name the next step: a separate request to build the first task in `build-plan.md`. **Where the plan has a Phase 0 of baseline rows, name the first task after it**, since nothing in Phase 0 is work anybody is going to do.

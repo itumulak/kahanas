@@ -7,6 +7,7 @@ How to move a project already using these skills onto a newer version.
 | | Where it lives | On upgrade |
 | --- | --- | --- |
 | The skills | `.claude/skills/dev-*` or `.agents/skills/dev-*` | **delete and reinstall** |
+| OpenCode command wrappers | `.opencode/commands/dev-*.md` | **delete and reinstall with the OpenCode installer** |
 | Your documents | `.konteksto/` | **never delete**, migrate in place |
 
 Nothing in the skills folder is yours, so replacing it wholesale is the clean path. `.konteksto/` is the entire point of the workflow: decisions, notes, and verdicts that no command produces and the repository does not preserve. A fresh `/dev-scope` cannot regenerate any of it.
@@ -25,6 +26,13 @@ Or for the generic folder that Codex and others read:
 ```bash
 rm -rf .agents/skills/dev-*
 npx skills@latest add itumulak/kahanas
+```
+
+For OpenCode, replace both the skills and their slash command wrappers in one pass:
+
+```bash
+rm -rf .agents/skills/dev-* .opencode/commands/dev-*.md
+npx --yes github:itumulak/kahanas -a opencode
 ```
 
 **Delete rather than installing over the top.** A version that removes a file leaves it behind otherwise, and a stale bundled file is worse than a missing one, because the skill that no longer reads it still looks like it might.
@@ -149,7 +157,11 @@ about. Do not smooth over a gap. I want the list.
 
 ## What each version needs
 
-Templates live in `skills/dev-architect/templates/`, except `design.md` and `design-registry.md`, which are in `skills/dev-design/templates/`, `project-overview.md` and `glossary.md`, which are in `skills/dev-scope/templates/`, `audit-register.md`, which is in `skills/dev-audit/templates/`, and `loop-state.md`, which is in `skills/dev-loop/templates/`.
+Templates live in `skills/dev-architect/templates/`, except `design.md` and `design-registry.md`, which are in `skills/dev-design/templates/`, `project-overview.md`, `glossary.md`, and `human-decisions.md`, which are in `skills/dev-scope/templates/`, `audit-register.md`, which is in `skills/dev-audit/templates/`, and `loop-state.md`, which is in `skills/dev-loop/templates/`.
+
+### Coming from 0.7.x or earlier
+
+Create `.konteksto/human-decisions.md` from `skills/dev-scope/templates/human-decisions.md`. Leave its Decisions section empty. Do not reconstruct old questions, options, selected answers, or recommendation markers from `project-overview.md`, `architecture.md`, or chat history. Those documents prove only the outcome, not exactly what the person was shown. `/dev-scope`, `/dev-architect`, and `/dev-design` append new human choices from this point forward.
 
 ### Coming from 0.6.x or earlier
 

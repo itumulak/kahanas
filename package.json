@@ -1,11 +1,12 @@
 {
   "name": "kahanas",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "A document driven engineering workflow as Agent Skills. Takes a project from an idea to shipped, verified code, keeping every decision in version controlled documents instead of a chat log.",
   "keywords": [
     "claude-code",
     "codex",
     "cursor",
+    "opencode",
     "ai-coding",
     "skills",
     "agent-skills",
@@ -19,12 +20,22 @@
   "license": "MIT",
   "author": "itumulak",
   "type": "module",
+  "files": [
+    ".opencode/commands",
+    "skills",
+    "scripts/install-local.mjs",
+    "CHANGELOG.md",
+    "UPGRADING.md"
+  ],
+  "bin": {
+    "kahanas": "scripts/install-local.mjs"
+  },
   "engines": {
     "node": ">=18"
   },
   "scripts": {
     "install-local": "node scripts/install-local.mjs",
-    "test": "node scripts/test-review-harness.mjs",
+    "test": "node scripts/test-installer.mjs && node scripts/test-review-harness.mjs",
     "test:browser": "node scripts/test-review-harness.mjs --require-playwright"
   }
 }

@@ -12,11 +12,14 @@ Works with any Agent Skills client: Claude Code, Codex, Cursor, and others.
 # Claude Code (installs into .claude/skills, then restart Claude Code)
 npx skills@latest add itumulak/kahanas -a claude-code
 
+# OpenCode (installs skills plus wrappers for slash command autocomplete)
+npx --yes github:itumulak/kahanas -a opencode
+
 # Generic .agents/skills, read by Codex and other agents
 npx skills@latest add itumulak/kahanas
 ```
 
-Commit the installed folder to share the workflow with your team.
+Restart the client after installation. Commit the installed folders to share the workflow with your team. OpenCode receives the same skills under `.agents/skills/` plus thin wrappers under `.opencode/commands/`. Each wrapper loads its matching skill through OpenCode's skill tool and forwards the command arguments. The wrapper is kept separate because OpenCode does not add installed skills to slash command autocomplete itself.
 
 Every skill answers to `/dev-scope`, `/dev-architect`, and so on.
 
@@ -116,6 +119,9 @@ The project records in `.konteksto/`, plus the design prototypes:
 ├── project-overview.md    what the product is          (/dev-scope)
 ├── glossary.md            the project's word for each thing
 │                                    (/dev-scope, /dev-architect adds)
+├── human-decisions.md     questions, options, recommendations, and human picks
+│                                    (/dev-scope creates, /dev-architect and
+│                                     /dev-design append their own choices)
 ├── architecture.md        stack, boundaries, invariants (/dev-architect)
 ├── tooling.md             containers, agent tooling
 ├── design.md              the design system (frontend only)  (/dev-design)
@@ -137,7 +143,9 @@ The project records in `.konteksto/`, plus the design prototypes:
 └── ui-registry.md         reusable components           (/dev-develop updates)
 ```
 
-Two of them describe the same task from complementary angles. The tracker says **where it stands**, one word per cell, scannable a phase at a time. `decision-log.md` is the chronological record of **what was decided and why**, plus **what was run and what it showed**.
+Two of them describe the same task from complementary angles. The tracker says **what every task and subtask must achieve and where each stands**, with one aggregate row and one child row per plan subtask. `decision-log.md` is the chronological record of **what was decided and why**, plus **what was run and what it showed**.
+
+`human-decisions.md` answers a different question: **what did the person choose from what they were shown?** Each entry keeps the question, every option, the original recommended marker, and the checked answer together. That makes a deliberate override visible without asking a later session to infer it from the finished documents. `/dev-scope` creates it, while `/dev-architect` and `/dev-design` append only the choices from their own conversations.
 
 Start a fresh agent or handoff with `/dev-context`. Use `/dev-loop` when a sequence of build plan tasks should run through implementation, verification, tests, audit, and regression QA.
 
@@ -152,6 +160,8 @@ The shared documents have explicit ownership. `progress-tracker.md` gives every 
 The append only log carries a Timestamp and an **Author**, the exact model identifier that wrote the row. The Actor column beside it, the person, is team only. Author is not: the model changes between sessions when the person does not, and it is what tells a reader how much to trust a six week old row.
 
 `glossary.md` splits differently again, by stage. `/dev-scope` writes the words the user used, `/dev-architect` adds what designing the system revealed and may sharpen a definition but never rename a term, and every other skill reads it, names what it builds from it, and reports drift without writing.
+
+`human-decisions.md` has three writers split by stage and is append only. `/dev-scope` records product choices, `/dev-architect` records technical choices, and `/dev-design` records design choices and formal review decisions. Nobody rewrites an earlier answer when a choice changes; the new entry points back to the old ID.
 
 The Evidence rows preserve three distinct claims: `/dev-develop` says the build is clean, `/dev-check verify` says the behavior was exercised, and `/dev-debug` says a bug was proven gone. Every row carries its timestamp and writing skill, nobody edits another writer's rows, and `/dev-sync` writes none, having run nothing itself.
 
