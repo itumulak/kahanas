@@ -48,6 +48,16 @@ This assigns who runs a step. It does not change what the step is, or what `/dev
 
 After the reviewer finishes, dispatch a bare `/dev-loop` to the developer. It resumes from its own saved state with a current audit register, and continues to QA or to the repair route it recorded.
 
+**Check the reviewer produced a review report before dispatching that hand back.** `/dev-audit` ingests a report and writes findings; when `.konteksto/reviews/` still holds no file covering this change, the audit did not run whatever the reviewer reported. Sending the developer back to a gate that is still waiting on the same missing report starts the cycle described below. Report the missing report to the person and stop.
+
+## Two windows can both be right and still make no progress
+
+**A crossing that leaves `loop-state.md` byte identical is a livelock, not a wait.** Compare the file before dispatching and after the hand back. If a full crossing changed nothing, stop and tell the person, naming both windows and what each said.
+
+This is the failure mode a single agent cannot have and a harness can. In this project's own demo the loop reached `Phase: audit`, and from there: the developer stopped because the harness gives the audit to the reviewer, the reviewer stopped because it read an empty register and called it nothing to do, and the coordinator read the unchanged `Next action` and sent each of them back to the other. Every one of those three was following its own rules correctly. Progress still stopped, and nothing in any single pane looked like a failure.
+
+So the coordinator is the only place that can see it, because it is the only one that sees both sides. A counted retry is not the fix either: a route that produced no state change will produce no state change the second time. Stop on the first repeat.
+
 ## A route you just completed is stale
 
 **Never dispatch the same action twice in a row.** A worker that finished `/dev-audit 01-02` leaves `Next action` in `loop-state.md` still naming `/dev-audit 01-02`, because the skill that owns that line was not the skill that ran. A coordinator that only re reads and dispatches would send it again, and again.
@@ -97,6 +107,8 @@ Do not start the next command yourself. Do not dispatch to another pane.
 Append one Dispatch log row in `.konteksto/harness.md` before you send, with the file the route came from in Route source.
 
 **Resolve the timestamp before writing it.** Read the clock, then write the value it returned. A row carrying an unexpanded `$(date ...)` instead of a time is worse than a row with no time at all, because it looks like a record until somebody tries to order two of them. This project's own demo produced exactly that row.
+
+**Read the local clock, never UTC.** Use `date '+%Y-%m-%d %H:%M'` with no `-u`. Every other stamped file in this workflow records local time, and a dispatch log eight hours out from the tracker beside it cannot be read against it. A later session reconstructing what happened has no way to tell a shifted clock from a run that actually took eight hours, and this project's own demo wrote `10:48` for a dispatch the pane clock showed at `18:48`.
 
 ## Watch
 

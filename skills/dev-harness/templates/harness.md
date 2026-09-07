@@ -35,7 +35,7 @@ The developer and the reviewer must differ on both rows. **An escalation model t
 
 The developer model and the reviewer model must differ. `/dev-check review` is only worth running on a model that did not write the code, and `/dev-loop` blocks its final gate on a review that cannot prove the two differ. Recording both models here is what makes that structural instead of hopeful.
 
-Skills are named differently per agent. Claude Code uses `/dev-audit 01`, Codex uses `$dev-audit 01`. The coordinator translates the recorded route to the receiving agent's prefix at send time, and a wrong prefix is typed as plain text that silently does nothing.
+Skills are named differently per agent. Claude Code uses `/dev-audit 01`, Codex uses `$dev-audit 01`. The coordinator translates the recorded route to the receiving agent's prefix at send time. A wrong prefix is rejected by the receiving agent rather than run, and the send still reports success, so the pane is the only place that failure is visible.
 
 A roster row is a convention, not a lock. Any person can type into any pane, and a second client can start an agent with the same name in a different session. This is the same honesty as the Assigned column in `progress-tracker.md`: it is an instruction agents follow and a record people can audit, never a guarantee the system keeps.
 
