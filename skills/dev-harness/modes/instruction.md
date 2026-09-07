@@ -1,6 +1,6 @@
 # /dev-harness <instruction> (a person changing how the harness runs)
 
-The `instruction` mode. Anything after `/dev-harness` that is not `start`, `stop`, or `config` lands here, whether it was typed in a pane or arrived as a Telegram message that matched no verb.
+The `instruction` mode. Anything after `/dev-harness` that is not `start`, `stop`, or `config` lands here, whether it was typed in a pane or relayed from the person's Remote Control session.
 
 ## What this mode may change
 

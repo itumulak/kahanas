@@ -50,11 +50,14 @@ Claude and Codex come first because both are known to work in this workflow and 
 
 Run `herdr agent start --help` for the kinds this Herdr build supports, and check which of those agents are actually installed on this machine. **Offer nothing that is not installed**, and record the exact model identifier the installed agent accepts rather than a family name. A name that does not resolve fails at the moment a run is already in trouble.
 
-> Which AI runs the coordinator? It relays routes and messages, and does not write code, so the cheapest capable model is usually right.
-> **Claude, on its small fast model** (recommended): enough for reading a route and relaying a question.
-> **Codex, on its small fast model**: the same job on the other provider.
-> **OpenCode or Pi**: the route to an open weight or locally hosted model, or to a provider the other options do not cover.
-> **Another agent**: Gemini, or anything else Herdr recognizes and this machine has installed.
+**The coordinator's kind decides whether this run can reach the person at all, so ask it that way.** Only Claude Code can hold a Remote Control session, and that session is the only transport that reaches somebody who is not at the terminal. Every other kind leaves the coordinator pane as the transport, which reaches a person only while they are watching it. That is not a small preference between providers: it is the difference between a run you can walk away from and one you cannot.
+
+> Which AI runs the coordinator? It relays routes and messages and writes no code, so the cheapest capable model is usually right. The kind matters more than the model here, because it decides how you get reached.
+> **Claude, on its small fast model** (recommended): enough for reading a route and relaying a question, and the only kind that can hold a Remote Control session you answer from your phone. Pick this unless you have a reason not to.
+> **Codex, on its small fast model**: the same relaying job on the other provider. **You lose Remote Control**, so every question is asked in the coordinator pane and nothing reaches you while you are away.
+> **OpenCode or Pi**: the route to an open weight or locally hosted model, and often the cheapest of the three. **You lose Remote Control** the same way.
+
+State that cost in the option itself rather than after the answer. A person choosing a free coordinator is making a real trade, and it is not one they can see from the model name.
 
 > Which AI runs the developer? It builds, verifies, debugs, and tests.
 > **Claude, on its mid tier model** (recommended): the usual balance of cost and capability for building from a plan.
@@ -214,15 +217,13 @@ Do not create a workspace, a tab, or a worktree. Do not change the working direc
 
 **The answer depends on the coordinator's kind, so ask it after step 3, not before.** Claude Code can hold a session the person reaches from their phone, and no other agent in the roster can. When the coordinator runs Claude, that is the recommended answer, subject to the test below, since an organization can switch the feature off for an account. When the coordinator is not Claude, Remote Control is not on the list at all, because offering something this machine cannot do wastes the person's time at exactly the wrong moment.
 
-With a Claude coordinator:
+With a Claude coordinator, there is one recommended answer and one fallback:
 
 > How should the harness reach you when a decision is yours?
-> **Claude Remote Control** (recommended): the coordinator pushes a one line notice to your phone, you open that session, and you answer in it. Nothing to create, no token to keep out of a file, and no channel a third party can post into, because it is your own authenticated session. You see the real session rather than a summary of it.
-> **Telegram with the shipped poller**: reaches a chat rather than the session. The poller holds the update offset, applies the sender allowlist, and parses the verbs, so nothing is replayed and a stranger in the chat cannot steer the run.
-> **Telegram with curl**: nothing to install. The coordinator sends and reads inside its own watch cycle, and keeps the offset and the allowlist itself.
-> **No relay**: every question is asked in the coordinator pane instead. The routing does not change.
+> **Claude Remote Control** (recommended): the coordinator pushes a one line notice to your phone, you open that session, and you answer in it. Nothing to create, no token to keep out of a file, and no channel a third party can post into, because it is your own authenticated session.
+> **The coordinator pane**: every question is asked in this pane instead. Nothing reaches you while you are away, and a coordinator that asks its own question goes `blocked`, which stops its watch cycle until somebody answers.
 
-Without a Claude coordinator, ask the same question with the first option removed, and say in one line why: Remote Control is a Claude Code feature, and this coordinator runs something else.
+Without a Claude coordinator there is nothing to ask. The relay is the coordinator pane, and say so in one line: Remote Control is a Claude Code feature and this coordinator runs something else, so this run cannot reach you while you are away from it.
 
 **For Remote Control**, the coordinator must have been started with it enabled. If step 6 already started it without, restart that pane:
 
@@ -242,31 +243,18 @@ A working session prints a line naming Remote Control as active, with a `https:/
 
 Two results are not a working relay:
 
-- `Remote Control is disabled by your organization's policy. Contact your organization admin for access.` This project's own demo hit exactly this, with the flag accepted and the agent idle and the relay reaching nobody. **Before treating it as settled, say which account this session is signed in as and ask whether that is the one they meant.** The message names an organization, and a person with both a work account and a personal one can be signed in to the work one without noticing, where the feature is off by policy rather than off for them. If they are on the account they intended, say the transport is unavailable and ask them to pick Telegram or the coordinator pane instead.
+- `Remote Control is disabled by your organization's policy. Contact your organization admin for access.` This project's own demo hit exactly this, with the flag accepted and the agent idle and the relay reaching nobody. **Before treating it as settled, say which account this session is signed in as and ask whether that is the one they meant.** The message names an organization, and a person with both a work account and a personal one can be signed in to the work one without noticing, where the feature is off by policy rather than off for them. If they are on the account they intended, say the transport is unavailable, record the coordinator pane as the relay, and say plainly that this run now has no way to reach them while they are away.
 - The person does not see the session in their app. Treat a no as a no.
 
 **Never record Remote Control as the relay on either.** A relay recorded but never reachable fails silently at the first real question, which is the one moment nobody is watching the terminal.
 
 A not sent result while the person is at the terminal is different, and it is fine: that is `PushNotification` refusing to be redundant, not a block.
 
-**For either Telegram choice**, collect the environment variable names, not the values. Default to `KAHANAS_TELEGRAM_BOT_TOKEN` and `KAHANAS_TELEGRAM_CHAT_ID`. Confirm both are set in this shell without printing either:
-
-```bash
-test -n "${KAHANAS_TELEGRAM_BOT_TOKEN:-}" && echo "token variable is set"
-test -n "${KAHANAS_TELEGRAM_CHAT_ID:-}" && echo "chat variable is set"
-```
-
-If either is missing, say so and let the person set it or pick another transport. **Do not record Telegram as the relay when its credentials are absent**, since a relay recorded but never reachable fails silently at the first real question.
-
-Ask for the allowed sender ids. Explain what the setting is for in one line: anyone who can post in that chat can try to steer the run, and an allowlist is what limits that to the person who owns it.
-
-Create `.konteksto/.harness/` for the update offset, and add that folder to `.gitignore`. It is churn, and it is per machine.
-
 **Whichever transport was chosen, test it before moving on.** A relay nobody tested is a relay that fails at the first real question, which is the one moment nobody is watching the terminal.
 
 ### Step 8: Ask about the rest
 
-- **Watch timeout seconds.** Not a polling interval. `herdr agent wait` returns the moment a worker settles, so this only bounds how long the coordinator sits when nothing happens at all, and a short value costs turns while buying nothing. Default 3600 on Remote Control or the coordinator pane, where the person's message arrives on its own. On Telegram, default the poll interval instead, 60 to 300, because nothing delivers a message there and expiring is how the coordinator goes to look. `internal/dispatch.md` holds the measurement behind this.
+- **Watch timeout seconds.** Not a polling interval. `herdr agent wait` returns the moment a worker settles, so this only bounds how long the coordinator sits when nothing happens at all, and a short value costs turns while buying nothing. Default 3600. Both transports deliver a person's message into the coordinator's own session or pane, so nothing needs polling and there is no reason to expire sooner. `internal/dispatch.md` holds the measurement behind this.
 - **Quota resume.** Default on. Explain it honestly: the harness reads the pane, recognizes that the worker said it is out, and wakes it at the time the worker itself printed. It does not measure token usage, because nothing here can.
 
 ### Step 9: Write the file

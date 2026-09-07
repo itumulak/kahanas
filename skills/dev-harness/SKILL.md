@@ -2,7 +2,7 @@
 name: dev-harness
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, AskUserQuestion
 argument-hint: [start | stop | config | instruction]
-description: "Run /dev-harness to drive the delivery loop across separate Herdr panes: a coordinator that relays, a developer that builds, and a reviewer on a different model that reads the code it did not write. It dispatches only routes the owning skills already recorded, and relays every decision a person owns to the person, over Claude Remote Control, Telegram, or its own pane. Requires HERDR_ENV=1."
+description: "Run /dev-harness to drive the delivery loop across separate Herdr panes: a coordinator that relays, a developer that builds, and a reviewer on a different model that reads the code it did not write. It dispatches only routes the owning skills already recorded, and relays every decision a person owns to the person, over Claude Remote Control or its own pane. Requires HERDR_ENV=1."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -51,7 +51,7 @@ When no route is recorded, the harness asks a person. It does not choose. `inter
 
 **The coordinator runs `/dev-document pr` when a run completes, and that is running a skill rather than owning its output.** A finished run that is committed and pushed with no pull request is work nobody has been asked to look at, and the person this was built for is not at the terminal to open one. `/dev-document` still owns the title, the body, and what may go in them. The coordinator does not compose a pull request body, summarize the run into one, or add a line to what that skill wrote. It is the same rule as never inventing a route, applied to prose.
 
-**It does cause commits and pushes, and that is the one thing it moves outside this machine.** Each window commits what it wrote before it hands back, and pushes the roster's working branch when the roster says to, so a person can pull the run's work at any moment instead of trusting a terminal they cannot see. The harness never pushes the base branch, never forces, and never reconciles a rejected push. `internal/dispatch.md` holds the whole envelope.
+**It does cause commits and pushes, and that is the one thing it moves outside this machine.** Each window commits what it wrote before it hands back, and pushes the roster's working branch when the roster says to, so a person can pull the run's work at any moment instead of trusting a terminal they cannot see. **The coordinator commits `.konteksto/harness.md` under the same rule**, because the Dispatch log is the only record of what was sent and where each route came from, and nothing else in the project can reconstruct it. The harness never pushes the base branch, never forces, and never reconciles a rejected push. `internal/dispatch.md` holds the whole envelope.
 
 A person's answer relayed from a phone is delivered to the pane that asked, and the skill that asked is the skill that records it. That keeps every answer filed by the owner of the stage it belongs to, which is the whole point of splitting `human-decisions.md` by stage in the first place.
 
@@ -95,9 +95,8 @@ Route before touching anything. Look at what followed `/dev-harness`:
 - `modes/config.md`: the roster, the model split, the escalation ladder, the relay, the file.
 - `modes/instruction.md`: what a person may change, and the two things they may not.
 - `internal/dispatch.md`: the routing table, the wrapped prompt, the audit handoff, the watch cycle.
-- `internal/relay.md`: the three transports, why Remote Control is preferred, credentials, and the untrusted inbound rules Telegram needs.
+- `internal/relay.md`: the two transports, why Remote Control is preferred, and why a coordinator that is not Claude cannot reach anybody who is not watching its pane.
 - `internal/escalation.md`: when a role moves up its model ladder, and the collision it may never cause.
 - `prompts/coordinator.md`, `prompts/developer.md`, `prompts/reviewer.md`: the brief each window is sent verbatim. Read the one for the window you are dispatching to, at send time. Never rewrite one.
 - `internal/quota-resume.md`: what a quota block looks like from outside, and when to wake a worker.
 - `templates/harness.md`: the file this skill owns.
-- `telegram/poll.mjs`: the Telegram poller transport. Tested by `scripts/test-harness-telegram.mjs` in the Kahanas repository.

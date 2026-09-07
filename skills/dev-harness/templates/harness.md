@@ -12,11 +12,8 @@
 - Remote: <remote name, or none>
 - Configured: <YYYY-MM-DD HH:MM>
 - Configured by: <model identifier>
-- Relay: <remote control|telegram poller|telegram curl|coordinator pane>
-- Telegram bot token variable: <environment variable name, never the value, or none>
-- Telegram chat variable: <environment variable name, never the value, or none>
-- Allowed sender ids: <comma separated Telegram user ids, any sender in the chat, or none>
-- Watch timeout seconds: <3600 on remote control or the coordinator pane, else the Telegram poll interval, 60 to 300>
+- Relay: <remote control|coordinator pane>
+- Watch timeout seconds: <3600, since neither transport polls>
 - Unattended approvals: <on|off>
 - Escalate after failed attempts: <2 to 9, or off>
 - Escalations allowed per task: <1 or 2>
@@ -55,4 +52,4 @@ A roster row is a convention, not a lock. Any person can type into any pane, and
 | --- | --- | --- | --- | --- | --- |
 | <YYYY-MM-DD HH:MM> | <role or human> | <role or human> | <exact text sent> | <file and line the route was read from, or human> | <what came back> |
 
-`/dev-harness` owns this append only table. Every dispatch names the file it read the route from. A row whose Route source is empty is a route the harness invented, which it may never do.
+`/dev-harness` owns this append only table, and the coordinator commits this file and pushes it once a row has its Observed result. It is the only artifact of a run that nothing else can reconstruct. Every dispatch names the file it read the route from. A row whose Route source is empty is a route the harness invented, which it may never do.

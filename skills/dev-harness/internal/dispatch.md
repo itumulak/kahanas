@@ -172,6 +172,17 @@ Append one Dispatch log row in `.konteksto/harness.md` before you send, with the
 
 **Read the local clock, never UTC.** Use `date '+%Y-%m-%d %H:%M'` with no `-u`. Every other stamped file in this workflow records local time, and a dispatch log eight hours out from the tracker beside it cannot be read against it. A later session reconstructing what happened has no way to tell a shifted clock from a run that actually took eight hours, and this project's own demo wrote `10:48` for a dispatch the pane clock showed at `18:48`.
 
+**Commit `.konteksto/harness.md` once the row has an Observed result, and push it.** The coordinator lives under the same rule as every window it dispatches to, and for a sharper reason: the Dispatch log is the only artifact of a run that nothing else can reconstruct. The tracker says what was built, the register says what was found, the loop state says where it stopped. Only this file says what was sent, to which window, and which file the route was read from, which is the record that proves the coordinator dispatched rather than invented.
+
+In this project's own demo it went uncommitted for an entire run, on a machine whose panes had pushed ten commits of everything else. It was also the file that had caught two route violations that day, and it was the only one not being preserved.
+
+```bash
+git add .konteksto/harness.md
+git commit -m "chore(harness): dispatch <route> to <role>"
+git push origin <working branch>
+```
+
+Stage that path alone. The same fence applies as everywhere else: the phase branch only, never forced, never the base branch. Commit after the result is known rather than before the send, so one row is one commit and a reader can follow the run by reading the log backwards.
 ## Watch
 
 **An agent cannot wake itself.** A turn ends and nothing schedules the next one, so a plan to check again in thirty seconds is a plan the coordinator cannot keep: it says it will look later, stops, and the run sits still with a worker blocked on a question nobody sees. This project's own demo did exactly that.
@@ -204,8 +215,9 @@ The wait matches the state the agent is in **now**, not only a change into it. A
 | Relay | Timeout | Why |
 | --- | --- | --- |
 | Remote Control | 3600000, one hour | The person's message arrives in your own session, so nothing needs polling. |
-| Telegram, either transport | the poll interval, 60000 to 300000 | Nobody delivers a Telegram message to you. Expiring is how you go and look. |
 | Coordinator pane | 3600000, one hour | The person types into this pane, which lands the same way. |
+
+Both transports deliver into something the coordinator is already holding, so nothing here polls and no timeout shorter than an hour buys anything.
 
 **Nothing here watches files, and nothing needs to.** `loop-state.md` is written only by a worker, and a worker that writes it settles immediately afterwards, so the state change and the wake are the same event. A file watcher would fire slightly earlier on a file that is still being written, which is worse. If a person edits `loop-state.md` by hand mid run, that is a message to you, and it belongs on the relay where you will see it.
 

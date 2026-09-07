@@ -190,7 +190,7 @@ skills/dev-<name>/
 └── *.md                  optional, bundled files read on demand
 ```
 
-**A skill may ship executable files, and few do.** `/dev-design`'s `review-harness/` decides whether an approval is genuine, and `/dev-harness`'s `telegram/` carries a person's answer in and out. Both are code where a file regenerated from memory each session is a file nobody has ever reviewed twice. **Anything shipped that way needs a test suite in `scripts/`**, run by `npm test`, which stays in this repository rather than travelling into the projects that install the skill.
+**A skill may ship executable files, and few do.** `/dev-design`'s `review-harness/` decides whether an approval is genuine, and it is code where a file regenerated from memory each session is a file nobody has ever reviewed twice. **Anything shipped that way needs a test suite in `scripts/`**, run by `npm test`, which stays in this repository rather than travelling into the projects that install the skill.
 
 **Every skill carries the `dev-` prefix in three places**, and they must agree: the folder name, the `name:` frontmatter inside `SKILL.md`, and every reference to it in any document. The registry keys on the frontmatter name, so a folder and a name that disagree install something the agent then cannot find. The local installer refuses that case, which is the check that catches it.
 

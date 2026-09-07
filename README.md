@@ -42,7 +42,7 @@ Every skill answers to `/dev-scope`, `/dev-architect`, and so on.
 | `/dev-audit` | Turns independent review findings into a durable register with stable IDs, ownership routes, and review evidence. |
 | `/dev-qa` | Reruns documented runtime cases for eligible audit findings and records the observed regression result. |
 | `/dev-loop` | Runs selected tasks through development, verification, testing, audit, and final regression QA, with resumable control state. |
-| `/dev-harness` | Runs that same loop across separate Herdr panes: a coordinator that relays, a developer that builds, and a reviewer on a different model. Every decision a person owns reaches them where they are, over Claude Remote Control or Telegram. Each window commits and pushes what it wrote, the coordinator branches per phase and opens the pull request, so a run you left alone is one you can pull at any moment. Needs Herdr. |
+| `/dev-harness` | Runs that same loop across separate Herdr panes: a coordinator that relays, a developer that builds, and a reviewer on a different model. Every decision a person owns reaches them on their phone over Claude Remote Control, which is why the coordinator is recommended to run Claude. Each window commits and pushes what it wrote, the coordinator branches per phase and opens the pull request, so a run you left alone is one you can pull at any moment. Needs Herdr. |
 | `/dev-document` | Writes the prose about a change: a pull request, a changelog, a release note, or a postmortem. |
 | `/dev-sync` | Makes the documents true again after a change, from repo evidence, and flags what needs a person. |
 
