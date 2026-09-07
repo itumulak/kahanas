@@ -39,7 +39,8 @@ For each role, settle four things:
 
 - **Agent name.** Must match `[a-z][a-z0-9_-]{0,31}` and be unique among live agents. Default to the role name.
 - **Pane.** An existing pane with an agent already in it, or a new split. Reuse what the person already has open before creating anything.
-- **Skills allowed.** The default split is in `templates/harness.md`. An extra window needs its own list, and a skill listed for no window cannot be dispatched at all.
+- **Skills allowed.** The default split is in `templates/harness.md`. The coordinator's row carries `/dev-document pr` beside `/dev-harness`, because it opens the pull request itself when a run completes rather than dispatching that to a window whose own code is in it.
+- **Prompt file.** The brief that window is sent verbatim on every dispatch. The three default roles use the skill's own `prompts/coordinator.md`, `prompts/developer.md`, and `prompts/reviewer.md`. **A role this project invented needs its own**: write it to `.konteksto/harness-prompts/<role>.md`, copying the shape of `prompts/developer.md`, and name it in the row. Ask the person what that role must always do and always refuse, and put only that in the file. A role with no brief cannot be dispatched, because the coordinator would have to write one, and a brief a coordinator writes is different for every coordinator model. An extra window needs its own list, and a skill listed for no window cannot be dispatched at all.
 
 ### Step 3: Ask which AI and which model runs each role
 
@@ -128,6 +129,41 @@ herdr agent start coordinator --kind claude --pane <pane id> -- --remote-control
 It costs nothing if the person then picks a different relay, and it saves killing a freshly started agent to add one flag.
 
 **Expect a trust prompt the first time an agent starts in a directory.** Claude Code and Codex both ask whether the folder can be trusted before they will accept input, and Herdr returns `agent_not_ready` while that dialog is up. The name still resolves for `agent read` and `agent send-keys`, so read the pane, show the person exactly what it asks, and let them answer. **Never answer it yourself**, and never send a blind Enter: the two agents do not agree on which option is highlighted, so the same keystroke trusts one and quits the other. Answering once usually covers every later pane of that same agent in that same directory.
+
+### Step 5b: Settle the working branch
+
+Every window commits what it wrote before it hands back, so the run needs a branch of its own. Read where the project is:
+
+```bash
+git rev-parse --abbrev-ref HEAD
+git branch --list main master
+```
+
+Record the base branch, `main` or `master`, in its own field.
+
+**Do not pick a working branch here.** The coordinator creates one branch per phase of `build-plan.md` and rewrites the Working branch field as each phase starts, so a branch chosen at configure time would be wrong by the second phase. `internal/dispatch.md` holds the naming and where each phase branch is cut from. Set Working branch to the first phase's branch name if a run is starting now, and leave it empty otherwise.
+
+If the project is sitting on the base branch with uncommitted work, say that the first phase branch will be cut from here and that the work will travel with it. That is usually what a person wants, and it is not what they expect if nobody says it.
+
+Say why in one line, because it reads like ceremony otherwise: `/dev-check review` reviews everything differing from the merge base on a feature branch, and reviews only the working tree on the base branch. Once a window commits, the working tree is clean, so a run committing on the base branch hands the reviewer an empty change set and the review stops with nothing to review. That failure looks exactly like a clean run.
+
+If the person wants no branch at all, say the commit rule and the review gate cannot both hold, and let them choose which to give up. Do not record a roster that quietly does neither.
+
+Then settle where that branch goes. Read what the project already has:
+
+```bash
+git remote -v
+```
+
+With a remote configured, ask:
+
+> Should each window push its commits after it hands back?
+> **Yes, push the working branch** (recommended): the work leaves this machine on every hand back, so you can pull it, read it, or take it over from anywhere while the run continues. An unattended run you cannot see is an unattended run you have to trust.
+> **No, commit only**: the work stays on this machine until you push it yourself. Nothing the harness commits reaches anybody else.
+
+Say the cost in the same line rather than burying it: pushing sends whatever was committed to a server, and deleting it there later does not reliably remove it. That matters because the roles are running with approvals skipped, so nobody is checking each commit before it goes out.
+
+Record the remote name and the answer. **With no remote configured, record push as off and move on.** Do not offer to add one and do not add one: where a person's code goes is their decision, and it is not a setting a harness should be inventing at three in the morning.
 
 ### Step 6b: Ask whether the roles run unattended
 
@@ -230,7 +266,7 @@ Create `.konteksto/.harness/` for the update offset, and add that folder to `.gi
 
 ### Step 8: Ask about the rest
 
-- **Watch interval seconds.** Default 15. Under 5 is noise, over 120 makes a blocked worker wait too long.
+- **Watch timeout seconds.** Not a polling interval. `herdr agent wait` returns the moment a worker settles, so this only bounds how long the coordinator sits when nothing happens at all, and a short value costs turns while buying nothing. Default 3600 on Remote Control or the coordinator pane, where the person's message arrives on its own. On Telegram, default the poll interval instead, 60 to 300, because nothing delivers a message there and expiring is how the coordinator goes to look. `internal/dispatch.md` holds the measurement behind this.
 - **Quota resume.** Default on. Explain it honestly: the harness reads the pane, recognizes that the worker said it is out, and wakes it at the time the worker itself printed. It does not measure token usage, because nothing here can.
 
 ### Step 9: Write the file

@@ -33,6 +33,7 @@ Match the recorded action to the role whose Skills allowed column in `.konteksto
 | `/dev-check review` | reviewer |
 | `/dev-audit <task>` | reviewer |
 | `/dev-qa` or `/dev-qa <AUD-ID>` | reviewer |
+| `/dev-document pr` | coordinator, run in place and never dispatched |
 
 If the recorded action names a skill that no roster row allows, the harness does not run it anywhere. Report the action and the ownership gap to the person and stop. `/dev-scope` and `/dev-architect` are the usual cases: they settle product and technical intent, and no window in this roster may hold that.
 
@@ -88,21 +89,82 @@ This is a translation at send time and nothing more. The route itself, and the f
 
 **A successful send is not a started job, so read the pane after dispatching.** `agent prompt` reports success once the text is delivered, which says nothing about what the agent did with it. The rejection lives in the pane, not in the send result. An empty input box is not evidence either way: the agent may have taken the prompt and refused it, and the same blank pane appears when it is quietly working.
 
-The wrapped prompt is the recorded action plus the hand back instruction, and nothing else. Do not add advice about how to do the work. That would be this skill creating intent through the back door.
+The wrapped prompt is the recorded action plus the receiving window's brief, and nothing else. Do not add advice about how to do the work. That would be this skill creating intent through the back door.
 
+**The brief is a file, and it is sent verbatim.** Read the role's file and send its body under the recorded action:
+
+| Role | File |
+| --- | --- |
+| coordinator | `prompts/coordinator.md` |
+| developer | `prompts/developer.md` |
+| reviewer | `prompts/reviewer.md` |
+| any other role | the Prompt file named in its roster row |
+
+**Do not paraphrase it, shorten it, or improve it.** The reason it is a file rather than a paragraph here is that a coordinator writes this text on every dispatch, and a different coordinator model writes it differently: the same run then means different things to the developer depending on which model happened to be relaying that hour. Rules a worker follows have to be identical every time, and the only way to make that true across models is to stop asking a model to reproduce them.
+
+A role the roster added gets its own file, written by `config` at `.konteksto/harness-prompts/<role>.md` and named in its row. It is a project file rather than a skill file because the role is this project's invention, and it is versioned rather than ignored because it is part of how the run behaves.
+
+If a brief file is missing, stop and say which one. Do not write a replacement from memory: a brief reconstructed by the coordinator is exactly the drift the files exist to remove.
+
+## Commit before every hand back
+
+**A window commits what it wrote before it reports, and never pushes.** A hand back is a claim about a state the next window has to read, and an uncommitted working tree is a state nobody can name. Committing turns it into one short identifier that every later file can point at.
+
+**Stage paths by name.** `git add -A` sweeps in whatever another window is part way through writing, and the reviewer and the developer share one working tree. The coordinator is also editing `.konteksto/harness.md` between dispatches, so a blind stage commits the dispatch log mid row.
+
+**Commit a blocked run too.** The temptation is to leave a broken state uncommitted so it looks like nothing happened. Nothing happening is exactly what the next window cannot distinguish from a worker that died, and a blocked state that cannot be read is worse than a broken one that can. Say `blocked` in the message.
+
+**Then push the working branch, when the roster says to.** A run that only commits leaves the work on one machine, and the person watching from a phone or another desk cannot see it, cannot pull it, and cannot take it over when the harness stops. Pushing on every hand back is what makes an unattended run something a person can join at any moment.
+
+```bash
+git push --set-upstream origin <working branch>
 ```
-<recorded action>
 
-You are running inside a harness. Two rules for this run:
-1. When `Phase` in .konteksto/loop-state.md reaches `audit`, stop and report back. The reviewer window runs that step.
-2. When the command above stops for any reason, including a block, a question you cannot answer, or a completed phase, report back before doing anything else.
+Name the branch every time. A bare `git push` follows whatever `push.default` and the branch configuration say, which is not always the branch you are on.
 
-Report back by running exactly this, filling each field from what you observed:
+Four things this may never do, and each one is about a push being the one act here that leaves the machine:
 
-herdr agent prompt <coordinator agent name> "HARNESS REPORT | from: <role> | ran: <the command above> | stopped at: <phase or step> | next action: <the Next action line from .konteksto/loop-state.md, or the Next route from .konteksto/audit-register.md, or none> | evidence: <one line>"
+- **Never push the base branch.** The roster's Working branch is the only branch a window pushes. Work reaches `main` through whatever review a person already uses, not through an agent that finished a task.
+- **Never force.** Not `--force`, not `--force-with-lease`. Once a commit is pushed, the person may already have pulled it, and rewriting shared history is the one git mistake that costs somebody else their afternoon. For the same reason, do not amend or rebase a commit that has been pushed.
+- **Never push tags**, and never create one. A tag is a release decision.
+- **A rejected push means somebody else moved the branch.** Report it and stop. Do not pull, do not merge, do not rebase to get past it: another writer on the run's own branch is a fact the person needs to know before anything is reconciled.
 
-Do not start the next command yourself. Do not dispatch to another pane.
-```
+**Do not stage a file git is already ignoring**, and never use `git add -f`. A push sends whatever was committed to a server, where deleting it later does not reliably remove it. `.gitignore` is where this project already recorded what must not leave the machine, and an unattended run with approvals skipped is exactly when nobody is watching for a key file going out.
+
+**No remote configured?** Commit, say the work is local only, and carry on. Do not add a remote. That is a person's decision about where their code goes.
+
+**The commit SHA is evidence, so carry it.** Put it in the report and in the Dispatch log's Observed result. `/dev-audit` records a Review basis for every finding and prefers the current Git revision, falling back to file checksums when there is none. In this project's own demo every finding fell back to a SHA256 of the file contents, because nothing had been committed, and a checksum is unreadable next to a commit anyone can check out.
+
+### The coordinator creates a branch per phase
+
+**One branch per phase of `build-plan.md`, created by the coordinator before it dispatches that phase's first task.** A phase is the unit a person reviews, so it is the unit that gets a branch and, at the end, a pull request. A single branch carrying every phase of a project is a pull request nobody can read.
+
+Name it from the phase heading: `phase-<number>-<slug>`, so `phase-1-store-and-service`.
+
+**Where it starts from is a fact the repository proves, not a judgment you make:**
+
+- **The previous phase is merged into the base branch, or there is no previous phase.** Cut from the base branch. `git switch -c phase-2-... <base>`.
+- **The previous phase is not merged.** Cut from the previous phase's branch. Starting from base instead would drop code the tracker says exists, and the first task would fail on an import of a file that is not there.
+
+Check it rather than assuming: `git branch --merged <base>` lists what has landed.
+
+That second case makes the phases a stack, so the pull request for a phase targets whatever its branch was cut from, not always the base branch. `/dev-document pr` reads the branch point; do not tell it a base.
+
+**Push the branch when you create it**, so the person can see and pull the phase from the moment it starts rather than after the first hand back.
+
+**Record the branch in the roster's Working branch field before dispatching.** Every window commits and pushes to whatever that field says, so a field that lags the phase sends the developer's commits to the previous phase's branch.
+
+**Never delete a phase branch, and never merge one.** Both are decisions about what becomes the project's history, and the pull request is where a person makes them.
+
+### This only works on a working branch
+
+**The run happens on a branch off the base, never on the base branch itself.** That is not a preference, and skipping it silently disables the review.
+
+`/dev-check review` picks its scope from the branch. On a feature branch it reviews everything differing from the merge base, so committed work is still in scope. On the base branch it reviews the working tree instead, with `git diff --name-only HEAD`, and once a window has committed, that diff is empty and the review stops with nothing to review.
+
+So committing on the base branch would hand the reviewer an empty change set at the exact gate built to catch what the builder could not see, and it would look like a clean run. `config` settles the branch and records it, and `start` refuses to dispatch when the roster's branch is the base branch.
+
+**Commit at the hand back, not during the work.** `/dev-test` and `/dev-sync` scope themselves by what is uncommitted inside a single leg, so a window that commits part way through its own run hides its work from its own next step. The commit is the last thing before the report.
 
 Append one Dispatch log row in `.konteksto/harness.md` before you send, with the file the route came from in Route source.
 
@@ -114,13 +176,40 @@ Append one Dispatch log row in `.konteksto/harness.md` before you send, with the
 
 **An agent cannot wake itself.** A turn ends and nothing schedules the next one, so a plan to check again in thirty seconds is a plan the coordinator cannot keep: it says it will look later, stops, and the run sits still with a worker blocked on a question nobody sees. This project's own demo did exactly that.
 
-So the watch is a blocking wait inside one turn, not a promise to return. Wait for the worker to leave `working`, with a timeout short enough to check the relay in between:
+So the watch is a blocking wait inside one turn, not a promise to return.
 
 ```bash
-herdr agent wait <agent name> --timeout 60000
+herdr agent wait <agent name> --timeout <milliseconds>
 ```
 
-That returns as soon as the worker settles into `idle`, `done`, or `blocked`, and returns on the timeout otherwise. On a timeout, check the relay and any quota output, then wait again. Keep looping in this turn until the worker settles, the person stops the run, or the recorded phase ends the cycle.
+**Capture the agent's state sequence before you dispatch, and ignore any wait that returns without it advancing.**
+
+```bash
+herdr agent get <agent name>    # read state_change_seq, keep it
+herdr agent prompt <agent name> "<wrapped prompt>"
+herdr agent wait <agent name> --timeout <milliseconds>
+herdr agent get <agent name>    # advanced past the kept value, or wait again
+```
+
+The wait matches the state the agent is in **now**, not only a change into it. A worker takes a moment to leave `idle` after being prompted, so a wait started immediately after a dispatch returns `idle` at once, describing the state before the work rather than after it. Measured on this project: a dispatch followed straight away by a wait returned `idle` in six milliseconds, and the worker then ran for two seconds and answered. A coordinator that trusted that first return would read a finished worker that had not begun, go to read the pane, and find the state from before its own dispatch.
+
+`state_change_seq` settles it exactly. In that same measurement it read 98 before the dispatch, still 98 when the wait returned wrongly, and 100 once the worker had really finished. **Do not wait for `--until working` instead.** Fast work finishes before that state can be observed, and the wait then times out on a job that already succeeded, which is the same wrong answer from the other direction.
+
+**That wait is edge triggered once the sequence guard is in place, and this is the whole reason it is cheap.** It returns the moment the worker reaches `idle`, `done`, or `blocked`, not when the timeout elapses. Measured on this project: a wait carrying a ten minute timeout returned in two milliseconds against a worker that was already idle. So the timeout is not a polling interval and there is no cost per minute of it. It only bounds how long you sit when nothing at all happens.
+
+**A short timeout is therefore pure waste.** Every expiry ends the wait, spends a turn, and starts another wait, and it buys nothing, because a worker that finished during a long wait already woke you. A run watched on a fifteen second timeout burns hundreds of turns to learn what one long wait would have told it for free.
+
+**So set the timeout from the relay, which is the only thing a timeout is for.** The wait wakes you for the worker; the timeout wakes you for everything else.
+
+| Relay | Timeout | Why |
+| --- | --- | --- |
+| Remote Control | 3600000, one hour | The person's message arrives in your own session, so nothing needs polling. |
+| Telegram, either transport | the poll interval, 60000 to 300000 | Nobody delivers a Telegram message to you. Expiring is how you go and look. |
+| Coordinator pane | 3600000, one hour | The person types into this pane, which lands the same way. |
+
+**Nothing here watches files, and nothing needs to.** `loop-state.md` is written only by a worker, and a worker that writes it settles immediately afterwards, so the state change and the wake are the same event. A file watcher would fire slightly earlier on a file that is still being written, which is worse. If a person edits `loop-state.md` by hand mid run, that is a message to you, and it belongs on the relay where you will see it.
+
+On an expiry, check the relay and any quota output, then wait again. Keep looping in this turn until the worker settles, the person stops the run, or the recorded phase ends the cycle.
 
 Then read what state it settled into:
 

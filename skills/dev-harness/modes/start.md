@@ -24,6 +24,16 @@ herdr agent list
 
 A named agent that is not live is a stopped or replaced pane. Report which role is missing and offer to run `config` for that role alone. Do not start an agent of a different kind in its place.
 
+Confirm the working branch, because every window commits before it hands back:
+
+```bash
+git rev-parse --abbrev-ref HEAD
+```
+
+It must match the Working branch in the roster, and it must not be the base branch. On the base branch, stop and say why rather than dispatching: a committed change set there leaves `/dev-check review` with an empty working tree diff, so the review finds nothing and the run looks clean when nothing was read.
+
+If the roster's Working branch is empty, or the recorded route names a task in a phase that has no branch yet, create that phase's branch first. `internal/dispatch.md` holds the naming, where it is cut from, and the rule that you push it and rewrite the roster field before dispatching anything.
+
 ### Step 2: Confirm you are the coordinator
 
 ```bash
@@ -72,4 +82,18 @@ On Remote Control that means calling `PushNotification` with a one line summary.
 
 On `complete`, notify the person with the task ids, the phase reached, and where the evidence is. Append the closing Dispatch log row. Leave `loop-state.md`, `progress-tracker.md`, `decision-log.md`, and `audit-register.md` exactly as their owners wrote them.
 
+**Then run `/dev-document pr` yourself.** The coordinator holds this one, and it is the only skill it runs besides its own. A finished run whose work is committed and pushed but has no pull request is work nobody has been asked to look at, and the person the harness was built for is not at the terminal to open one.
+
+Run it in this window rather than dispatching it. The developer would be opening a pull request on its own code, and the reviewer is mid audit or done with one.
+
+**You are running the skill, not writing the document.** `/dev-document` owns the title, the body, and what may go in them, exactly as `/dev-loop` owns a route. Do not compose a pull request body yourself, do not summarize the run into one, and do not add a line to what that skill produced. This is the same rule as never inventing a route, applied to prose.
+
+Each completion gets a pull request, and a branch gets exactly one, so a run that reaches `complete` again updates the pull request already open rather than adding another. `/dev-document pr` handles that itself. Record the pull request number or url in the Dispatch log's Observed result.
+
+Two cases stop it, and neither is a failure of the run: no remote, or `gh` not installed or not authenticated. `/dev-document pr` says which, and outputs the title and body instead. Relay that to the person and report the run as complete anyway, because it is.
+
+**Do not run it on a blocked run.** A pull request says the work is ready to read, and a blocked run is the opposite of that. Relay the block instead.
+
 Say what was actually observed. The harness watched panes and relayed text; it did not run the app and it did not read the code. The pass belongs to `/dev-check verify` and `/dev-qa`, and repeating their verdict as though the harness confirmed it is the same failure as fabricated evidence.
+
+**Ready for merge is not one of the things you may say.** It is the judgment `/dev-loop` reaches at its own finish step, and only after the phase is `complete`. In this project's own demo the coordinator said it while `loop-state.md` still read `Phase: audit`, with the final QA gate not yet run. Every finding really was closed, which is what made the sentence so easy to write and so wrong: it named a state no file recorded. Report the phase the file says, and let the person draw the conclusion.

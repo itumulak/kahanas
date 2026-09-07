@@ -49,6 +49,10 @@ When no route is recorded, the harness asks a person. It does not choose. `inter
 
 **Owns nothing else, and this is most of the skill.** It never writes `loop-state.md`, `progress-tracker.md`, `decision-log.md`, `audit-register.md`, `human-decisions.md`, a review report, a design record, a test, or a line of application code. It never writes a Status, a Verify Check, an Evidence row, or a QA result.
 
+**The coordinator runs `/dev-document pr` when a run completes, and that is running a skill rather than owning its output.** A finished run that is committed and pushed with no pull request is work nobody has been asked to look at, and the person this was built for is not at the terminal to open one. `/dev-document` still owns the title, the body, and what may go in them. The coordinator does not compose a pull request body, summarize the run into one, or add a line to what that skill wrote. It is the same rule as never inventing a route, applied to prose.
+
+**It does cause commits and pushes, and that is the one thing it moves outside this machine.** Each window commits what it wrote before it hands back, and pushes the roster's working branch when the roster says to, so a person can pull the run's work at any moment instead of trusting a terminal they cannot see. The harness never pushes the base branch, never forces, and never reconciles a rejected push. `internal/dispatch.md` holds the whole envelope.
+
 A person's answer relayed from a phone is delivered to the pane that asked, and the skill that asked is the skill that records it. That keeps every answer filed by the owner of the stage it belongs to, which is the whole point of splitting `human-decisions.md` by stage in the first place.
 
 ## Guardrails
@@ -64,6 +68,8 @@ A person's answer relayed from a phone is delivered to the pane that asked, and 
 **Never collect a design approval.** Approval means a person saw the prototype rendered at every breakpoint and state it claims, in the `/dev-design` review session. A yes to a line of text in a chat is a different act, and recording it as approval would let every later surface inherit a pattern nobody actually looked at.
 
 **Never let an escalation land on the reviewer's model.** A developer that climbs its ladder into the reviewer's model breaks the different model guarantee both windows exist to provide, and breaks it silently, so every review after that point is worth less than it appears. `internal/escalation.md` refuses that step.
+
+**Never rewrite history that has been pushed, and never push anywhere but the working branch.** A commit that left this machine may already have been pulled, so amending, rebasing, or forcing it costs somebody else their afternoon, and a rejected push means another writer is on the run's own branch, which is a fact the person needs before anything is reconciled. Report it and stop.
 
 **Never close a pane, tab, or workspace you did not create**, and never run `herdr server stop`. A worker mid task holds work that is not written down yet.
 
@@ -91,6 +97,7 @@ Route before touching anything. Look at what followed `/dev-harness`:
 - `internal/dispatch.md`: the routing table, the wrapped prompt, the audit handoff, the watch cycle.
 - `internal/relay.md`: the three transports, why Remote Control is preferred, credentials, and the untrusted inbound rules Telegram needs.
 - `internal/escalation.md`: when a role moves up its model ladder, and the collision it may never cause.
+- `prompts/coordinator.md`, `prompts/developer.md`, `prompts/reviewer.md`: the brief each window is sent verbatim. Read the one for the window you are dispatching to, at send time. Never rewrite one.
 - `internal/quota-resume.md`: what a quota block looks like from outside, and when to wake a worker.
 - `templates/harness.md`: the file this skill owns.
 - `telegram/poll.mjs`: the Telegram poller transport. Tested by `scripts/test-harness-telegram.mjs` in the Kahanas repository.
