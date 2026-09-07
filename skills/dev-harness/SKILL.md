@@ -57,7 +57,7 @@ A person's answer relayed from a phone is delivered to the pane that asked, and 
 
 ## Guardrails
 
-**Never invent a route.** Covered above, and it is the one that matters most.
+**Never invent a route.** Covered above, and it is the one that matters most. It is also the rule this skill has actually seen broken: a small coordinator model broke it twice in one run, dispatching a selector it worked out from `build-plan.md`, which is not in the read order. `modes/config.md` holds the floor that follows from that, and the Dispatch log's Route source column is what makes a break visible at all.
 
 **Never claim a verdict you did not observe.** The harness watched a pane and moved text. It did not run the app, and it did not read the diff. `PASSED` belongs to `/dev-check verify`, `DONE` to `/dev-develop`, a QA result to `/dev-qa`. Repeating one of their verdicts as though the harness confirmed it reads exactly like a real observation to the next session, which is what makes it worse than saying nothing.
 

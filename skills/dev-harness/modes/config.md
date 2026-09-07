@@ -52,12 +52,20 @@ Run `herdr agent start --help` for the kinds this Herdr build supports, and chec
 
 **The coordinator's kind decides whether this run can reach the person at all, so ask it that way.** Only Claude Code can hold a Remote Control session, and that session is the only transport that reaches somebody who is not at the terminal. Every other kind leaves the coordinator pane as the transport, which reaches a person only while they are watching it. That is not a small preference between providers: it is the difference between a run you can walk away from and one you cannot.
 
-> Which AI runs the coordinator? It relays routes and messages and writes no code, so the cheapest capable model is usually right. The kind matters more than the model here, because it decides how you get reached.
+> Which AI runs the coordinator? It relays routes and messages and writes no code, so it looks like the place to save money. The kind decides how you get reached, and the tier decides whether the routing rule holds.
 > **Claude, on its small fast model** (recommended): enough for reading a route and relaying a question, and the only kind that can hold a Remote Control session you answer from your phone. Pick this unless you have a reason not to.
 > **Codex, on its small fast model**: the same relaying job on the other provider. **You lose Remote Control**, so every question is asked in the coordinator pane and nothing reaches you while you are away.
 > **OpenCode or Pi**: the route to an open weight or locally hosted model, and often the cheapest of the three. **You lose Remote Control** the same way.
 
 State that cost in the option itself rather than after the answer. A person choosing a free coordinator is making a real trade, and it is not one they can see from the model name.
+
+**There is a floor under this role, and it is higher than the job description suggests.** The coordinator's whole task is one sentence, but that sentence is a negative: dispatch the route another skill recorded, and never compute one. Negative instructions are the hardest kind for a small model to hold, because nothing in the moment reminds it of the rule and the invented answer is usually reasonable. The routing table is right there, the build plan is readable, and the next step is often obvious. Working it out is exactly what must not happen.
+
+So recommend a provider's small fast model, not the cheapest thing that runs. Free and locally hosted models belong on this role only when somebody is watching the Dispatch log.
+
+**This is observed, and it is one observation.** In this project's own demo a free model on the coordinator broke that rule twice inside one run: it dispatched `/dev-loop 01` with a Route source of `build-plan.md`, a file that is not in the read order at all, dropping a task from the run, and later reasoned two steps ahead into a question about a phase it had not reached while `loop-state.md` plainly recorded the next action. It got every other new rule right, including ones far more elaborate. One model on one run is not a law, and it is enough to stop recommending the bottom of the range without saying anything.
+
+**Tell the person how they would catch it.** The Route source column in the Dispatch log names the file every route was read from, so a route the coordinator invented shows up as a source outside `loop-state.md` and `audit-register.md`. That column is the only reason both violations were found. On a coordinator below the floor, say plainly that this is the thing to read.
 
 > Which AI runs the developer? It builds, verifies, debugs, and tests.
 > **Claude, on its mid tier model** (recommended): the usual balance of cost and capability for building from a plan.
