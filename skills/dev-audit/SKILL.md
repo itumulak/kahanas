@@ -39,19 +39,26 @@ If this session genuinely may not run `/dev-check review`, from a tool restricti
    - a reproducible behavioral defect or regression: `/dev-debug <AUD-ID>`
    - a review finding that needs an implementation change but no diagnosis: `/dev-develop <linked task>`
    - a load bearing document or approved design conflict: route to its documented owner
-6. Never close an issue merely because a later review did not mention it. Set `ready for QA` only when the fresh review covered the original area and the finding is no longer present. Record the current Git revision in Review basis when available, otherwise record the reviewed paths and their content checksums. `/dev-qa` supplies the runtime result and transitions that state to `verified` or `reopened`.
+6. Never close an issue merely because a later review did not mention it. When the fresh review covered the original area and the finding is no longer present, **the type decides which state it moves to**:
+   - a `bug` or a `regression`, which has a case somebody can rerun: `ready for QA`. `/dev-qa` supplies the runtime result and transitions that state to `verified` or `reopened`.
+   - anything else, which has no runtime case: `resolved`, with the review that proved it in Sources. Do not send it to `ready for QA`, because `/dev-qa` cannot accept it and it would sit there forever.
+
+   Record the current Git revision in Review basis when available, otherwise record the reviewed paths and their content checksums.
 
 ## Issue states
 
 Use only these values:
 
 - `open`: newly recorded or still observed.
-- `ready for QA`: a fresh review indicates the fix is present and needs regression proof.
+- `ready for QA`: a fresh review indicates the fix is present, **and the finding has a runtime case somebody can rerun**. Only a `bug` or a `regression` reaches this state.
 - `verified`: a relevant QA run passed after the fix.
+- `resolved`: a fresh review covering the original area shows the fix is present, and there is no runtime case to rerun. This is where a `test`, `style`, `maintainability`, or other static finding ends. It is a terminal state and it claims less than `verified` does: a review looked and the finding is gone, which is all anybody can honestly say about a finding that was never observable at runtime.
 - `reopened`: QA or a later review found the issue again.
 - `wontfix`: a person explicitly accepted the risk. Record the reason and never infer this state.
 
-The register tracks findings, not only runtime bugs. Nits and static concerns stay auditable, but they do not automatically become QA cases.
+The register tracks findings, not only runtime bugs. Nits and static concerns stay auditable, and they never become QA cases.
+
+**`resolved` exists because without it those findings had nowhere to go.** `/dev-qa` rejects anything that is not a `bug` or a `regression`, so a `test` finding parked at `ready for QA` could never reach `verified` and never be closed: the register grew rows nothing was able to finish. This project's own harness demo produced exactly that and stalled a run on it. Sending such a finding to `verified` instead would be worse, because that value claims a QA run that never happened.
 
 ## Report
 
