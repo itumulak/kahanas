@@ -94,6 +94,69 @@ Then settle two numbers:
 
 **Refuse an escalation model that equals the reviewer's model.** A developer that silently becomes the reviewer's model breaks the guarantee both windows exist to provide, and breaks it where nobody would see. Say that, and ask for a different step.
 
+### Step 5b: Settle the working branch
+
+Every window commits what it wrote before it hands back, so the run needs a branch of its own. Read where the project is:
+
+```bash
+git rev-parse --abbrev-ref HEAD
+git branch --list main master
+```
+
+Record the base branch, `main` or `master`, in its own field.
+
+**Do not pick a working branch here.** The coordinator creates one branch per phase of `build-plan.md` and rewrites the Working branch field as each phase starts, so a branch chosen at configure time would be wrong by the second phase. `internal/dispatch.md` holds the naming and where each phase branch is cut from. Set Working branch to the first phase's branch name if a run is starting now, and leave it empty otherwise.
+
+If the project is sitting on the base branch with uncommitted work, say that the first phase branch will be cut from here and that the work will travel with it. That is usually what a person wants, and it is not what they expect if nobody says it.
+
+Say why in one line, because it reads like ceremony otherwise: `/dev-check review` reviews everything differing from the merge base on a feature branch, and reviews only the working tree on the base branch. Once a window commits, the working tree is clean, so a run committing on the base branch hands the reviewer an empty change set and the review stops with nothing to review. That failure looks exactly like a clean run.
+
+If the person wants no branch at all, say the commit rule and the review gate cannot both hold, and let them choose which to give up. Do not record a roster that quietly does neither.
+
+Then settle where that branch goes. Read what the project already has:
+
+```bash
+git remote -v
+```
+
+With a remote configured, ask:
+
+> Should each window push its commits after it hands back?
+> **Yes, push the working branch** (recommended): the work leaves this machine on every hand back, so you can pull it, read it, or take it over from anywhere while the run continues. An unattended run you cannot see is an unattended run you have to trust.
+> **No, commit only**: the work stays on this machine until you push it yourself. Nothing the harness commits reaches anybody else.
+
+Say the cost in the same line rather than burying it: pushing sends whatever was committed to a server, and deleting it there later does not reliably remove it. That matters because the roles are running with approvals skipped, so nobody is checking each commit before it goes out.
+
+Record the remote name and the answer. **With no remote configured, record push as off and move on.** Do not offer to add one and do not add one: where a person's code goes is their decision, and it is not a setting a harness should be inventing at three in the morning.
+
+### Step 5c: Ask where this run lives
+
+**A harness needs three panes, and where they go is the person's call, not a default.** Ask before creating anything.
+
+Read what is already there:
+
+```bash
+herdr session list
+herdr workspace list
+```
+
+> Where should the harness panes live?
+> **This workspace** (recommended when you are already in the project you want built): the panes split from the one you are in and nothing new is created. Everything stays in one place and `herdr session attach` reaches it the way it already does.
+> **A new workspace in this session**: the harness gets a space of its own, so it does not crowd the panes you are working in, and it is still one server, one socket, and one session to attach to.
+> **A new session**: full isolation. Its own server, its own socket, and its own agent names.
+
+**The deciding fact between the last two is agent names, which are scoped to the session and not to the workspace.** Two harness runs in one session cannot both hold an agent called `coordinator`; the second one fails with `agent_name_taken`. So a second run beside one already going wants a new session, and a single run that just wants elbow room wants a new workspace.
+
+**A new session moves the run out from under you, and that is the part to say out loud.** This mode is running in a pane of the current session, and it cannot follow itself into a new one. So when a new session is chosen: create it, create its workspace and panes, start the agents, write `.konteksto/harness.md`, then tell the person to attach to it and run `/dev-harness start` there. **Do not dispatch anything.** The coordinator of that run is a pane in the new session, and this pane is not it. Two coordinators reading one recorded route send the same work twice.
+
+```bash
+herdr --session <name> server
+```
+
+Record what was created, because `stop` needs it. A session or workspace this mode made is one the harness may later take down; one the person already had is not, and that difference is invisible after the fact.
+
+Whatever the answer, **do not create a tab or a worktree, and do not change the working directory.** The harness builds the project the person pointed it at.
+
 ### Step 6: Create what is missing
 
 For a role with no pane yet, split from the caller and keep the person's focus where it is:
@@ -132,41 +195,6 @@ herdr agent start coordinator --kind claude --pane <pane id> -- --remote-control
 It costs nothing if the person then picks a different relay, and it saves killing a freshly started agent to add one flag.
 
 **Expect a trust prompt the first time an agent starts in a directory.** Claude Code and Codex both ask whether the folder can be trusted before they will accept input, and Herdr returns `agent_not_ready` while that dialog is up. The name still resolves for `agent read` and `agent send-keys`, so read the pane, show the person exactly what it asks, and let them answer. **Never answer it yourself**, and never send a blind Enter: the two agents do not agree on which option is highlighted, so the same keystroke trusts one and quits the other. Answering once usually covers every later pane of that same agent in that same directory.
-
-### Step 5b: Settle the working branch
-
-Every window commits what it wrote before it hands back, so the run needs a branch of its own. Read where the project is:
-
-```bash
-git rev-parse --abbrev-ref HEAD
-git branch --list main master
-```
-
-Record the base branch, `main` or `master`, in its own field.
-
-**Do not pick a working branch here.** The coordinator creates one branch per phase of `build-plan.md` and rewrites the Working branch field as each phase starts, so a branch chosen at configure time would be wrong by the second phase. `internal/dispatch.md` holds the naming and where each phase branch is cut from. Set Working branch to the first phase's branch name if a run is starting now, and leave it empty otherwise.
-
-If the project is sitting on the base branch with uncommitted work, say that the first phase branch will be cut from here and that the work will travel with it. That is usually what a person wants, and it is not what they expect if nobody says it.
-
-Say why in one line, because it reads like ceremony otherwise: `/dev-check review` reviews everything differing from the merge base on a feature branch, and reviews only the working tree on the base branch. Once a window commits, the working tree is clean, so a run committing on the base branch hands the reviewer an empty change set and the review stops with nothing to review. That failure looks exactly like a clean run.
-
-If the person wants no branch at all, say the commit rule and the review gate cannot both hold, and let them choose which to give up. Do not record a roster that quietly does neither.
-
-Then settle where that branch goes. Read what the project already has:
-
-```bash
-git remote -v
-```
-
-With a remote configured, ask:
-
-> Should each window push its commits after it hands back?
-> **Yes, push the working branch** (recommended): the work leaves this machine on every hand back, so you can pull it, read it, or take it over from anywhere while the run continues. An unattended run you cannot see is an unattended run you have to trust.
-> **No, commit only**: the work stays on this machine until you push it yourself. Nothing the harness commits reaches anybody else.
-
-Say the cost in the same line rather than burying it: pushing sends whatever was committed to a server, and deleting it there later does not reliably remove it. That matters because the roles are running with approvals skipped, so nobody is checking each commit before it goes out.
-
-Record the remote name and the answer. **With no remote configured, record push as off and move on.** Do not offer to add one and do not add one: where a person's code goes is their decision, and it is not a setting a harness should be inventing at three in the morning.
 
 ### Step 6b: Ask whether the roles run unattended
 
@@ -211,7 +239,6 @@ Expect the name, the pane, the kind you chose, and a status of `idle`. A role th
 
 Answering it once usually covers the other panes of the same agent kind in the same directory, since the trust decision is stored per directory. Do not assume that; read each pane.
 
-Do not create a workspace, a tab, or a worktree. Do not change the working directory. The harness drives the project the person is already in.
 
 ### Step 7: Ask how the harness reaches the person
 

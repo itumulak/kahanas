@@ -23,3 +23,7 @@ herdr agent prompt <coordinator agent name> "HARNESS STOP | requested from: <thi
 7. Notify the person through the relay, once.
 
 A stopped harness is a harness that is no longer relaying. The panes, the agents, and the recorded work all stay.
+
+**Even a session or workspace that `config` created stays up, unless the person asks for it.** The Created by config field in the roster says what this harness made, and it exists so that offer can be made honestly rather than guessed at. Offer it, name what would close, and close it only on a yes. What `config` created it may take down; what the person already had it may not, and after the fact those look identical.
+
+The reason to leave it even so is the same one as for the panes: a worker holds work that is not written down yet, and a session is the last thing standing between that work and losing it.

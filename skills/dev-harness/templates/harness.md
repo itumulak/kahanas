@@ -6,6 +6,7 @@
 
 - Herdr session: <session name>
 - Workspace: <w1>
+- Created by config: <session|workspace|neither>
 - Base branch: <main or master>
 - Working branch: <the current phase branch, rewritten by the coordinator at each phase, never the base branch>
 - Push on hand back: <on|off>

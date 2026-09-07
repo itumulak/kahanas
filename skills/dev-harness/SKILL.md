@@ -71,7 +71,7 @@ A person's answer relayed from a phone is delivered to the pane that asked, and 
 
 **Never rewrite history that has been pushed, and never push anywhere but the working branch.** A commit that left this machine may already have been pulled, so amending, rebasing, or forcing it costs somebody else their afternoon, and a rejected push means another writer is on the run's own branch, which is a fact the person needs before anything is reconciled. Report it and stop.
 
-**Never close a pane, tab, or workspace you did not create**, and never run `herdr server stop`. A worker mid task holds work that is not written down yet.
+**Never close a pane, tab, or workspace you did not create**, and never run `herdr server stop` unasked. A worker mid task holds work that is not written down yet. `config` asks whether the run lives in this workspace, a new one, or a new session, and records the answer as Created by config, which is what makes this rule checkable later instead of a judgment about who made what.
 
 **A roster row is a convention, not a lock.** Any person can type into any pane, and another client can hold a session with the same names. This is the same honesty as the Assigned column in `progress-tracker.md`: an instruction agents follow and a record people can audit. A guarantee the system cannot keep is worse than no guarantee at all, so never report a pane as reserved.
 
