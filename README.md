@@ -42,6 +42,7 @@ Every skill answers to `/dev-scope`, `/dev-architect`, and so on.
 | `/dev-audit` | Turns independent review findings into a durable register with stable IDs, ownership routes, and review evidence. |
 | `/dev-qa` | Reruns documented runtime cases for eligible audit findings and records the observed regression result. |
 | `/dev-loop` | Runs selected tasks through development, verification, testing, audit, and final regression QA, with resumable control state. |
+| `/dev-harness` | Runs that same loop across separate Herdr panes: a coordinator that relays, a developer that builds, and a reviewer on a different model. Relays every decision a person owns to Telegram. Needs Herdr. |
 | `/dev-document` | Writes the prose about a change: a pull request, a changelog, a release note, or a postmortem. |
 | `/dev-sync` | Makes the documents true again after a change, from repo evidence, and flags what needs a person. |
 

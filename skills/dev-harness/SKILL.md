@@ -1,0 +1,96 @@
+---
+name: dev-harness
+allowed-tools: Bash, Read, Grep, Glob, Write, Edit, AskUserQuestion
+argument-hint: [start | stop | config | instruction]
+description: "Run /dev-harness to drive the delivery loop across separate Herdr panes: a coordinator that relays, a developer that builds, and a reviewer on a different model that reads the code it did not write. It dispatches only routes the owning skills already recorded, and relays every decision a person owns to the person, over Claude Remote Control, Telegram, or its own pane. Requires HERDR_ENV=1."
+---
+
+## Output style (plain words, no dashes, no hyphens)
+
+<!-- OUTPUT-STYLE:START -->
+Write everything this skill produces, files and messages alike, in plain simple language. Keep technical terms that carry real meaning; explain each in plain words. Never use a dash or a hyphen as punctuation: no em dash, no en dash, and no hyphenated compounds. Write `read only`, not `read-only`. Say it in simple words, or reword the sentence. Code, file paths, command flags, and values other skills match on keep their hyphens. A structural separator inside a template format other skills parse, such as the em dash in `## Phase 1 — <NAME>`, is part of that format: reproduce it exactly, since changing it breaks the mirroring. Use short sentences, commas, or parentheses. Clear beats clever.
+<!-- OUTPUT-STYLE:END -->
+
+## What this skill does
+
+The delivery loop already knows what to do next. `/dev-loop` records `Next action` in `.konteksto/loop-state.md`, and `/dev-audit` records `Next route` for every open finding. What neither of them can do is run the next step somewhere else, on a different model, while a person is away from the keyboard.
+
+That is this skill. It runs one agent per Herdr pane and moves recorded routes between them:
+
+```
+coordinator  →  developer  →  coordinator  →  reviewer  →  coordinator  →  person
+```
+
+- **coordinator** relays. It reads the route, sends it to the right pane, watches, and reaches the person when a decision is theirs.
+- **developer** builds: `/dev-loop`, `/dev-develop`, `/dev-check verify`, `/dev-debug`, `/dev-design`, `/dev-test`.
+- **reviewer** reads code it did not write: `/dev-check review`, `/dev-audit`, `/dev-qa`. On a different model from the developer, which `config` enforces.
+
+`config` asks which AI and which model runs each role, and what each moves to when the work turns out to be harder than its base model. Claude and Codex are offered first because Herdr recognizes both and both are known to work here, and any other agent this machine has installed is offered beside them.
+
+**It requires Herdr.** Every command it issues is a Herdr command against a live pane, and outside a Herdr session it stops rather than falling back to something weaker. A subagent is not a pane: it does not survive the session, a person cannot type into it, and it cannot be a second model holding a second window open for an hour.
+
+## The rule this skill exists to keep
+
+**The coordinator dispatches a route another skill recorded. It never computes one.**
+
+Reading a review report and choosing between `/dev-debug` and `/dev-loop` looks like the coordinator being useful. It is the project growing a second copy of routing rules that `/dev-loop` and `/dev-audit` already own, including every failure verdict, every repair cap, and every ownership escape. The copy nobody edits is the copy that goes wrong, and this project has already shipped that bug twice with plain counts.
+
+When no route is recorded, the harness asks a person. It does not choose. `internal/dispatch.md` is where that rule lives.
+
+## Where this sits
+
+**Before this:** `/dev-architect`, so there is a build plan to run. `/dev-design`, on a project with an `app/`.
+
+**After this:** nothing. This skill is the outermost loop. It calls no skill itself; it sends text to a pane where a person or another agent runs one.
+
+## Artifact ownership
+
+**Owns `.konteksto/harness.md`**, created from `templates/harness.md`. The Session and Roster sections are rewritten by `config`. The Dispatch log is append only and survives a reconfigure.
+
+**Owns nothing else, and this is most of the skill.** It never writes `loop-state.md`, `progress-tracker.md`, `decision-log.md`, `audit-register.md`, `human-decisions.md`, a review report, a design record, a test, or a line of application code. It never writes a Status, a Verify Check, an Evidence row, or a QA result.
+
+A person's answer relayed from a phone is delivered to the pane that asked, and the skill that asked is the skill that records it. That keeps every answer filed by the owner of the stage it belongs to, which is the whole point of splitting `human-decisions.md` by stage in the first place.
+
+## Guardrails
+
+**Never invent a route.** Covered above, and it is the one that matters most.
+
+**Never claim a verdict you did not observe.** The harness watched a pane and moved text. It did not run the app, and it did not read the diff. `PASSED` belongs to `/dev-check verify`, `DONE` to `/dev-develop`, a QA result to `/dev-qa`. Repeating one of their verdicts as though the harness confirmed it reads exactly like a real observation to the next session, which is what makes it worse than saying nothing.
+
+**Never claim to measure token usage.** Herdr reports `idle`, `working`, `blocked`, `done`, and `unknown`, and there is no usage API behind them. What the harness can do is read the pane, recognize that a worker said it is out, and wake it at the time that worker itself printed. Report it that way. `internal/quota-resume.md` holds the detail.
+
+**Never treat `unknown` as finished.** Herdr says so itself: an agent is present but could not be classified. Read the pane before acting on it.
+
+**Never collect a design approval.** Approval means a person saw the prototype rendered at every breakpoint and state it claims, in the `/dev-design` review session. A yes to a line of text in a chat is a different act, and recording it as approval would let every later surface inherit a pattern nobody actually looked at.
+
+**Never let an escalation land on the reviewer's model.** A developer that climbs its ladder into the reviewer's model breaks the different model guarantee both windows exist to provide, and breaks it silently, so every review after that point is worth less than it appears. `internal/escalation.md` refuses that step.
+
+**Never close a pane, tab, or workspace you did not create**, and never run `herdr server stop`. A worker mid task holds work that is not written down yet.
+
+**A roster row is a convention, not a lock.** Any person can type into any pane, and another client can hold a session with the same names. This is the same honesty as the Assigned column in `progress-tracker.md`: an instruction agents follow and a record people can audit. A guarantee the system cannot keep is worse than no guarantee at all, so never report a pane as reserved.
+
+## Pick the mode
+
+Route before touching anything. Look at what followed `/dev-harness`:
+
+- **`start`**, read `modes/start.md`. An optional task selector may follow it.
+- **`stop`**, read `modes/stop.md`.
+- **`config`**, read `modes/config.md`.
+- **Anything else**, including a bare `/dev-harness`, read `modes/instruction.md`. A bare invocation asks which of the three the person meant, with `start` recommended when `.konteksto/harness.md` already exists and `config` recommended when it does not.
+
+`start` and `stop` both run the `config` mode first when `.konteksto/harness.md` is missing or incomplete.
+
+**Read only the mode file you routed to.**
+
+## Reference files
+
+- `modes/start.md`: read the recorded route, dispatch it, watch, relay.
+- `modes/stop.md`: end dispatching without touching the panes.
+- `modes/config.md`: the roster, the model split, the escalation ladder, the relay, the file.
+- `modes/instruction.md`: what a person may change, and the two things they may not.
+- `internal/dispatch.md`: the routing table, the wrapped prompt, the audit handoff, the watch cycle.
+- `internal/relay.md`: the three transports, why Remote Control is preferred, credentials, and the untrusted inbound rules Telegram needs.
+- `internal/escalation.md`: when a role moves up its model ladder, and the collision it may never cause.
+- `internal/quota-resume.md`: what a quota block looks like from outside, and when to wake a worker.
+- `templates/harness.md`: the file this skill owns.
+- `telegram/poll.mjs`: the Telegram poller transport. Tested by `scripts/test-harness-telegram.mjs` in the Kahanas repository.

@@ -15,6 +15,7 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | `/dev-audit` | the Issues table in `audit-register.md` | Tracks review findings across changes |
 | `/dev-qa` | QA Runs in `audit-register.md` | Checks resolved bugs for regression |
 | `/dev-loop` | `loop-state.md` | Orchestrates the delivery and regression loop |
+| `/dev-harness` | `harness.md` | Runs that loop across separate Herdr panes, and relays what a person must decide |
 | `/dev-context` | nothing, read only | Establishes context for a fresh session or handoff |
 | `/dev-test` | the test files, and `test-preferences.json` | Stops it breaking again |
 | `/dev-document` | `CHANGELOG.md`, `.konteksto/releases/`, `.konteksto/postmortems/` | Explains it to people |
@@ -41,6 +42,7 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | `/dev-qa` | regression observations | any intent at all |
 | `/dev-test` | regression protection | any intent at all |
 | `/dev-loop` | loop control state | application, product, technical, or design intent |
+| `/dev-harness` | the pane roster and what it dispatched | any intent at all, and any route an owning skill has not already recorded |
 | `/dev-context` | nothing | anything at all |
 | `/dev-sync` | corrections the repo proves | any intent at all |
 
@@ -188,7 +190,7 @@ skills/dev-<name>/
 └── *.md                  optional, bundled files read on demand
 ```
 
-**A skill may ship executable files, and `/dev-design`'s `review-harness/` is the only one that does.** It is there because the code decides whether an approval is genuine, and a file regenerated from memory each session is a file nobody has ever reviewed twice. **Anything shipped that way needs a test suite in `scripts/`**, run by `npm test`, which stays in this repository rather than travelling into the projects that install the skill.
+**A skill may ship executable files, and few do.** `/dev-design`'s `review-harness/` decides whether an approval is genuine, and `/dev-harness`'s `telegram/` carries a person's answer in and out. Both are code where a file regenerated from memory each session is a file nobody has ever reviewed twice. **Anything shipped that way needs a test suite in `scripts/`**, run by `npm test`, which stays in this repository rather than travelling into the projects that install the skill.
 
 **Every skill carries the `dev-` prefix in three places**, and they must agree: the folder name, the `name:` frontmatter inside `SKILL.md`, and every reference to it in any document. The registry keys on the frontmatter name, so a folder and a name that disagree install something the agent then cannot find. The local installer refuses that case, which is the check that catches it.
 
