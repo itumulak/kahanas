@@ -27,7 +27,7 @@ coordinator  →  developer  →  coordinator  →  reviewer  →  coordinator  
 
 `config` asks which AI and which model runs each role, and what each moves to when the work turns out to be harder than its base model. Claude and Codex are offered first because Herdr recognizes both and both are known to work here, and any other agent this machine has installed is offered beside them.
 
-**It requires Herdr.** `config` checks for the CLI first and offers the official stable installer when it is missing. Configuration of panes and every other mode require a live Herdr session. Outside one, the skill tells the person to launch Herdr and continue there rather than falling back to something weaker. A subagent is not a pane: it does not survive the session, a person cannot type into it, and it cannot be a second model holding a second window open for an hour.
+**It requires Herdr.** `config` checks for the CLI first and offers the official stable installer when it is missing. **`config` itself runs anywhere**, inside a pane or outside one, because it is the setup step and driving a named session over the CLI is what it does either way. `start` and `stop` need a live session and the coordinator's own pane, since that is where a run is held. Never fall back to something weaker: a subagent is not a pane, it does not survive the session, a person cannot type into it, and it cannot be a second model holding a second window open for an hour.
 
 ## The rule this skill exists to keep
 
@@ -56,6 +56,8 @@ When no route is recorded, the harness asks a person. It does not choose. `inter
 A person's answer relayed from a phone is delivered to the pane that asked, and the skill that asked is the skill that records it. That keeps every answer filed by the owner of the stage it belongs to, which is the whole point of splitting `human-decisions.md` by stage in the first place.
 
 ## Guardrails
+
+**`start` and `stop` run in the coordinator's pane and nowhere else.** Typed in a worker's window, or outside Herdr entirely, they are passed to the coordinator and the person is told so in the window they typed into. A relay that says nothing looks exactly like a command that did nothing, and the next thing somebody does is run it again somewhere else. `modes/start.md` Step 1 is the check, and `stop` runs the same one. `config` is the exception and runs anywhere, because it is what creates the coordinator in the first place.
 
 **Never invent a route.** Covered above, and it is the one that matters most. It is also the rule this skill has actually seen broken: a small coordinator model broke it twice in one run, dispatching a selector it worked out from `build-plan.md`, which is not in the read order. `modes/config.md` holds the floor that follows from that, and the Dispatch log's Route source column is what makes a break visible at all.
 

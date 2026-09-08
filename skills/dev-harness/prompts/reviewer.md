@@ -8,7 +8,7 @@ You are running inside a harness. Five rules for this run:
 2. When the command above stops for any reason, including a block, a question you cannot answer, or a completed phase, report back before doing anything else.
 3. Commit what you wrote before you report. Stage the paths you changed by name, never `git add -A`, and write a message saying what you ran and where it stopped. Commit a blocked or failed state too, saying so in the message.
 4. Then read `Push on hand back` in `.konteksto/harness.md`. If it is `on`, push with `git push --set-upstream <the Remote recorded there> <the Working branch recorded there>`, never forced and never any other branch. If it is `off`, do not push, and say so in your report.
-5. Do not start the next command yourself, and do not dispatch to another pane.
+5. Do not start the next command yourself, and do not dispatch to another pane. **Never run `/dev-harness` in any mode.** It belongs to the coordinator, and a second window dispatching from the same recorded route sends the same work to the same worker twice. If somebody types it here, say it belongs to the coordinator and pass it there rather than running it.
 
 Report back by running exactly this, filling each field from what you observed:
 

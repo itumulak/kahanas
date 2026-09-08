@@ -42,23 +42,34 @@ herdr --version
 
 If either check fails, stop and report the installer's output. Say that a new terminal may be required for the install directory to reach `PATH`. Do not claim that Herdr is installed merely because the installer exited without an error.
 
-Installing the binary does not move the current agent into a Herdr pane. If the CLI is now available but this is not a Herdr session, tell the person to launch `herdr`, open the project there, and run `/dev-harness config` again. Stop after that handoff. Do not launch an interactive Herdr client inside the agent's shell and pretend configuration can continue in it.
+Installing the binary does not move the current agent into a Herdr pane, and it does not need to. **`config` is the setup step, so it runs from outside Herdr as well as inside it.** Do not launch an interactive Herdr client inside the agent's shell; drive a named session over the CLI instead, which the next step settles.
 
-Now confirm the live session:
+Now find out where this mode is running, because it changes how every later Herdr command is addressed and nothing else:
 
 ```bash
 test "${HERDR_ENV:-}" = 1
 ```
 
-If that fails while the CLI is already installed, say plainly that this skill drives Herdr panes and cannot finish configuration outside a Herdr session. Tell the person to launch `herdr`, open the project there, and run `/dev-harness config` again. Do not fall back to subagents. A subagent is not a pane, does not survive the session, and cannot be typed into by a person, which is most of what this skill is for.
-
-Read the current session:
+**Inside a Herdr pane.** The commands below need no `--session`, and the calling pane is one you already have:
 
 ```bash
 herdr agent list
 herdr pane list --workspace "$HERDR_WORKSPACE_ID"
 printf '%s\n' "$HERDR_WORKSPACE_ID" "$HERDR_TAB_ID" "$HERDR_PANE_ID"
 ```
+
+**Outside one, which is the ordinary case.** Configuration is setup, and asking somebody to open Herdr, find the project, and start again just to answer a questionnaire is a worse experience than doing it for them. So drive a named session over the CLI, starting its server when it is not already up, and put `--session <name>` on every Herdr command from here on:
+
+```bash
+herdr session list
+herdr --session <name> server &      # only when that session is not already running
+```
+
+Ask for the session name and default it to the project directory's name, since a person coming back to this in a week will look for the project rather than for the word harness.
+
+**Do not fall back to subagents in either case.** A subagent is not a pane, does not survive the session, and cannot be typed into by a person, which is most of what this skill is for.
+
+`start` is the mode with the real constraint: it must run inside the coordinator's own pane. `config` has no such need, because it only asks questions and creates things.
 
 ### Step 2: Ask for the roster
 
@@ -230,7 +241,12 @@ This applies to the coordinator pane only. A worker has no reason to drive Herdr
 
 ### Step 6: Create what is missing
 
-**Create the panes where Step 5c said, not where this mode happens to be running.** In the current workspace, split from the caller. In a new workspace or a new session, create that first and split from its root pane, whose id the create call returns. Splitting `--current` regardless would put the roster's panes in the space the person asked to keep clear.
+**Count the panes you already have before creating any.** The roster needs one pane per role, three by default, and creating three regardless is how a run ends up with four: the three roles plus the pane somebody typed `/dev-harness config` into. Work out how many are missing, then split exactly that many.
+
+- **Running inside the pane the roles will live beside, in this workspace.** That pane is one of the three. Offer it as the coordinator's, since `/dev-harness` runs there and `start` has to run in the coordinator's pane anyway, then split two more. Say what you are doing with their pane rather than claiming it silently.
+- **Running outside Herdr, or in a new workspace or session.** The workspace's own root pane is the first, so create it and split two more. A pane somebody is using elsewhere is not a pane to take over.
+
+**Then create them where Step 5c said, not where this mode happens to be running.** In the current workspace, split from the caller. In a new workspace or a new session, create that first and split from its root pane, whose id the create call returns. Splitting `--current` regardless would put the roster's panes in the space the person asked to keep clear.
 
 ```bash
 # current workspace
@@ -341,4 +357,12 @@ A not sent result while the person is at the terminal is different, and it is fi
 
 Write `.konteksto/harness.md` from `templates/harness.md`. Fill every field. Preserve any existing Dispatch log rows. End the file with the drafted by line, as every generated document in this workflow does.
 
-Report the roster, the transport, and the exact next command, which is `/dev-harness start`.
+Report the roster, the transport, and the exact next command.
+
+**Say where that command has to be typed, because it is not always here.** `start` runs in the coordinator's pane and nowhere else. When `config` ran outside Herdr, or created a new session, the next step is to attach and run it there:
+
+```bash
+herdr session attach <session name>
+```
+
+Then `/dev-harness start` in the coordinator's pane. When `config` ran in the pane that is now the coordinator, `/dev-harness start` is the whole of it, right here.

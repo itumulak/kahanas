@@ -144,6 +144,29 @@ const rank = (s) => parseInt(s, 10) * 10 + (s.match(/[a-z]$/) ? s.charCodeAt(s.l
 check("config steps are in ascending order",
   steps.every((s, i) => i === 0 || rank(steps[i - 1]) < rank(s)), steps.join(" "));
 
+// config is the setup step, so it must not require a live session the way start does.
+check("config runs outside a Herdr pane",
+  /`config` is the setup step, so it runs from outside Herdr|Outside one, which is the ordinary case/.test(config));
+check("config counts existing panes before splitting",
+  config.includes("Count the panes you already have"));
+check("start still requires a live session",
+  (await read("modes/start.md")).includes('test "${HERDR_ENV:-}" = 1'));
+
+// start and stop belong to the coordinator, and must say so from both ends.
+const start = await read("modes/start.md");
+const stop = await read("modes/stop.md");
+check("start refuses a worker pane and passes the command on",
+  /worker's row/.test(start) && /agent prompt <coordinator agent name>/.test(start));
+check("start handles being run outside a Herdr pane without failing",
+  /ordinary way somebody types|hand the command to the coordinator/.test(start));
+check("start runs config when the harness is not configured yet",
+  /run the `config` mode instead/.test(start));
+check("stop points at start's window check rather than restating it",
+  /window check in `start.md`/.test(stop));
+for (const role of ["developer", "reviewer"]) {
+  check(`${role} brief refuses to run /dev-harness`, /Never run `\/dev-harness`/.test(briefs[role]));
+}
+
 // Unattended must be settled before agents start, since the flag cannot be added later.
 // `herdr agent start --help` is a lookup, not a launch, so match the real command.
 const launch = config.search(/herdr agent start <?name/);

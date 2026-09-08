@@ -6,15 +6,47 @@ Accepts an optional task selector, as in `/dev-harness start 03-05`. That select
 
 ## Execution
 
-### Step 1: Confirm the environment and the roster
+### Step 1: Work out whether this window may run the mode at all
+
+**`start` and `stop` belong to the coordinator and to no other window.** Two windows dispatching from the same recorded route send the same work to the same worker twice, and a worker that also dispatches is a worker giving itself orders. This check is the whole of that rule, and `stop` runs it too.
+
+Answer three questions in order, and stop at the first that decides it.
+
+**Is the harness configured?** Read `.konteksto/harness.md`.
+
+If it is missing, or any required Session field or Roster row is unfilled, there is no roster to check a window against and nothing to start. Say the harness is not configured yet and run the `config` mode instead. Do not guess a roster from the panes that happen to be open.
+
+**Is this a Herdr pane?**
 
 ```bash
 test "${HERDR_ENV:-}" = 1
 ```
 
-Fail that check and stop, with the same reason as `config`.
+Failing that is not an error, it is the ordinary way somebody types `/dev-harness start` in the session they were already working in. The run lives in the session the roster names, so hand the command to the coordinator there and tell the person what you did and why, in the window they typed into:
 
-Read `.konteksto/harness.md`. If it is missing, or any required Session field or Roster row is unfilled, say the harness is not configured yet and run the `config` mode. Do not guess a roster from the panes that happen to be open.
+```bash
+herdr --session <the roster's Herdr session> agent prompt <coordinator agent name> "/dev-harness start <selector or nothing>"
+```
+
+Then say that the run is now in that session's coordinator pane, name the pane, and give them `herdr session attach <session name>` to watch it. **Do not run the loop from here.** This window has no coordinator pane, no relay, and no roster row, so a loop begun here would dispatch into panes it cannot then watch.
+
+**Is this pane the coordinator's?**
+
+```bash
+printf '%s\n' "$HERDR_PANE_ID"
+```
+
+Compare it against the roster's Pane column.
+
+- **It is the coordinator's row.** Continue to Step 2.
+- **It is a worker's row.** Stop. Tell the person plainly that `start` and `stop` are the coordinator's to run, that this window is the developer or the reviewer, and that the command has been passed on. Then pass it and say where it went.
+- **It is in no row at all.** The same, and say that too: this pane is not part of the roster, which usually means the person opened a new pane or the roster is stale. Offer `config` if the roster looks wrong.
+
+```bash
+herdr agent prompt <coordinator agent name> "/dev-harness start <selector or nothing>"
+```
+
+**Tell the person, not only the coordinator.** A command that quietly relays and says nothing looks exactly like a command that did nothing, and the next thing they do is run it again somewhere else.
 
 Confirm every roster agent is live:
 
@@ -33,22 +65,6 @@ git rev-parse --abbrev-ref HEAD
 It must match the Working branch in the roster, and it must not be the base branch. On the base branch, stop and say why rather than dispatching: a committed change set there leaves `/dev-check review` with an empty working tree diff, so the review finds nothing and the run looks clean when nothing was read.
 
 If the roster's Working branch is empty, or the recorded route names a task in a phase that has no branch yet, create that phase's branch first. `internal/dispatch.md` holds the naming, where it is cut from, the optional push rule, and the roster update required before dispatching anything.
-
-### Step 2: Confirm you are the coordinator
-
-```bash
-printf '%s\n' "$HERDR_PANE_ID"
-```
-
-If that pane is the coordinator row, continue.
-
-If it is not, this mode was started in the wrong window. Do not run the loop from here. Tell the coordinator and stop:
-
-```bash
-herdr agent prompt <coordinator agent name> "HARNESS START | requested from: <this role> | selector: <selector or none>"
-```
-
-Then say which pane the run is now in. Two coordinators dispatching from the same recorded route will send the same work to the same worker twice.
 
 ### Step 3: Read the route
 
