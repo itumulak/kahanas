@@ -6,6 +6,20 @@ Entries describe the effect on someone running the skills, not the edit that pro
 
 ## [Unreleased]
 
+## [0.8.1] — 2026-09-09
+
+### Added
+
+- **A design review can now be handed to a person who is not at the machine running it.** The review origin binds to loopback and refuses anything else, because it carries an approval endpoint, so a session on a VPS, a container, or a remote development box served the approval page somewhere the person approving could not open it. Nothing said so, and the failure looked like a working handoff: the run reported a URL and then waited out its lifetime on a page nobody could reach. `tooling.md` gains a Remote access row and the subsection behind it, recording that the capture pass is headless and needs no display, that both origins have to be forwarded with their port numbers unchanged, and that a browser driven through an extension is not an option on a host with no desktop. `/dev-architect` asks the question once and writes the answer; `/dev-design` reads the row and hands over the command with the session's real ports substituted in. An empty row reads as though the person is here, which is the ordinary case, so an existing project needs no migration.
+
+  **The question is asked rather than detected, and the reason is recorded beside it.** No signal on the machine answers it: a missing `DISPLAY` is what an SSH session into somebody's own desktop looks like, `SSH_CONNECTION` is unset on a pane started locally on a headless box, a container marker is what a dev container on a laptop looks like, and a hypervisor is what a local virtual machine looks like. The real question is where a person is sitting, so the signals pick the recommendation and never the answer.
+
+### Fixed
+
+- **The browser install belonged to no step of `/dev-architect`.** The instruction to fill the Visual verification section pointed at step 5 for the tooling work, which is the local development containers step, while step 6 is skills and MCP servers. Neither installs a browser, so on a careful reading nothing did, and a project could reach `/dev-design` with the section written and the browser absent. Step 3 owns it now, next to the probe it already ran, and the Guardrails point at the same step.
+
+- **Six assertions added to `npm test`** covering the four files that describe the loopback arrangement: that the Remote access row is spelled the same everywhere, that both skills point at a subsection the template actually has, that the review handoff names the variables the server prints and the `server.json` keys it writes, that the template explains a refusal the server really makes and offers no host flag around it, and that the capture pass never opts out of headless, which is what makes a display free machine work at all.
+
 ## [0.8.0] — 2026-09-08
 
 ### Added

@@ -159,6 +159,20 @@ about. Do not smooth over a gap. I want the list.
 
 Templates live in `skills/dev-architect/templates/`, except `design.md` and `design-registry.md`, which are in `skills/dev-design/templates/`, `project-overview.md`, `glossary.md`, and `human-decisions.md`, which are in `skills/dev-scope/templates/`, `audit-register.md`, which is in `skills/dev-audit/templates/`, and `loop-state.md`, which is in `skills/dev-loop/templates/`. The `harness.md` template lives in `skills/dev-harness/templates/`, but `/dev-harness config` owns creating it; do not copy it into a project by hand.
 
+### Coming from 0.8.0: reviewing a design from another machine
+
+Nothing to migrate. An existing `.konteksto/tooling.md` has no Remote access row, and a missing row reads as though the person approving is at the machine running the review, which is the ordinary case.
+
+Add the row only where that is untrue, meaning the skills run on a VPS, a container, or a remote development box while the person approving is elsewhere. Put it in the Visual verification table, with the command that forwards both of the session's origins to the person's own machine:
+
+```text
+| Remote access | ssh -L <review port>:127.0.0.1:<review port> -L <asset port>:127.0.0.1:<asset port> <host> |
+```
+
+The ports are chosen per session, so the row holds the shape and `/dev-design` substitutes the real ones from what the server printed. Keep each port number the same on both sides: the harness compares parsed origins, so a port remapped in transit is a different origin and the review page can no longer load the prototype it is reviewing.
+
+Or run `/dev-architect` and let it ask. On a machine with no display it recommends forwarding; anywhere else it recommends `NONE`.
+
 ### Coming from 0.7.x: the optional harness
 
 Version 0.8.0 adds `/dev-harness`, an opt-in runner that spreads `/dev-loop` across separate [Herdr](https://herdr.dev) panes. Existing projects need no harness document migration. If Herdr is missing, `/dev-harness config` offers its official stable installer and verifies the binary; then launch Herdr, enter the project there, and run `config` again to finish pane setup:
