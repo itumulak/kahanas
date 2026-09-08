@@ -83,6 +83,7 @@ Whoever builds a task follows this and nothing else. A build never drops a local
 | Review command | `<COMMAND_THAT_STARTS_A_DESIGN_REVIEW_SESSION>` |
 | Capture command | `<COMMAND_THAT_RENDERS_A_ROUTE_AND_WRITES_AN_IMAGE>` |
 | Output | <WHERE_THE_IMAGES_LAND> |
+| Remote access | <NONE_WHEN_THE_HARNESS_RUNS_ON_THE_MACHINE_A_PERSON_SITS_AT, OTHERWISE_THE_FORWARDING_COMMAND> |
 
 **The Package root row exists because the project root and the package root are not always the same directory**, and where they differ nothing can work it out on its own. A workspace holding `.konteksto/` at the top and the actual npm package one level down, as its own repository, puts Playwright somewhere no search from the top will ever reach: it is below rather than above. **Record that directory here, and every session passes it as `--project`.** Where they are the same directory, which is the usual case, write the project root and it costs nothing.
 
@@ -111,6 +112,28 @@ node <skill folder>/dev-design/review-harness/preflight.mjs --project <PACKAGE_R
 **This is a development tool and not a package the product ships**, so it stays here and never enters `library-docs.md`, whatever the manifest says.
 
 **Where the tool cannot be installed at all**, say so here in one line, and say what blocks it. Two consequences follow and both are worth knowing in advance: `/dev-check verify` reports UI conformance as blocked, honestly and every time, rather than degrading into reading the markup and calling it a match, and every design approval has to be a person editing `design-registry.md` by hand. Both are honest, both are workable, and both are worse than installing a browser.
+
+### Where the harness runs on a machine nobody sits at
+
+*Purpose: what the Remote access row records, and why a review session needs it. Fill it in on a VPS, a container, a remote development box, or anywhere `/dev-harness` runs its panes away from the person who has to approve a design. Write NONE and skip the rest when the harness runs on a desktop.*
+
+**The capture pass needs no display and works unchanged.** It launches the browser headless, so a machine with no X server renders every breakpoint and state and collects what the page threw exactly as a desktop does. What such a machine usually lacks is the shared libraries the browser links against, which the tool's own install flag pulls in:
+
+```bash
+npx playwright install --with-deps chromium
+```
+
+Record that as the Install command where it applies, and prove it with the Check row rather than assuming it, for the reason that row already gives.
+
+**The person's half is what needs setting up, because the review origin is bound to loopback and refuses anything else.** That endpoint accepts a design approval, so binding it to an address the network can reach would put a write endpoint for a design decision on the network, and the server exits rather than doing it. On a remote machine the consequence is that nothing reaches the review page until a person forwards it to their own machine, and **the forwarding command is what the Remote access row holds**, so the next session does not work it out again.
+
+**Forward both origins, and keep the port numbers identical on both sides.** A session serves the review page and the prototype on two separate ports, and every origin check in the harness parses the URL and compares origins, so a port remapped in transit is a different origin and the review page can no longer load the prototype it is reviewing.
+
+**The ports are chosen at startup rather than fixed**, so the command is built after the session starts, from what the server published. `review-harness/README.md` names the file it writes them to and the variables it prints, and it is the authority on the origins and the rules around them. `dev-design/internal/design-review.md` owns the session itself.
+
+**A browser extension driven through the agent is not an option here, and Playwright is.** An extension needs a desktop browser running under a real profile, which a headless machine does not have, and the profile is a signed in one, which a review session may not open in any case. This is one more reason the default answer is the default answer.
+
+**The wall between the browser a skill drives and the browser a person decides in is unchanged by any of this, and it is still a convention rather than a guarantee.** A tunnel moves where the review page is reachable from. It does not make the approval harder to forge, and it was never the thing making it honest.
 
 ### Previewing a prototype
 

@@ -61,6 +61,12 @@ node <skill folder>/review-harness/preflight.mjs --project <package root>
 
 **No Playwright and no browser means no review, and the correct move is to stop and say so.** Do not open the file and describe it. Do not screenshot it some other way and call it a review. Report what the probe found and stop, per Preview and capture failures below.
 
+**Read the Remote access row of that same section, and carry it to step 6.** The review origin binds to loopback, so on a machine nobody sits at the page is served where the person who has to approve cannot open it. That row holds what they run to reach it, and `/dev-architect` owns it: it asked the question and it wrote the answer.
+
+**An empty row means proceed as though the person is here**, which is the ordinary case and the safe reading. Where it turns out they are not, that is a gap in the Visual verification section rather than something to work out mid session: say so, route to `/dev-architect`, and do not write the row yourself. Choosing how a person reaches this project's review page is a tooling decision, and this skill makes none.
+
+**The probe says nothing about any of this.** It launches the browser headless, so it passes on a host with no display at all, and a passing probe has never meant a person can see the page.
+
 ### Playwright already in the project is not this project's answer to this
 
 **A project can have Playwright and still have no visual verification set up**, and this is the ordinary case on a codebase that existed before this workflow. An end to end suite installed it for its own reasons, and nothing about that says anybody decided how designs get reviewed here.
@@ -241,6 +247,12 @@ Close the capture context when the pass finishes. It does not stay open into the
 ### 6. Hand the review page to a person
 
 The page carries the evidence and the decisions, and it is opened by the person, in their browser.
+
+**Where step 1 read a Remote access command, give it to them filled in, before you wait on anything.** The server prints `KAHANAS_REVIEW_URL` and `KAHANAS_ASSET_URL` at startup and writes both to `server.json` as `reviewUrl` and `assetUrl`, and the ports in them are chosen per session, so the command in `tooling.md` is a shape and what the person needs is this session's two ports substituted into it.
+
+**Forward both origins, and keep each port number the same on both sides.** A session serves the review page and the prototype on two ports on purpose, and every origin check in the harness parses the URL and compares origins, so a port remapped in transit is a different origin and the review page can no longer load the prototype it is reviewing. `review-harness/README.md` holds the origin rules.
+
+**Handing over a bare loopback URL on such a machine is the failure this exists to stop**, because it looks like a working handoff. The session then sits waiting for a decision on a page nobody can open, until it hits whatever lifetime it was given.
 
 **It shows:**
 

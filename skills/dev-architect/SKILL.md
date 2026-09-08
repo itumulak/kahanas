@@ -83,7 +83,7 @@ Do NOT write application code, scaffold a project, or install a package the prod
 
 Some narrow exceptions, and each one states its own edges. Agent tooling found in step 6, meaning skills and MCP servers, may be set up during this skill, but only per the consent rules in that step, and only for a tool the user approved by name. `docker-compose.yml` plus `.env.example` are written in step 5, because they are the structure the build sits in rather than the product itself.
 
-**Playwright and its browser may be installed**, on a project with an `app/`. **You install it and you never use it**, which looks odd until you remember the rule it protects: this skill makes every tool call, so a skill that needed a browser and installed its own would put a second tool caller in the system. `/dev-design` cannot review a design without one and `/dev-check verify` cannot screenshot a breakpoint without one, and both read what you recorded rather than reaching for a package manager.
+**Playwright and its browser may be installed**, on a project with an `app/`, and step 3 is where that happens. **You install it and you never use it**, which looks odd until you remember the rule it protects: this skill makes every tool call, so a skill that needed a browser and installed its own would put a second tool caller in the system. `/dev-design` cannot review a design without one and `/dev-check verify` cannot screenshot a breakpoint without one, and both read what you recorded rather than reaching for a package manager.
 
 Say what you are installing and why before you install it. It is a development tool for reviewing and verifying rather than a package the product ships, so it never enters `library-docs.md`. It is recorded in the Visual verification section of `tooling.md` like every other tool the agent works with.
 
@@ -186,11 +186,30 @@ The answer is written later, in step 8. Carry it forward with the step 4 finding
 
 **Skip this whole step when there is no `app/`.** A backend has no surfaces.
 
-Otherwise there is exactly one thing to do here, and it is not designing anything.
+Otherwise everything here exists so that somebody else can design, and none of it is designing.
 
-**Confirm the Visual verification section of `tooling.md` will be filled**, per step 5's tooling work and step 7's writing, with a browser automation tool, its install command, and the check command that proves both the tool and its browser work. `/dev-design` renders every prototype at every breakpoint and every state and cannot start without one, and `/dev-check verify` cannot produce a screenshot without one. **On a project with an `app/` that section is required rather than optional.**
+**Confirm the Visual verification section of `tooling.md` will be filled**, from the install and the probe here and the writing in step 7, with a browser automation tool, its install command, and the check command that proves both the tool and its browser work. `/dev-design` renders every prototype at every breakpoint and every state and cannot start without one, and `/dev-check verify` cannot produce a screenshot without one. **On a project with an `app/` that section is required rather than optional.**
+
+**This step is where the browser gets installed, and no other step owns it.** Step 6 is skills and MCP servers, and step 5 is the containers the build sits in, so a browser left to either of them is a browser nobody installs. Install it here, per the Guardrails above, and say what you are installing and why first.
 
 **Finding Playwright already in the project does not finish this.** It is a reason the install will be quick, not evidence that a review can run: `/dev-design` runs a probe before every session and routes straight back here when it fails. Run that probe once now, and record what it said.
+
+**Then settle whether the review page needs forwarding, and ask rather than detect.** The review origin binds to loopback and refuses anything else, so on a machine nobody sits at, a session serves the approval page where the person who has to approve cannot open it. The Remote access row of that section holds the answer, and the Where the harness runs on a machine nobody sits at subsection of the template says what goes in it.
+
+**Nothing on the machine can answer this, which is why it is asked.** The question is not what kind of host this is, it is whether the person who approves a design can reach a loopback port here, and that is a fact about where a person is sitting. Every signal that looks like it settles it returns the wrong answer on an ordinary setup:
+
+| Signal | Reads as | Wrong on |
+| --- | --- | --- |
+| no `DISPLAY` and no `WAYLAND_DISPLAY` | nothing here can show a page | an SSH session into the desktop machine the person is at |
+| `SSH_CONNECTION` set | the person is elsewhere | a pane started locally on a headless box, with no SSH involved |
+| a container marker, `/.dockerenv` or the cgroup | not the person's machine | a dev container on their laptop, one forwarded port from their browser |
+| `systemd-detect-virt` reporting a hypervisor | a server | a local virtual machine somebody uses as their desktop |
+
+**So read those signals to pick the recommendation and never to decide.** No `DISPLAY` and no `WAYLAND_DISPLAY`, or `SSH_CONNECTION` set, recommends forwarding. Anything else recommends `NONE`. Either way the panel is a panel and the user's answer is the answer.
+
+**Ask once and record it, the same way the doubt pass cap is asked once.** A question re asked every session is a question that gets answered wrongly by whoever is in a hurry, and this one is settled by facts that do not change between runs. `/dev-design` reads the row rather than asking again.
+
+**The probe does not cover this and cannot.** It proves the package resolves and the browser launches, both of which are true on a headless host, and neither of which says anybody can see the page.
 
 **You do not map surfaces, settle a design system, write a prototype, or touch `design-registry.md`.** All of it belongs to `/dev-design`, including on the very first run when none of those files exists. A stack conversation that drifts into deciding what the dashboard looks like has created design intent that nobody designed and nobody approved.
 
@@ -292,6 +311,8 @@ This exists so a later run, here or in `/dev-sync`, can tell what a tool wrote f
 **The stamp records provenance, not permission.** It never licenses overwriting a line someone edited. A stamped file still gets the same care as an unstamped one.
 
 **Write the round cap into `tooling.md`'s Doubt pass rounds section**, using the answer step 6a got, or `3` where no doubt pass ran and nothing was asked. That section is what stops a later run asking the same question again.
+
+**Write step 3's answer into the Remote access row of the Visual verification section**, on a project with an `app/`: `NONE` where a person opens the review page on this machine, and the forwarding command where they do not. That row is the other question a later run must not ask twice, and `/dev-design` reads it before it hands a review page to anybody.
 
 **Fill the Definition of Done in `code-standards.md` with this project's real commands**, not a generic list. It is the standing bar every later skill checks before stamping a task `DONE`, so a row reading "tests pass" on a project whose test command you never confirmed is worse than an empty table: it will be ticked from memory. Keep the section and its Not on this list subsection as the template has them, since the exclusions are what stop it growing into a gate that swallows `/dev-check` and `/dev-test`.
 

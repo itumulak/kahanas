@@ -1221,6 +1221,72 @@ document.documentElement.dataset.state=(location.hash.match(/state=([\\w-]+)/)||
   });
 }
 
+// ----------------------------------------------- remote access, doc agreement
+// The server refuses to bind anywhere but loopback, so a session on a machine
+// nobody sits at is reachable only through forwarding. Four files describe that
+// one arrangement and running the server proves none of them: the template row
+// a project fills in, the step that asks and writes it, the step that reads it,
+// and the origin rules the command has to respect. What goes wrong here is a
+// document naming a variable, a key, or a heading the others do not have.
+
+const SKILLS = join(dirname(fileURLToPath(import.meta.url)), "..", "skills");
+const doc = (path) => readFile(path, "utf8");
+const TOOLING_TEMPLATE = join(SKILLS, "dev-architect", "templates", "tooling.md");
+const ARCHITECT = join(SKILLS, "dev-architect", "SKILL.md");
+const DESIGN_REVIEW = join(SKILLS, "dev-design", "internal", "design-review.md");
+const REMOTE_SUBSECTION = "Where the harness runs on a machine nobody sits at";
+
+await check("the Remote access row is named the same in every file that uses it", async () => {
+  for (const path of [TOOLING_TEMPLATE, ARCHITECT, DESIGN_REVIEW]) {
+    const text = await doc(path);
+    assert(/Remote access/.test(text), `${path} never names the row`);
+    assert(!/Remote Access/.test(text), `${path} carries a second spelling of the row`);
+  }
+  const template = await doc(TOOLING_TEMPLATE);
+  assert(/\|\s*Remote access\s*\|/.test(template), "the row is not a row of the Visual verification table");
+});
+
+await check("both skills point at the subsection the template actually has", async () => {
+  const template = await doc(TOOLING_TEMPLATE);
+  assert(template.includes(`### ${REMOTE_SUBSECTION}`), `the template has no ${REMOTE_SUBSECTION} heading`);
+  const architect = await doc(ARCHITECT);
+  assert(architect.includes(REMOTE_SUBSECTION), "the architect points at a heading the template does not have");
+});
+
+await check("the handoff names the variables the server prints", async () => {
+  const review = await doc(DESIGN_REVIEW);
+  const source = await doc(join(HARNESS, "server.mjs"));
+  for (const name of ["KAHANAS_REVIEW_URL", "KAHANAS_ASSET_URL"]) {
+    assert(review.includes(name), `the handoff never names ${name}`);
+    assert(new RegExp(`console\\.log\\(\`${name}=`).test(source), `the server never prints ${name}`);
+  }
+});
+
+await check("the handoff names the server.json keys the server writes", async () => {
+  const review = await doc(DESIGN_REVIEW);
+  const source = await doc(join(HARNESS, "server.mjs"));
+  for (const key of ["reviewUrl", "assetUrl"]) {
+    assert(review.includes(key), `the handoff never names ${key}`);
+    assert(new RegExp(`${key}:\\s`).test(source), `the server never writes ${key}`);
+  }
+});
+
+await check("the template explains a refusal the server really makes", async () => {
+  const template = await doc(TOOLING_TEMPLATE);
+  const source = await doc(join(HARNESS, "server.mjs"));
+  assert(/loopback/.test(template), "the template never mentions the loopback bind");
+  assert(/refusing to bind/.test(source), "the server no longer refuses a bind, so the template is wrong");
+  assert(!/--host/.test(template), "the template offers a host flag as a way around the refusal");
+});
+
+await check("the capture pass stays headless, which is what the template promises", async () => {
+  for (const file of ["capture.mjs", "preflight.mjs"]) {
+    const source = await doc(join(HARNESS, file));
+    assert(/chromium\.launch\(/.test(source), `${file} no longer launches chromium`);
+    assert(!/headless\s*:\s*false/.test(source), `${file} opts out of headless, so a machine with no display cannot run it`);
+  }
+});
+
 // ------------------------------------------------------------------------ done
 
 stopEverything();
