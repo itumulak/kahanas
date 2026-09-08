@@ -66,7 +66,7 @@ Follow `internal/dispatch.md` for the wrapped prompt and the watch cycle. Every 
 2. Check for anything the person sent, per `internal/relay.md`.
 3. Check for a quota block, per `internal/quota-resume.md`.
 
-Never hold the coordinator inside a blocking wait. A coordinator that cannot read its inbox is a coordinator that cannot relay the question the worker is stuck on, which is the whole reason it exists.
+**Never hold the coordinator inside an unbounded wait.** It has to block, because a turn that ends is a turn nothing resumes, but a wait with no ceiling is a coordinator that cannot read its inbox, and that is a coordinator unable to relay the question the worker is stuck on. So every wait carries a timeout, and that timeout is the longest a person's message can go unread. `internal/dispatch.md` sets it.
 
 ### Step 5: Handle what comes back
 

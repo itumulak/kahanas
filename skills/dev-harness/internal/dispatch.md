@@ -72,9 +72,19 @@ So before every dispatch, compare the route to the last completed row in the Dis
 
 Never use `--wait` for a build phase. A coordinator blocked inside `agent prompt` cannot read what the person sent, cannot notice a quota block, and cannot answer a question the worker is stuck on. Dispatch, then watch.
 
+**Pass the prompt as one argument that the shell never expands.** The wrapped prompt carries a brief file verbatim and, for an instruction relayed from a person, their exact words. Both routinely contain backticks, quotes, and dollar signs, and pasting that between double quotes hands it to the shell to interpret: at best the command breaks, at worst `$(...)` inside a message runs. Build it with a quoted heredoc, whose delimiter in single quotes turns off every substitution, then pass the variable quoted:
+
 ```bash
-herdr agent prompt <agent name> "<wrapped prompt>"
+prompt=$(cat <<'HARNESS_PROMPT'
+<recorded action>
+
+<the receiving role's brief file, verbatim>
+HARNESS_PROMPT
+)
+herdr agent prompt <agent name> "$prompt"
 ```
+
+Never assemble it inline as `herdr agent prompt <name> "text with $VARS and `backticks`"`. The quoting looks fine until the first prompt that contains a character somebody did not think about, and the failure lands in the middle of an unattended run.
 
 **Translate the skill prefix for the receiving agent.** A route is recorded as `/dev-audit 01`, because that is how Claude Code names a skill. Other agents do not use that prefix, and the dispatch is rejected rather than run. In this project's own demo Codex answered a slash route with `Unrecognized command '/dev-audit'` and did nothing else, while the send itself reported success and the dispatch log recorded a dispatch.
 
@@ -114,13 +124,13 @@ If a brief file is missing, stop and say which one. Do not write a replacement f
 
 **Commit a blocked run too.** The temptation is to leave a broken state uncommitted so it looks like nothing happened. Nothing happening is exactly what the next window cannot distinguish from a worker that died, and a blocked state that cannot be read is worse than a broken one that can. Say `blocked` in the message.
 
-**Then push the working branch, when the roster says to.** A run that only commits leaves the work on one machine, and the person watching from a phone or another desk cannot see it, cannot pull it, and cannot take it over when the harness stops. Pushing on every hand back is what makes an unattended run something a person can join at any moment.
+**Then push the working branch, but only when `Push on hand back` in `.konteksto/harness.md` says `on`.** A run that only commits leaves the work on one machine, and the person watching from a phone or another desk cannot see it, cannot pull it, and cannot take it over when the harness stops. Pushing on every hand back is what makes an unattended run something a person can join at any moment. It is still a recorded choice, and `off` means no window pushes anything.
 
 ```bash
-git push --set-upstream origin <working branch>
+git push --set-upstream <Remote from the roster> <Working branch from the roster>
 ```
 
-Name the branch every time. A bare `git push` follows whatever `push.default` and the branch configuration say, which is not always the branch you are on.
+**Both of those come from the roster, and neither is assumed.** `origin` is the usual remote and it is not the only one, and a run configured against a different remote that silently pushes to `origin` sends work somewhere nobody asked for. Name the branch every time too: a bare `git push` follows whatever `push.default` and the branch configuration say, which is not always the branch you are on.
 
 Four things this may never do, and each one is about a push being the one act here that leaves the machine:
 
@@ -150,7 +160,7 @@ Check it rather than assuming: `git branch --merged <base>` lists what has lande
 
 That second case makes the phases a stack, so the pull request for a phase targets whatever its branch was cut from, not always the base branch. `/dev-document pr` reads the branch point; do not tell it a base.
 
-**Push the branch when you create it**, so the person can see and pull the phase from the moment it starts rather than after the first hand back.
+**Push the branch when you create it**, so the person can see and pull the phase from the moment it starts rather than after the first hand back. This obeys `Push on hand back` like every other push: `off` means the branch stays local, and it uses the roster's `Remote`, never a hardcoded `origin`.
 
 **Record the branch in the roster's Working branch field before dispatching.** Every window commits and pushes to whatever that field says, so a field that lags the phase sends the developer's commits to the previous phase's branch.
 
@@ -166,7 +176,7 @@ So committing on the base branch would hand the reviewer an empty change set at 
 
 **Commit at the hand back, not during the work.** `/dev-test` and `/dev-sync` scope themselves by what is uncommitted inside a single leg, so a window that commits part way through its own run hides its work from its own next step. The commit is the last thing before the report.
 
-Append one Dispatch log row in `.konteksto/harness.md` before you send, with the file the route came from in Route source.
+Append one Dispatch log row in `.konteksto/harness.md` before you send, with the file the route came from in Route source. **Sent holds the recorded action alone, on one line, and never the wrapped prompt.** It is a Markdown table cell: a newline ends the row and a literal `|` splits the cell, and the report format the briefs use is made of pipes. Escape any pipe that has to stay as `\|`.
 
 **Resolve the timestamp before writing it.** Read the clock, then write the value it returned. A row carrying an unexpanded `$(date ...)` instead of a time is worse than a row with no time at all, because it looks like a record until somebody tries to order two of them. This project's own demo produced exactly that row.
 
@@ -179,7 +189,7 @@ In this project's own demo it went uncommitted for an entire run, on a machine w
 ```bash
 git add .konteksto/harness.md
 git commit -m "chore(harness): dispatch <route> to <role>"
-git push origin <working branch>
+git push <Remote from the roster> <Working branch from the roster>   # only when Push on hand back is on
 ```
 
 Stage that path alone. The same fence applies as everywhere else: the phase branch only, never forced, never the base branch. Commit after the result is known rather than before the send, so one row is one commit and a reader can follow the run by reading the log backwards.
@@ -208,16 +218,16 @@ The wait matches the state the agent is in **now**, not only a change into it. A
 
 **That wait is edge triggered once the sequence guard is in place, and this is the whole reason it is cheap.** It returns the moment the worker reaches `idle`, `done`, or `blocked`, not when the timeout elapses. Measured on this project: a wait carrying a ten minute timeout returned in two milliseconds against a worker that was already idle. So the timeout is not a polling interval and there is no cost per minute of it. It only bounds how long you sit when nothing at all happens.
 
-**A short timeout is therefore pure waste.** Every expiry ends the wait, spends a turn, and starts another wait, and it buys nothing, because a worker that finished during a long wait already woke you. A run watched on a fifteen second timeout burns hundreds of turns to learn what one long wait would have told it for free.
+**But the timeout is also the only thing that lets a person reach you mid wait, and that sets a ceiling on it.** A tool call has to return before the agent sees anything new, so a message the person sends while you sit inside `agent wait` is not read until that wait ends. A one hour wait means a stop request, an answer, or a change of direction can sit unread for an hour, which is exactly the moment the relay exists for.
 
-**So set the timeout from the relay, which is the only thing a timeout is for.** The wait wakes you for the worker; the timeout wakes you for everything else.
+So the timeout is not free after all, and an earlier version of this file said it was. **It is the longest a person's message can go unread.** Set it from that, not from how long a worker might take:
 
 | Relay | Timeout | Why |
 | --- | --- | --- |
-| Remote Control | 3600000, one hour | The person's message arrives in your own session, so nothing needs polling. |
-| Coordinator pane | 3600000, one hour | The person types into this pane, which lands the same way. |
+| Remote Control | 300000, five minutes | The person's message lands in your own session, but only when the wait returns. Five minutes is the delay they will feel when they interrupt. |
+| Coordinator pane | 300000, five minutes | The same, typed into this pane instead. |
 
-Both transports deliver into something the coordinator is already holding, so nothing here polls and no timeout shorter than an hour buys anything.
+Longer is defensible on a run nobody intends to interrupt, and say that plainly when recording it rather than treating it as the cheap default. Shorter than a minute is waste: each expiry costs a turn and a worker that finishes wakes you regardless.
 
 **Nothing here watches files, and nothing needs to.** `loop-state.md` is written only by a worker, and a worker that writes it settles immediately afterwards, so the state change and the wake are the same event. A file watcher would fire slightly earlier on a file that is still being written, which is worse. If a person edits `loop-state.md` by hand mid run, that is a message to you, and it belongs on the relay where you will see it.
 

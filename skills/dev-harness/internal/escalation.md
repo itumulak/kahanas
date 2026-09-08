@@ -52,7 +52,9 @@ herdr agent start <agent name> --kind <kind> --pane <pane id> -- <model argument
 
 **A restart loses everything the worker had in context.** That is survivable here, and only here, because the route lives in a file rather than in the worker's memory: after the restart, dispatch the currently recorded route from the start. It is not survivable in the middle of a phase whose state was never written down, so never restart a worker that is `working`.
 
-Record the escalation in the Dispatch log with the recorded count that fired it as the Route source, and update the role's row so a later session can see which model is actually running.
+Record the escalation in the Dispatch log with the recorded count that fired it as the Route source, then write the role's roster row: set `Current model` to what it is now running and add one to `Escalations used`.
+
+**Those two fields are the enforcement, not bookkeeping.** The cap in Settings is per task, so without a count that resets there is nothing to compare against, and without a current model nothing can tell a role sitting on its escalation model from one still on its base. When the task completes, set `Current model` back to `Base model`, restart the worker on it, and reset `Escalations used` to zero. A role left on its escalation model after the task that needed it is a run quietly paying for the wrong tier, and on the developer it is also a run drifting toward the reviewer's model.
 
 ## Not the same thing as a quota block
 

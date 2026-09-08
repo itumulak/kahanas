@@ -62,7 +62,13 @@ Otherwise infer where it is obvious. On a feature branch ahead of base means `pr
 
 ### Step 2: Gather the real source material
 
-Base branch is `main` if it exists, else `master`.
+Base branch is where this branch was actually cut from, not always `main`. Resolve it:
+
+```bash
+git merge-base --fork-point main HEAD 2>/dev/null || git merge-base main HEAD
+```
+
+Then check whether another branch's tip is that merge base. **If one is, that branch is the base**, because this work sits on top of it and a pull request against `main` would show both branches' changes as though this one made them. Stacked branches are the ordinary case where a project builds in phases. Otherwise the base is `main` if it exists, else `master`.
 
 - **pr and changelog**: `git log --oneline <base>..HEAD` and `git diff --name-only <base>...HEAD`.
 - **release-note**: list tags by date. No tags at all means falling back to the full history and saying so.
@@ -105,7 +111,7 @@ Rules that hold for all four:
   Write the body to a file rather than passing it as an argument, because a body with backticks and newlines does not survive a shell:
 
   ```bash
-  gh pr create --base <base branch> --head <current branch> --title "<title>" --body-file <path>
+  gh pr create --base <the resolved base branch, which may be another feature branch> --head <current branch> --title "<title>" --body-file <path>
   ```
 
   Four cases decide what actually happens:

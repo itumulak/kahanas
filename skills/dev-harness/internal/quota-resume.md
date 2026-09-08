@@ -34,7 +34,17 @@ A match is a candidate, not a verdict. Read the surrounding lines and confirm th
 1. Take the reset time from the worker's own output. **Never estimate one.** If the output gives no time, notify the person that the worker is out with no stated reset, and stop watching that worker.
 2. Record the worker, the quoted line, and the reset time in the Dispatch log.
 3. Notify the person once, with the reset time.
-4. Wait until that time has passed by the system clock, then check the pane again before sending anything.
+4. Wait until that time has passed, and **wait in the ordinary watch loop rather than in one long sleep**. An agent cannot schedule its own wake, so a turn that ends here does not resume, and a single sleep to the reset time is a coordinator that hears nothing for hours. Keep the normal bounded wait and compare the clock on each expiry:
+
+```bash
+while [ "$(date +%s)" -lt <reset epoch> ]; do
+  herdr agent wait <the other worker> --timeout <the roster's watch timeout>
+done
+```
+
+The wait returns early whenever the other worker moves, so the run keeps going while this one is down, and each expiry is also where the relay is checked. If there is no other worker running, the same loop still holds the turn open and stays reachable.
+
+Then check the pane again before sending anything.
 5. Re dispatch the route currently recorded in its file, not the one that was in flight when the quota ran out. The recorded route may have moved while the worker was down.
 
 While one worker waits on quota, the other keeps running if it has a recorded route of its own. A quota block on the developer does not stop a review already dispatched to the reviewer.

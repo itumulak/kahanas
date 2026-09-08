@@ -165,46 +165,7 @@ Record what was created, because `stop` needs it. A session or workspace this mo
 
 Whatever the answer, **do not create a tab or a worktree, and do not change the working directory.** The harness builds the project the person pointed it at.
 
-### Step 6: Create what is missing
-
-For a role with no pane yet, split from the caller and keep the person's focus where it is:
-
-```bash
-herdr pane split --current --direction right --cwd "$PWD" --no-focus \
-  --env POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
-```
-
-Split a wide pane to the right and a tall one down. Read the new pane id from `.result.pane.pane_id`.
-
-**That environment variable is not decoration.** A shell using Powerlevel10k with no saved configuration for this terminal opens its setup wizard instead of a prompt, and a pane sitting in a wizard is not a pane an agent can start in. `agent start` then fails with a pane that looks perfectly healthy from the outside. This project's own first demo lost three panes to exactly that. The variable is harmless on a shell that does not use Powerlevel10k.
-
-**Check the pane reached a prompt before starting an agent in it.** Read it, and expect a prompt rather than a question:
-
-```bash
-herdr pane read <pane id> --source visible --lines 12
-```
-
-Anything that is asking the person something, from any prompt framework, means the shell is not at its prompt yet. Say what the pane is showing and let the person settle it. Do not send keys into a wizard to guess your way past it.
-
-Then start the agent in it:
-
-```bash
-herdr agent start <name> --kind <kind> --pane <pane id> -- <model arguments for the base model>
-```
-
-Native agent arguments go after `--`, and that is where the base model is selected. Start each role on its base model, never on its escalation model.
-
-**Start a Claude coordinator with Remote Control on**, so step 7 has the option available without a restart:
-
-```bash
-herdr agent start coordinator --kind claude --pane <pane id> -- --remote-control coordinator --model <base model>
-```
-
-It costs nothing if the person then picks a different relay, and it saves killing a freshly started agent to add one flag.
-
-**Expect a trust prompt the first time an agent starts in a directory.** Claude Code and Codex both ask whether the folder can be trusted before they will accept input, and Herdr returns `agent_not_ready` while that dialog is up. The name still resolves for `agent read` and `agent send-keys`, so read the pane, show the person exactly what it asks, and let them answer. **Never answer it yourself**, and never send a blind Enter: the two agents do not agree on which option is highlighted, so the same keystroke trusts one and quits the other. Answering once usually covers every later pane of that same agent in that same directory.
-
-### Step 6b: Ask whether the roles run unattended
+### Step 5d: Ask whether the roles run unattended
 
 The whole point of a harness is that work continues while the person is away. An agent that stops for approval on every command does not do that: it waits, the coordinator waits on it, and the run is still exactly where it was an hour later.
 
@@ -227,7 +188,7 @@ The flag differs per kind. Pass it after `--`, with the model arguments:
 
 Check the flag against the installed agent with `<kind> --help` before recording it. These names change, and a flag that no longer exists stops the agent at startup rather than skipping anything.
 
-**Even unattended, a folder trust prompt still appears the first time an agent starts in a directory**, and the skip approvals flags do not answer it. Step 6 covers that.
+**Even unattended, a folder trust prompt still appears the first time an agent starts in a directory**, and the skip approvals flags do not answer it. Step 6 covers that when it starts the agents.
 
 **Allow the coordinator to run `herdr` commands without asking.** Its watch cycle calls `herdr agent wait`, `herdr agent get`, and `herdr agent read` continuously, and an agent that needs approval for each one stops on the first poll and never reaches the worker it is watching. In this project's own demo the coordinator stalled on `herdr agent get developer` while the developer sat blocked on a question. Tell the person to accept the standing permission for `herdr agent *` the first time that pane asks, or to add it to the project's allowed tools before starting.
 
@@ -247,6 +208,54 @@ Expect the name, the pane, the kind you chose, and a status of `idle`. A role th
 
 Answering it once usually covers the other panes of the same agent kind in the same directory, since the trust decision is stored per directory. Do not assume that; read each pane.
 
+
+### Step 6: Create what is missing
+
+**Create the panes where Step 5c said, not where this mode happens to be running.** In the current workspace, split from the caller. In a new workspace or a new session, create that first and split from its root pane, whose id the create call returns. Splitting `--current` regardless would put the roster's panes in the space the person asked to keep clear.
+
+```bash
+# current workspace
+herdr pane split --current --direction right --cwd "$PWD" --no-focus \
+  --env POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
+
+# new workspace, or a new session with --session <name> on every call
+herdr workspace create --cwd "$PWD" --label <project> --no-focus \
+  --env POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
+herdr pane split <the returned root pane id> --direction right --cwd "$PWD" --no-focus \
+  --env POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
+```
+
+Split a wide pane to the right and a tall one down. Read the new pane id from `.result.pane.pane_id`.
+
+**That environment variable is not decoration.** A shell using Powerlevel10k with no saved configuration for this terminal opens its setup wizard instead of a prompt, and a pane sitting in a wizard is not a pane an agent can start in. `agent start` then fails with a pane that looks perfectly healthy from the outside. This project's own first demo lost three panes to exactly that. The variable is harmless on a shell that does not use Powerlevel10k.
+
+**Check the pane reached a prompt before starting an agent in it.** Read it, and expect a prompt rather than a question:
+
+```bash
+herdr pane read <pane id> --source visible --lines 12
+```
+
+Anything that is asking the person something, from any prompt framework, means the shell is not at its prompt yet. Say what the pane is showing and let the person settle it. Do not send keys into a wizard to guess your way past it.
+
+Then start the agent in it, with the flags Step 5d settled. **The answer is known before any agent starts, which is the point of asking it there**: an agent already running cannot be given a skip approvals flag without being killed and started again.
+
+Start the agent:
+
+```bash
+herdr agent start <name> --kind <kind> --pane <pane id> -- <model arguments for the base model>
+```
+
+Native agent arguments go after `--`, and that is where the base model is selected. Start each role on its base model, never on its escalation model.
+
+**Start a Claude coordinator with Remote Control on**, so step 7 has the option available without a restart:
+
+```bash
+herdr agent start coordinator --kind claude --pane <pane id> -- --remote-control coordinator --model <base model>
+```
+
+It costs nothing if the person then picks a different relay, and it saves killing a freshly started agent to add one flag.
+
+**Expect a trust prompt the first time an agent starts in a directory.** Claude Code and Codex both ask whether the folder can be trusted before they will accept input, and Herdr returns `agent_not_ready` while that dialog is up. The name still resolves for `agent read` and `agent send-keys`, so read the pane, show the person exactly what it asks, and let them answer. **Never answer it yourself**, and never send a blind Enter: the two agents do not agree on which option is highlighted, so the same keystroke trusts one and quits the other. Answering once usually covers every later pane of that same agent in that same directory.
 
 ### Step 7: Ask how the harness reaches the person
 

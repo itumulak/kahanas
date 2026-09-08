@@ -23,15 +23,15 @@
 
 ## Roster
 
-| Role | Agent name | Pane | Kind | Base model | Escalation model | Skills allowed | Prompt file | State |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| coordinator | coordinator | <w1:p1> | <kind> | <exact model identifier> | <exact model identifier, or none> | /dev-harness, /dev-document pr | `prompts/coordinator.md` | <live\|missing> |
-| developer | developer | <w1:p2> | <kind> | <exact model identifier> | <exact model identifier, or none> | /dev-loop, /dev-develop, /dev-check verify, /dev-debug, /dev-design, /dev-test | `prompts/developer.md` | <live\|missing> |
-| reviewer | reviewer | <w1:p3> | <kind> | <exact model identifier> | <higher reasoning effort, or none> | /dev-check review, /dev-audit, /dev-qa | `prompts/reviewer.md` | <live\|missing> |
+| Role | Agent name | Pane | Kind | Base model | Escalation model | Current model | Escalations used | Skills allowed | Prompt file | State |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| coordinator | coordinator | <w1:p1> | <kind> | <exact model identifier> | <exact model identifier, or none> | <what it is running right now> | <count for the current task> | /dev-harness, /dev-document pr | `prompts/coordinator.md` | <live\|missing> |
+| developer | developer | <w1:p2> | <kind> | <exact model identifier> | <exact model identifier, or none> | <what it is running right now> | <count for the current task> | /dev-loop, /dev-develop, /dev-check verify, /dev-debug, /dev-design, /dev-test | `prompts/developer.md` | <live\|missing> |
+| reviewer | reviewer | <w1:p3> | <kind> | <exact model identifier> | <higher reasoning effort, or none> | <what it is running right now> | <count for the current task> | /dev-check review, /dev-audit, /dev-qa | `prompts/reviewer.md` | <live\|missing> |
 
 When Unattended approvals is `on`, every role starts with its own skip approvals flag: `--dangerously-skip-permissions` for `claude`, `--dangerously-bypass-approvals-and-sandbox` for `codex`, `--auto` for `opencode`, and `--approve` for `pi`, which is the closest Pi has rather than the same thing. Each agent then runs whatever command it decides to run, with nothing prompting first.
 
-Base model is what a role starts on. Escalation model is what it moves to when the trigger in Settings fires, and `internal/escalation.md` holds when that is. Record the exact identifier the installed agent accepts, not a family name, because a name that does not resolve fails at the moment a run is already in trouble.
+Base model is what a role starts on. Escalation model is what it moves to when the trigger in Settings fires, and `internal/escalation.md` holds when that is. **Current model and Escalations used are the live state, and they are why the cap and the return home can be enforced at all**: without them nothing can tell a role sitting on its escalation model from one on its base, or count how many steps this task has already spent. The coordinator rewrites both when it escalates and when it drops a role back, and resets Escalations used to zero when the task completes. Record the exact identifier the installed agent accepts, not a family name, because a name that does not resolve fails at the moment a run is already in trouble.
 
 The developer and the reviewer must differ on both rows. **An escalation model that lands on the reviewer's model is refused**, since a developer that quietly becomes the reviewer's model destroys the one guarantee the two windows exist to provide, and it destroys it silently.
 
@@ -51,6 +51,8 @@ A roster row is a convention, not a lock. Any person can type into any pane, and
 
 | Timestamp | From | To | Sent | Route source | Observed result |
 | --- | --- | --- | --- | --- | --- |
-| <YYYY-MM-DD HH:MM> | <role or human> | <role or human> | <exact text sent> | <file and line the route was read from, or human> | <what came back> |
+| <YYYY-MM-DD HH:MM> | <role or human> | <role or human> | <the recorded action only, one line> | <file and line the route was read from, or human> | <one line, what came back> |
+
+**Every cell is one line, and a literal `|` inside one is written `\|`.** This is a Markdown table, so an unescaped pipe splits a cell and a newline ends the row, and the worker report format is full of pipes by design. Sent records the recorded action alone, never the wrapped prompt: the brief is a file anybody can read, so copying it in adds nothing and breaks the table. Observed result is a one line summary of what came back, not the report verbatim.
 
 `/dev-harness` owns this append only table, and the coordinator commits this file and pushes it once a row has its Observed result. It is the only artifact of a run that nothing else can reconstruct. Every dispatch names the file it read the route from. A row whose Route source is empty is a route the harness invented, which it may never do.
