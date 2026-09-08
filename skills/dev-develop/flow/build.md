@@ -51,6 +51,14 @@ Locating the files to touch, and the patterns to match, means reading code. That
 
 **Do it** when the reading would genuinely bloat the main context: a large repository, many files, an unfamiliar area, or a session already carrying a lot.
 
+**Ask the code graph first, when the project has one.** The Code Graph section of `tooling.md` has Status `WIRED`? Run its Locate command against the subtask goal, its Surface of a file command on each file it names, and its References to a symbol command on anything you are about to change the shape of. That is the map, for the price of three commands and no file contents in context, and it often removes the need to spawn at all.
+
+**Then open the files it named and read the lines you are going to change.** A graph answer is a pointer and the file is the evidence, which that section defines and explains. Build from what you read, never from a node summary.
+
+Any other Status, or a command that fails: carry on with the subagent below, which is what this step did before there was a graph.
+
+**No Code Graph section at all?** Nobody has been asked yet. Say so once, name `/dev-architect`, and carry on. Do not query a graph no document records: the section holds the commands, so querying without it is guessing at them. Report it at step 6 alongside anything else the documents owe.
+
 Spawn a **read only** subagent with an explicitly cheap and fast model, which does not inherit this session's model. Give it read and search tools only, and no writing tool. Brief it with the exact task and the interfaces involved.
 
 It returns **a compact map and nothing else**: the files to create or edit as paths, the patterns to match as file and line references, the symbols and helpers to reuse, and the gotchas. No file contents, and no dumps.

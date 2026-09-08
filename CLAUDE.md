@@ -88,6 +88,7 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 | How a review session is stopped, and why never by signalling it | `dev-design/internal/design-review.md` |
 | How a prototype state is reached from outside | `dev-design/internal/design-direction.md` |
 | The human question and answer format, and who appends to it | `human-decisions.md` |
+| What a code graph answer is worth | `tooling.md` |
 
 **This overview and `README.md` are the exception, and they still may not carry specifics.** Their job is orientation for somebody maintaining the skills, so they say what a rule is for and why it exists. They do not restate its exact conditions, values, or counts, because a summary that carries operational detail is just another copy waiting to go stale.
 
@@ -140,6 +141,8 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 **Those three rows are three different claims, which is why they are not one row.** A clean build is not a working feature, and a passing verify is not a fixed bug. Collapsing them loses exactly the distinction a later session needs.
 
 **Append only, and never across writers.** A row is a claim about a moment that has already passed. A skill appends its own row and edits nobody's, and `/dev-sync` writes none at all, because it has run nothing and a fabricated observation reads exactly like a real one.
+
+**A code graph is a shortcut to evidence and never evidence itself.** A project may wire a parsed index of its own code, which `/dev-architect` offers once and records in `tooling.md`, and five skills query to find code instead of reading their way to it. What comes back is a pointer: the file gets opened and the lines get read before any skill writes a claim, a finding, or a stamp. The reason is that these tools also generate prose summaries, and a model's paraphrase of code reads exactly like an observation while being nothing of the kind, which is the fabricated evidence problem wearing a different hat. `tooling.md` holds the rule, and each consumer carries only its own trigger and action.
 
 `progress-tracker.md` splits differently, **by column rather than by row.** Every task has one aggregate row with its Goal and one child row per UI and Logic subtask. `/dev-architect` owns those labels and goals, copied word for word from `build-plan.md`. `/dev-develop` owns Assigned on aggregate rows and Status on every row, plus a blocked Note. `/dev-check verify` owns Verify Check on every row, plus a failed Note. `/dev-sync` may still correct build state from repo evidence after the fact, never during a build, and it writes no Verify Check cell or Evidence row: it has run nothing.
 

@@ -145,7 +145,7 @@ The project records in `.konteksto/`, plus the design prototypes:
 │                                    (/dev-scope creates, /dev-architect and
 │                                     /dev-design append their own choices)
 ├── architecture.md        stack, boundaries, invariants (/dev-architect)
-├── tooling.md             containers, agent tooling
+├── tooling.md             containers, agent tooling, code graph
 ├── design.md              the design system (frontend only)  (/dev-design)
 ├── design-registry.md     every surface, and whether its design
 │                          is approved (frontend only)         (/dev-design)

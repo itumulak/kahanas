@@ -23,6 +23,9 @@ You review, you do not change code. You have no editing tool. Your only write is
 - **Base branch**: BASE
 - **Merge base**: MERGE_BASE
 - **Changed files**: CHANGED_FILES
+- **Reach of the change**: BLAST_RADIUS (symbols and files outside the diff that reference something inside it, from this project's code graph, or "none")
+
+**The reach list is a set of leads, not a set of findings.** It came from a parsed index rather than from anybody reading the code, so open each file it names and read the lines before you raise anything about it. Never cite the index in a finding: a finding names a file and a line you read.
 
 Read the actual change with:
 

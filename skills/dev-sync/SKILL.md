@@ -117,6 +117,10 @@ On an exact match, judge **each child subtask whose Status is neither `DONE` nor
 
 **Proof means what is in the repo, not what a commit message claims.** A commit saying "add password reset" is a claim, and the route either exists or it does not.
 
+**Use the code graph to find the files faster, and never to decide anything.** The Code Graph section of `tooling.md` has Status `WIRED`? Its Locate command against a subtask goal, and its References to a symbol command on a component you are checking is still reachable, both cut the search. **Then open the file and read it, and stamp only on what you read there.** That section defines why: a node carries prose a model wrote, and a stamp written from a paraphrase is exactly the fabricated observation this skill must never produce. The graph is not proof, it is a shortcut to the proof. Any other Status, or a failing command, and you search and read as this step always has.
+
+**No Code Graph section at all?** Nobody has been asked yet. Say so once, name `/dev-architect`, and carry on. Do not query a graph no document records: the section holds the commands, so querying without it is guessing at them. Report it and never write it: `tooling.md` is `/dev-architect`'s file, and an unasked question is not a gap the repo can prove an answer to.
+
 **Only act on an unambiguous match.** Stamp a child only when the evidence plainly belongs to that subtask. Where code could belong to either of two subtasks, do not pick: record it as ambiguous and move on. Stamp the aggregate only when every child is `DONE` or can be stamped `DONE` in this pass, and the repo also proves the aggregate task Goal.
 
 **Be conservative.** Stamp on clearly present evidence, and when unsure, leave it. A finished task still reading `PENDING` is a small annoyance. An unfinished one stamped `DONE` sends the next session past work that was never done.

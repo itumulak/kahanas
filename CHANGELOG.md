@@ -6,6 +6,18 @@ Entries describe the effect on someone running the skills, not the edit that pro
 
 ## [Unreleased]
 
+### Added
+
+- **A project may wire a code graph, and five skills query it instead of reading their way to the code.** A code graph is a parsed index of the codebase: every symbol, the file that holds it, what it imports, and what calls it. On a repository past a few hundred files, finding the code is where most of a session's context goes, and a graph answers that in a command. `/dev-architect` offers one once, at a new step 6b, or before the brownfield audit on an existing codebase, since that audit is the task in the skill a graph helps most. `tooling.md` gains a Code Graph section holding the Status, the tool, and one row per command the later skills call. `/dev-context` orients from it, `/dev-develop` locates the files and the symbols it is about to change, `/dev-debug` gets the call paths into a failure without reading the files on the way there, `/dev-check review` passes the reviewer the reach of the diff, and `/dev-sync` finds the files that prove a subtask goal faster.
+
+  **A graph answer is a pointer, and the file it points at is the evidence.** Every skill opens the file and reads the lines before writing a claim, a finding, or a stamp. The reason is that these tools also have a model write a plain English summary of each area, and a paraphrase reads exactly like an observation while being nothing of the kind, which is the fabricated evidence problem in a new place. So no document cell is ever filled from the graph, no finding cites a node, and no decision comes out of one. The rule has one home, the Code Graph section, and each consumer carries only its own trigger, its own action, and a pointer at it.
+
+  **The person installs and wires it, `/dev-architect` builds it, and the summary pass is a separate yes.** A global package install and a wiring step that writes agent configuration, hooks, a statusline, or an MCP registration all change the person's own setup rather than the project's, which is the line already drawn for an MCP server. Building the graph is repo local and free, so the skill runs that. The enrichment pass spends the person's own provider credit, so it is asked for separately with the cost named. A decline is recorded with a Status of `DECLINED` or `DEFERRED`, so no later session raises it again, and an existing project with no Code Graph section is offered one the next time `/dev-architect` runs.
+
+  **Installing the tool is not enough on its own, and a skill says so rather than going quiet.** The gate is the Status in `tooling.md`, not the binary on the machine, because that section is what holds the commands each skill calls. So a `tooling.md` with no Code Graph section at all is a fourth state meaning nobody has been asked, and a skill reaching it says that once, names `/dev-architect`, and carries on. It does not query a graph no document records, since a skill guessing at the commands is two skills guessing differently on the same repository. One `/dev-architect` run settles it either way, and where the tool is already installed and wired that run confirms it rather than reinstalling it.
+
+  **Sixty two assertions added to `npm test`** covering the seven files that describe this: that every command row a consumer names is a row the template actually has, that each consumer gates on the same Status value and says what it does without a graph, that no skill file hardcodes a tool's commands, that only `/dev-architect` installs or builds, that the consent gate is the same text as the one in skill and MCP discovery, and that the overview names the rule without carrying its detail.
+
 ## [0.8.1] — 2026-09-09
 
 ### Added

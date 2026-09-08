@@ -51,6 +51,18 @@ After reading, identify:
 
 Read `.konteksto/loop-state.md` after the required records when it exists. It is supplemental execution state, not a replacement for the progress tracker. When it describes an active run, its Next action is the current workflow instruction; report it verbatim rather than deriving a competing next step.
 
+## Orient from the code graph, when the project has one
+
+**Trigger:** the Code Graph section of `tooling.md`, read at step 5 above, has Status `WIRED`.
+
+**Action:** run its Repo orientation command, and its Locate command against the active task's Goal. Fold what comes back into the brief as pointers: the files that task most likely touches, and the areas they sit in. Run nothing else, and never the build or enrichment commands, which cost time or money and belong to `/dev-architect`.
+
+**Pointer:** that section defines what a graph answer is worth. The short of it is that a pointer is a lead and never evidence, so the brief presents these as places to look and never as facts about the project.
+
+Any other Status, no graph tool on the machine, or a command that fails: say so in one line and brief from the documents alone, which is the whole job anyway.
+
+**No Code Graph section at all?** Nobody has been asked yet. Say so once, name `/dev-architect`, and carry on. Do not query a graph no document records: the section holds the commands, so querying without it is guessing at them. This is the same shape as any other missing record: report it with the owner, and change nothing.
+
 ## Apply the protocols
 
 Follow the ownership, approval, and routing rules recorded in the documents. In particular:

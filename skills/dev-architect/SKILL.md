@@ -294,6 +294,16 @@ And **each round spawns a subagent, so the user sets the cap.** Read the Doubt p
 
 Skip the file when nothing this pass settled meets the trigger list. That is a normal outcome on a small project, and doubting an easily reversed choice costs an afternoon and buys nothing.
 
+### Step 6b: The code graph
+
+Run this once the stack is settled, so you know which languages the tool has to parse. **On an existing codebase, run it before step 4 instead**, because the brownfield audit is the task in this skill a graph helps most.
+
+**Read `internal/code-graph.md` and follow it.** It holds the consent gate, the tool checks, the install and wiring split, and the recording rules.
+
+Two things worth seeing from here. **The person installs and wires it, you build it**, for the same reason you cannot connect an MCP server for them: the wiring writes their own agent configuration, including hooks and a statusline they may already have set up their own way. And **the summary pass spends their provider credit**, so it is a separate yes with the cost named.
+
+Skip the file when `tooling.md` already carries a Code Graph Status. Declined and deferred are answers, and asking again is the nag.
+
 ### Step 7: Write the Stage 1 documents
 
 **Read `internal/standards.md` before writing `code-standards.md`.** It holds the convention questions, the four architecture style presets in `patterns/`, and the rule that an existing codebase gets its conventions derived from the code rather than recited from memory.
@@ -388,4 +398,5 @@ All of these live in this skill's folder, read only when you reach them.
 - `internal/judgment.md`: the posture, the known failure patterns, the challenge the premise step, and the rules that hold across every decision. **Read in full before step 2**, alongside the conversation protocol.
 - `internal/design-conversation.md`: the interview protocol. The already built check, framing, the dimension checklist, question mechanics, the six stages, and the completeness gate. **Read in full before step 2**, and it is a hard gate, not a suggestion.
 - `internal/tool-discovery.md`: the skill and MCP consent gate, the two registries, the candidate checks, and how each kind is set up. Read at step 6, and only when the stack walk chose a new tool.
+- `internal/code-graph.md`: the code graph consent gate, the tool checks, who installs versus who builds, and the recording rules. Read at step 6b, or before step 4 on an existing codebase, and only when `tooling.md` has no Code Graph Status yet.
 - `internal/doubt-pass.md`: the trigger list, the adversarial brief, how to sort the findings, and the three round cap. Read at step 6a, and only for a decision that is expensive to undo.

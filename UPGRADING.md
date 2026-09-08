@@ -159,6 +159,16 @@ about. Do not smooth over a gap. I want the list.
 
 Templates live in `skills/dev-architect/templates/`, except `design.md` and `design-registry.md`, which are in `skills/dev-design/templates/`, `project-overview.md`, `glossary.md`, and `human-decisions.md`, which are in `skills/dev-scope/templates/`, `audit-register.md`, which is in `skills/dev-audit/templates/`, and `loop-state.md`, which is in `skills/dev-loop/templates/`. The `harness.md` template lives in `skills/dev-harness/templates/`, but `/dev-harness config` owns creating it; do not copy it into a project by hand.
 
+### Coming from 0.8.1: the optional code graph
+
+Nothing to migrate, and nothing to add by hand. An existing `.konteksto/tooling.md` has no Code Graph section, and a missing section reads as a question nobody has been asked yet, so the next `/dev-architect` run offers one and records whatever you answer.
+
+Say no and it writes `Status: DECLINED` with your reason, which stops it being raised again. Every skill that can use a graph checks that Status first and falls back to searching and reading, which is what all of them did before, so a project that never wires one behaves exactly as it does today.
+
+To turn it on without running the whole skill, run `/dev-architect` and let it reach step 6b. It picks a tool, checks it against the languages in your Stack table, hands you the install and wiring commands to run yourself, then builds the graph and proves it answers before recording it.
+
+**Already installed one yourself?** The skills still will not use it until that section exists, because the section is what holds the commands they call. Until then each one says so once and points at `/dev-architect`, rather than going quiet on you. That run confirms what is already installed instead of setting it up again, so the whole migration is the record.
+
 ### Coming from 0.8.0: reviewing a design from another machine
 
 Nothing to migrate. An existing `.konteksto/tooling.md` has no Remote access row, and a missing row reads as though the person approving is at the machine running the review, which is the ordinary case.

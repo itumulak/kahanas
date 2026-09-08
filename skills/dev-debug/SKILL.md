@@ -82,6 +82,7 @@ Narrow the failure to the smallest surface that still fails, before theorizing a
 - **Bisect the code path.** Binary search for where good input becomes bad output, using logging at midpoints or by removing pieces.
 - **Bisect the history.** For a regression, `git bisect`, or read the history of the suspect files, to find the change that introduced it.
 - **Read the actual values.** Instrument the inputs and outputs at the boundary. Do not assume what they contain, because the assumption is usually where the bug is hiding.
+- **Ask the code graph who touches the suspect symbol**, when the Code Graph section of `tooling.md` has Status `WIRED`. Its References to a symbol command, with the depth flag, gives the call paths into the failure without reading the files on the way there, which narrows a bisect faster than instrumenting does. Then read those files: a graph answer is a pointer and never the finding, which that section defines. Any other Status, or a failing command, and you bisect as above. **No Code Graph section at all?** Nobody has been asked yet. Say so once, name `/dev-architect`, and carry on. Do not query a graph no document records: the section holds the commands, so querying without it is guessing at them.
 
 ### Step 3: Hypothesize, one at a time
 
