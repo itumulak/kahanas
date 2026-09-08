@@ -18,7 +18,8 @@ The ones most often left blank, because they are the ones that take real thought
 
 - **`architecture.md`**: the Value Sourcing table, the Invariants, the Security model, and the System Boundaries. A boundary table with one example row in it is not filled.
 - **`code-standards.md`**: the environment variable table, the error handling rules, and the Definition of Done. A Definition of Done whose rows name no real command is the worst of the three, because every later skill treats it as a bar that was set.
-- **`build-plan.md`**: whether the Feature Count actually matches the number of tasks written.
+- **`build-plan.md`**: whether the Feature Count actually matches the number of tasks written, every feature in scope has a task, and every build affecting item in `architecture.md` appears by exact name in at least one relevant Goal or subtask goal. Check the Stack table, System Boundaries, data flow, Invariants, Security model, Value Sourcing table, and operator duties one by one. A generic category is not a match for a named technology or rule.
+- **`progress-tracker.md`**: whether every phase and aggregate task row matches `build-plan.md`, and whether every UI and Logic subtask goal has exactly one child row in plan order, word for word. A missing, combined, extra, reordered, or shorter child row is a gap, even when it sounds equivalent.
 - **`tooling.md`**: the Visual verification section, on a project with an `app/`, where it is required rather than optional. `/dev-design` cannot review a design without it and `/dev-check verify` cannot screenshot a breakpoint without it, so an empty one stops the next skill rather than this one.
 
 Where something came out blank or still holds a placeholder, **say so explicitly when you present it**:

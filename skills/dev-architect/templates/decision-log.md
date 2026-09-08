@@ -33,7 +33,7 @@ Do not use this as an edit diary. Task status belongs in `progress-tracker.md`; 
 | `/dev-check verify` | Evidence on a pass | the behavior was observed, not assumed |
 | `/dev-debug` | Decision and Evidence | the proven root cause and fix, plus the reproduction and confirmation |
 
-`/dev-check verify` writes no entry on a fail. The failed verdict belongs in the task's Verify Check cell and Note in `progress-tracker.md`; it is not proof that the task works.
+`/dev-check verify` writes no entry on a fail. The failed verdict belongs in the affected child subtask's Verify Check cell and Note, then in the aggregate task row as the rollup, in `progress-tracker.md`; it is not proof that the task works.
 
 No other skill writes entries. `/dev-sync` reads the log but never reconstructs or edits history.
 

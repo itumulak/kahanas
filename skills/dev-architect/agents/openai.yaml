@@ -4,4 +4,4 @@
 interface:
   display_name: "Dev Architect"
   short_description: "Settle the stack, the containers, and the build plan"
-  default_prompt: "Run the dev-architect skill: read its SKILL.md, then settle how this product gets built. Walk the stack layer by layer, write the local development containers, audit any existing dependencies, and fill the planning documents in .konteksto/. Do not design any surface or write anything in .konteksto/designs/: on a project with a frontend the dev-design skill does that afterwards."
+  default_prompt: "Use $dev-architect to settle the stack, containers, and build plan while preserving the person's technical choices beside the recommendations in .konteksto/human-decisions.md."

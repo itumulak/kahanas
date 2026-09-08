@@ -12,11 +12,14 @@ Works with any Agent Skills client: Claude Code, Codex, Cursor, and others.
 # Claude Code (installs into .claude/skills, then restart Claude Code)
 npx skills@latest add itumulak/kahanas -a claude-code
 
+# OpenCode (installs skills plus wrappers for slash command autocomplete)
+npx --yes github:itumulak/kahanas -a opencode
+
 # Generic .agents/skills, read by Codex and other agents
 npx skills@latest add itumulak/kahanas
 ```
 
-Commit the installed folder to share the workflow with your team.
+Restart the client after installation. Commit the installed folders to share the workflow with your team. OpenCode receives the same skills under `.agents/skills/` plus thin wrappers under `.opencode/commands/`. Each wrapper loads its matching skill through OpenCode's skill tool and forwards the command arguments. The wrapper is kept separate because OpenCode does not add installed skills to slash command autocomplete itself.
 
 Every skill answers to `/dev-scope`, `/dev-architect`, and so on.
 
@@ -33,12 +36,13 @@ Every skill answers to `/dev-scope`, `/dev-architect`, and so on.
 | `/dev-architect` | Settles the stack, the local containers, and the build plan. Makes every tool call there is. |
 | `/dev-design` | Designs every surface the flows require, renders each one in a real browser, and gets a person to approve it. Frontend only. |
 | `/dev-develop` | Builds one task from the plan, then stops. Refuses to invent a decision the documents do not record. |
-| `/dev-check` | Two modes. `verify` runs the real app and proves the task works. `review` reads the diff on a different model than wrote it. |
+| `/dev-check` | Two modes. `verify` exercises every condition in every task subtask. `review` traces those conditions through the diff on a different model than wrote it. |
 | `/dev-debug` | Finds the root cause of a bug by evidence, one hypothesis at a time, then makes the smallest fix. |
 | `/dev-test` | Writes the suite, grounded in the recorded invariants and value sources rather than in a coverage number. |
 | `/dev-audit` | Turns independent review findings into a durable register with stable IDs, ownership routes, and review evidence. |
 | `/dev-qa` | Reruns documented runtime cases for eligible audit findings and records the observed regression result. |
 | `/dev-loop` | Runs selected tasks through development, verification, testing, audit, and final regression QA, with resumable control state. |
+| `/dev-harness` | Runs that same loop across separate Herdr panes: a coordinator that relays, a developer that builds, and a reviewer on a different model. Workers commit before handoff; pushing and pull request creation are optional. A Claude coordinator can use Remote Control, while other coordinators communicate through their pane. |
 | `/dev-document` | Writes the prose about a change: a pull request, a changelog, a release note, or a postmortem. |
 | `/dev-sync` | Makes the documents true again after a change, from repo evidence, and flags what needs a person. |
 
@@ -82,6 +86,27 @@ flowchart TD
 
 `/dev-design` runs again whenever a surface needs a new or revised design. `/dev-loop` records every phase and handoff in `loop-state.md`, and stops at its per task and per run repair caps.
 
+### Run it across Herdr panes
+
+`/dev-harness` is the optional multi-agent runner for this loop. If Herdr is missing, `/dev-harness config` offers its official stable installer and verifies the binary. Pane configuration and harness runs must happen inside [Herdr](https://herdr.dev) (`HERDR_ENV=1`); the rest of Kahanas does not require it.
+
+Configure it once in the project, then start a selected task range or resume the recorded run:
+
+```text
+/dev-harness config
+/dev-harness start <tasks>
+/dev-harness start
+/dev-harness stop
+```
+
+The default roster is a coordinator, a developer, and a reviewer whose model must differ from the developer's. `config` records their agents and models, escalation rules, workspace or session placement, unattended approval setting, optional push remote, relay, watch timeout, and quota-resume behavior in `.konteksto/harness.md`. Do not create that file by hand.
+
+The coordinator only forwards routes already recorded by `loop-state.md` or `audit-register.md`; it does not invent the next development step. `/dev-harness <instruction>` may change how the harness runs, but not product intent owned by the upstream project documents. `stop` ends dispatching without deleting panes, the Herdr session, or work in progress.
+
+Claude Remote Control is the recommended relay when it is available and passes the configuration test. Every other coordinator uses its own pane, so it cannot reach a person who is away from the session.
+
+Pushing is off unless the user enables it during configuration. With pushing off, commits, branches, the dispatch log, and PR work stay local. With pushing on, workers push only the configured working branch to the configured remote; the coordinator creates a branch per build-plan phase and opens or updates its PR when the run completes. The harness never force-pushes, pushes tags, merges, or deletes branches.
+
 ### Run it manually
 
 Use `/dev-context` at the start of a fresh session or handoff. Once per project, run `/dev-scope`, `/dev-architect`, and `/dev-design` for frontend work. `/dev-loop <tasks>` is the automated alternative to the task sequence below, so do not run it alongside the manual steps.
@@ -116,6 +141,9 @@ The project records in `.konteksto/`, plus the design prototypes:
 ├── project-overview.md    what the product is          (/dev-scope)
 ├── glossary.md            the project's word for each thing
 │                                    (/dev-scope, /dev-architect adds)
+├── human-decisions.md     questions, options, recommendations, and human picks
+│                                    (/dev-scope creates, /dev-architect and
+│                                     /dev-design append their own choices)
 ├── architecture.md        stack, boundaries, invariants (/dev-architect)
 ├── tooling.md             containers, agent tooling
 ├── design.md              the design system (frontend only)  (/dev-design)
@@ -127,17 +155,21 @@ The project records in `.konteksto/`, plus the design prototypes:
 ├── code-standards.md      the conventions every session follows
 ├── library-docs.md        version specific notes
 ├── build-plan.md          the ordered task list
-├── progress-tracker.md    live state       (/dev-develop, plus the Verify
-│                                            Check column from /dev-check)
+├── progress-tracker.md    aggregate task and child subtask goals with live
+│                          build and verification state on every row
 ├── decision-log.md        decisions and observed evidence
 │                                    (/dev-develop, /dev-check, /dev-debug append)
 ├── audit-register.md      review findings and QA history
 │                                    (/dev-audit, /dev-qa update)
 ├── loop-state.md          active delivery loop state    (/dev-loop only)
+├── harness.md             pane roster, settings, and dispatch log
+│                                    (/dev-harness only)
 └── ui-registry.md         reusable components           (/dev-develop updates)
 ```
 
-Two of them describe the same task from complementary angles. The tracker says **where it stands**, one word per cell, scannable a phase at a time. `decision-log.md` is the chronological record of **what was decided and why**, plus **what was run and what it showed**.
+Two of them describe the same task from complementary angles. The tracker says **what every task and subtask must achieve and where each stands**, with one aggregate row and one child row per plan subtask. `decision-log.md` is the chronological record of **what was decided and why**, plus **what was run and what it showed**.
+
+`human-decisions.md` answers a different question: **what did the person choose from what they were shown?** Each entry keeps the question, every option, the original recommended marker, and the checked answer together. That makes a deliberate override visible without asking a later session to infer it from the finished documents. `/dev-scope` creates it, while `/dev-architect` and `/dev-design` append only the choices from their own conversations.
 
 Start a fresh agent or handoff with `/dev-context`. Use `/dev-loop` when a sequence of build plan tasks should run through implementation, verification, tests, audit, and regression QA.
 
@@ -145,13 +177,15 @@ Start a fresh agent or handoff with `/dev-context`. Use `/dev-loop` when a seque
 
 **A product that already shipped gets a baseline rather than a backlog.** On an existing codebase each skill asks where its own line sits: `/dev-design` asks whether the screens that already exist owe prototypes, and `/dev-architect` asks whether the features that are already built appear in the plan. The usual answer to both is no, and the work before the line is recorded as such instead of being stamped as though this workflow built it. Everything after the line follows the process in full.
 
-The shared documents have explicit ownership. `progress-tracker.md` splits by column: `/dev-develop` owns the Status of every task, and `/dev-check verify` owns the Verify Check beside it, because "the build is clean" and "somebody watched it work" are different claims and neither skill may make the other's. Both cells carry the model that stamped them and when, and a value that changes is struck through with the new one appended after it, so the whole history stays readable.
+The shared documents have explicit ownership. `progress-tracker.md` gives every task an aggregate row with its Goal and every UI or Logic subtask its own child row, so a person or a smaller model can understand the active work without reconstructing it from several files. `/dev-architect` mirrors every label and goal word for word from `build-plan.md`, `/dev-develop` stamps Status on each child before rolling up the aggregate, and `/dev-check verify` checks and stamps every child before rolling up its verdict. The two state columns stay separate because "the build is clean" and "somebody watched it work" are different claims. A stamp renders its value, model, and timestamp on separate lines with `<br>`, never commas. A changed value keeps the struck old stamp, a blank rendered line, and the new stamp.
 
 `decision-log.md` takes Decision and Evidence rows from `/dev-develop`, `/dev-check`, and `/dev-debug`. Most tasks add no Decision row, but every completed build adds its clean build Evidence row.
 
 The append only log carries a Timestamp and an **Author**, the exact model identifier that wrote the row. The Actor column beside it, the person, is team only. Author is not: the model changes between sessions when the person does not, and it is what tells a reader how much to trust a six week old row.
 
 `glossary.md` splits differently again, by stage. `/dev-scope` writes the words the user used, `/dev-architect` adds what designing the system revealed and may sharpen a definition but never rename a term, and every other skill reads it, names what it builds from it, and reports drift without writing.
+
+`human-decisions.md` has three writers split by stage and is append only. `/dev-scope` records product choices, `/dev-architect` records technical choices, and `/dev-design` records design choices and formal review decisions. Nobody rewrites an earlier answer when a choice changes; the new entry points back to the old ID.
 
 The Evidence rows preserve three distinct claims: `/dev-develop` says the build is clean, `/dev-check verify` says the behavior was exercised, and `/dev-debug` says a bug was proven gone. Every row carries its timestamp and writing skill, nobody edits another writer's rows, and `/dev-sync` writes none, having run nothing itself.
 
@@ -200,7 +234,7 @@ Several of these were sharpened by reading other people's skill collections, bot
 
 ## Requirements
 
-Docker for the local stack. Git. Node 18 or later for the installer.
+Docker for the local stack. Git. Node 18 or later for the installer. Herdr is required only for `/dev-harness`; its `config` mode can install it when missing.
 
 ## License
 

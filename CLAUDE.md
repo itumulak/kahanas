@@ -6,15 +6,16 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 
 | Skill | Owns | Answers |
 | --- | --- | --- |
-| `/dev-scope` | `project-overview.md`, and `glossary.md` | What the product is, what its parts are called, and whether a team builds it |
-| `/dev-architect` | `architecture.md`, `tooling.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, additions to `glossary.md`, plus the starting state of `progress-tracker.md`, `decision-log.md`, and `ui-registry.md` | How it gets built |
-| `/dev-design` | `design.md`, `design-registry.md`, `.konteksto/designs/` | How it looks, and whether a person approved it |
-| `/dev-develop` | the code, every column of `progress-tracker.md` except Verify Check, all of `ui-registry.md`, and Decision or Evidence rows in `decision-log.md` | Builds it |
+| `/dev-scope` | `project-overview.md`, `glossary.md`, and the starting state plus scope entries in `human-decisions.md` | What the product is, what its parts are called, and whether a team builds it |
+| `/dev-architect` | `architecture.md`, `tooling.md`, `code-standards.md`, `library-docs.md`, `build-plan.md`, additions to `glossary.md` and `human-decisions.md`, plus the starting state of `progress-tracker.md`, `decision-log.md`, and `ui-registry.md` | How it gets built |
+| `/dev-design` | `design.md`, `design-registry.md`, `.konteksto/designs/`, and design entries in `human-decisions.md` | How it looks, and whether a person approved it |
+| `/dev-develop` | the code, Assigned and Status plus blocked Notes in `progress-tracker.md`, all of `ui-registry.md`, and Decision or Evidence rows in `decision-log.md` | Builds it |
 | `/dev-check` | `.konteksto/reviews/`, the Verify Check column in `progress-tracker.md`, plus an Evidence row in `decision-log.md` on a verify pass | Confirms it actually works |
 | `/dev-debug` | the minimal fix, and Decision plus Evidence rows in `decision-log.md` | Finds out why it does not |
 | `/dev-audit` | the Issues table in `audit-register.md` | Tracks review findings across changes |
 | `/dev-qa` | QA Runs in `audit-register.md` | Checks resolved bugs for regression |
 | `/dev-loop` | `loop-state.md` | Orchestrates the delivery and regression loop |
+| `/dev-harness` | `harness.md` | Runs that loop across separate Herdr panes, and relays what a person must decide |
 | `/dev-context` | nothing, read only | Establishes context for a fresh session or handoff |
 | `/dev-test` | the test files, and `test-preferences.json` | Stops it breaking again |
 | `/dev-document` | `CHANGELOG.md`, `.konteksto/releases/`, `.konteksto/postmortems/` | Explains it to people |
@@ -41,6 +42,7 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | `/dev-qa` | regression observations | any intent at all |
 | `/dev-test` | regression protection | any intent at all |
 | `/dev-loop` | loop control state | application, product, technical, or design intent |
+| `/dev-harness` | the pane roster and what it dispatched | any intent at all, and any route an owning skill has not already recorded |
 | `/dev-context` | nothing | anything at all |
 | `/dev-sync` | corrections the repo proves | any intent at all |
 
@@ -85,10 +87,13 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 | What proves a browser can actually review a design | `dev-design/internal/design-review.md` |
 | How a review session is stopped, and why never by signalling it | `dev-design/internal/design-review.md` |
 | How a prototype state is reached from outside | `dev-design/internal/design-direction.md` |
+| The human question and answer format, and who appends to it | `human-decisions.md` |
 
 **This overview and `README.md` are the exception, and they still may not carry specifics.** Their job is orientation for somebody maintaining the skills, so they say what a rule is for and why it exists. They do not restate its exact conditions, values, or counts, because a summary that carries operational detail is just another copy waiting to go stale.
 
-**A new artifact needs a fundamentally different owner, lifecycle, or truth source.** The state and knowledge files include `progress-tracker.md`, `decision-log.md`, `audit-register.md`, `loop-state.md`, `ui-registry.md`, `design-registry.md`, and `glossary.md`. Each earns its place on that test. New information goes into an existing artifact unless it can pass the same one, because the cost of another file is paid by every session that has to know it exists.
+**A new artifact needs a fundamentally different owner, lifecycle, or truth source.** The state and knowledge files include `progress-tracker.md`, `decision-log.md`, `human-decisions.md`, `audit-register.md`, `loop-state.md`, `ui-registry.md`, `design-registry.md`, and `glossary.md`. Each earns its place on that test. New information goes into an existing artifact unless it can pass the same one, because the cost of another file is paid by every session that has to know it exists.
+
+`human-decisions.md` passes that test because its truth source is the question and options a person actually saw, its lifecycle is append only across the three intent stages, and its purpose is provenance rather than current intent or build evidence. The finished scope and architecture documents cannot recover which rejected option was recommended. `decision-log.md` begins only when building begins and records a model's decisions and observations, not the person's upstream answer.
 
 ## Design
 
@@ -126,6 +131,8 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 
 **`glossary.md` is the second shared document, and it splits by stage rather than by row or column.** `/dev-scope` creates it and writes the words the user used. `/dev-architect` adds a term the design brought into being and sharpens a definition the schema proved imprecise, and **may never rename one**, because a rename is a decision about the product's own language and belongs to the person whose product it is. Everything else reads it, names what it builds from it, and reports drift.
 
+**`human-decisions.md` is the third shared document, and it also splits by stage.** `/dev-scope` creates it and appends product choices, `/dev-architect` appends technical choices, and `/dev-design` appends design choices and formal review decisions. Each entry preserves the question, all options, the recommendation marker as presented, and the person's checked answer. A changed choice appends a replacement entry rather than rewriting history. `/dev-context` reads it and surfaces the entries where the checked option was not the recommended one.
+
 **`/dev-sync` writes nothing there either, and the reason is not the gap and contradiction rule.** A term in the code that is missing from the glossary reads as a plain gap, and by that rule's own words it is one. It still may not be filled, because **the code proves a word is in use and never that it is the word this project chose.** Naming is a decision, and this skill records nothing it did not observe.
 
 **That is the sharper form of "a fact the repo can prove", and it is worth stating because the loose form misleads.** `ui-registry.md` records what exists, so the code proves it end to end and `/dev-sync` corrects it. A glossary records what was chosen, and no amount of reading the code will ever prove that. Before filling any gap, check the repo proves the fact the document actually claims rather than a neighbouring one.
@@ -134,15 +141,15 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 
 **Append only, and never across writers.** A row is a claim about a moment that has already passed. A skill appends its own row and edits nobody's, and `/dev-sync` writes none at all, because it has run nothing and a fabricated observation reads exactly like a real one.
 
-`progress-tracker.md` splits differently, **by column rather than by row.** `/dev-architect` creates it, `/dev-develop` owns every column of its phase tables except one, and `/dev-check verify` owns that one, Verify Check, and touches nothing else in the file. `/dev-sync` may still correct `/dev-develop`'s columns from repo evidence after the fact, never during a build, and it writes no Verify Check cell or Evidence row: it has run nothing.
+`progress-tracker.md` splits differently, **by column rather than by row.** Every task has one aggregate row with its Goal and one child row per UI and Logic subtask. `/dev-architect` owns those labels and goals, copied word for word from `build-plan.md`. `/dev-develop` owns Assigned on aggregate rows and Status on every row, plus a blocked Note. `/dev-check verify` owns Verify Check on every row, plus a failed Note. `/dev-sync` may still correct build state from repo evidence after the fact, never during a build, and it writes no Verify Check cell or Evidence row: it has run nothing.
 
 **A `DONE` Status and a `PASSED` Verify Check are two different claims, so they are two columns.** `DONE` says the code was built and the build is clean. `PASSED` says a model ran the thing and watched it work. A task holding `DONE` with a `FAILED` verify is a real and useful state, and one column could not express it.
 
-**Every Status and Verify Check value is stamped with the model that wrote it and the minute it wrote it**, and a value that changes is superseded by striking the old one through and appending the new, so a cell reads oldest to newest and the last unstruck value is current. Nothing is deleted and nothing is edited in place. A task that went `DONE`, then `BLOCKED`, then `DONE` again is telling a later session something a single final value hides, and the model name is what lets a reader judge how much to trust a stale verdict.
+**Every completed Status and Verify Check value is stamped with the model that wrote it and the minute it wrote it.** The value, model, and timestamp render on separate lines using literal `<br>` tags, never commas. A value that changes is superseded by striking the whole old stamp and appending the new one after `<br><br>`, so a cell reads oldest to newest and the last unstruck value is current. Nothing is deleted and nothing is edited in place. A subtask that went `DONE`, then `BLOCKED`, then `DONE` again is telling a later session something a single final value hides, and the model name is what lets a reader judge how much to trust a stale verdict.
 
-**Two files hold different things about the same task.** `progress-tracker.md` says where it stands, in one word per cell, so a phase can be read at a glance. `decision-log.md` holds the append only event history: decisions and the evidence that supports them. Its Kind column preserves whether an event was a Decision or Evidence.
+**Two files hold different things about the same task.** `progress-tracker.md` says what the task and its subtasks must achieve and where it stands, so the current contract and state are readable together. `decision-log.md` holds the append only event history: decisions and the evidence that supports them. Its Kind column preserves whether an event was a Decision or Evidence.
 
-`decision-log.md` moved out of the tracker because they are indexed differently. The tracker is one row per task, rewritten in place as that task moves. The log is one row per event, in chronological order, and nothing in it is ever rewritten. The log is also what `/dev-document` mines for changelogs and postmortems, which is why padding it with narration costs something real.
+`decision-log.md` moved out of the tracker because they are indexed differently. The tracker is one aggregate row per task and one child row per subtask: `/dev-architect` mirrors each stable plan goal, while state is rewritten in place as work moves. The log is one row per event, in chronological order, and nothing in it is ever rewritten. The log is also what `/dev-document` mines for changelogs and postmortems, which is why padding it with narration costs something real.
 
 **Both tables stamp who wrote each entry and when**, to the minute. The tracker stamps inside its Status and Verify Check cells; the log carries a Timestamp and an Author column. **Author is the exact model identifier**, and it survives on a personal project even though Actor does not, because the model changes between sessions when the person does not, and a reader weighing a six week old verdict wants to know what produced it.
 
@@ -156,7 +163,7 @@ The stamp records provenance, not permission. It never licenses overwriting some
 
 ## Team shape
 
-**Team Shape is asked in scope and applied in architect.** `/dev-scope` asks whether the project is personal or team and records the answer in `project-overview.md`. `/dev-architect` uses it to add an Assigned column in `progress-tracker.md` and an Actor column in `decision-log.md`. Personal projects get neither, since a column with one value in it is noise.
+**Team Shape is asked in scope and applied in architect.** `/dev-scope` asks whether the project is personal or team, records the current answer in `project-overview.md`, and preserves the panel in `human-decisions.md`. `/dev-architect` uses it to add an Assigned column in `progress-tracker.md` and an Actor column in `decision-log.md`. Personal projects get neither, since a column with one value in it is noise.
 
 **No skill can reserve a task, and no document may pretend otherwise.** The assignee is a convention. `/dev-develop` reads it and stops when a task belongs to someone else, but two people on two machines both pass that check and either can proceed. These are instructions an agent reads, not a server holding a lock. Real enforcement is branch protection or an issue tracker, and every place that mentions assignment says so, because a guarantee the system cannot keep is worse than no guarantee at all.
 
@@ -183,7 +190,9 @@ skills/dev-<name>/
 └── *.md                  optional, bundled files read on demand
 ```
 
-**A skill may ship executable files, and `/dev-design`'s `review-harness/` is the only one that does.** It is there because the code decides whether an approval is genuine, and a file regenerated from memory each session is a file nobody has ever reviewed twice. **Anything shipped that way needs a test suite in `scripts/`**, run by `npm test`, which stays in this repository rather than travelling into the projects that install the skill.
+**A skill may ship executable files, and few do.** `/dev-design`'s `review-harness/` decides whether an approval is genuine, and it is code where a file regenerated from memory each session is a file nobody has ever reviewed twice. **Anything shipped that way needs a test suite in `scripts/`**, run by `npm test`, which stays in this repository rather than travelling into the projects that install the skill.
+
+**A skill whose files describe one machine can be tested even with no code in it.** `/dev-harness` has a roster template, four procedure files, four modes, and three briefs that all describe the same run, and every defect two external reviews found in it was one of those files disagreeing with another edited later: a setting recorded and never read, a default stated twice with different numbers, a step ordered after the step that depends on it. `scripts/test-harness-docs.mjs` asserts those agreements. It is worth writing for any skill that grows past a couple of files, because it catches exactly what reading one file at a time cannot.
 
 **Every skill carries the `dev-` prefix in three places**, and they must agree: the folder name, the `name:` frontmatter inside `SKILL.md`, and every reference to it in any document. The registry keys on the frontmatter name, so a folder and a name that disagree install something the agent then cannot find. The local installer refuses that case, which is the check that catches it.
 

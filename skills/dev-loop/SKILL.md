@@ -37,7 +37,7 @@ The build plan and progress tracker remain the source of truth for task status. 
 
 1. Read `.konteksto/build-plan.md`, `.konteksto/progress-tracker.md`, and an existing `.konteksto/loop-state.md` when present.
 2. With an argument, resolve every named ID or inclusive range, such as `01-05`, against the build plan. Reject an unknown or ambiguous selector before changing code. Run only the resolved tasks, in plan order.
-3. Without an argument, continue the selected task list in `loop-state.md` when it is active. Otherwise select the next unfinished task from the build plan.
+3. Without an argument, continue the selected task list in `loop-state.md` when it is active. Otherwise scan aggregate task rows in progress tracker order, skipping `DONE` and `BASELINE`, and select the first unfinished task from the build plan. Its first child row whose Status is not `DONE` is the implementation resume point. Child rows never become separate loop task IDs.
 4. Never add adjacent tasks merely because they look related.
 
 ## Run one task
@@ -45,7 +45,7 @@ The build plan and progress tracker remain the source of truth for task status. 
 For the current task, keep the state file current and perform exactly one phase at a time.
 
 1. **Develop.** Run `/dev-develop <task ID>`. Respect its gates and stop if it routes to an owner such as `/dev-architect` or `/dev-design`.
-2. **Verify.** Run `/dev-check verify <task ID>`. A pass advances to test. On a failure, preserve the verifier's route in Attempt history with its observed evidence. A behavioral failure increments that task's `/dev-debug` repair count and the run total, then advances to debug. A promised but missing or built but not live surface increments its `/dev-develop` repair count and the run total, then returns to `/dev-develop <task ID>`. A prototype that is wrong or silent routes to `/dev-design`.
+2. **Verify.** Run `/dev-check verify <task ID>`. A pass advances to test only when every child subtask Verify Check and the aggregate task Verify Check were stamped `PASSED` by that completed check. On a failure, preserve the verifier's per condition and per subtask route in Attempt history with its observed evidence. A behavioral failure increments that task's `/dev-debug` repair count and the run total, then advances to debug. A promised but missing or built but not live subtask increments its `/dev-develop` repair count and the run total, then returns to `/dev-develop <task ID>`. A prototype that is wrong or silent routes to `/dev-design`.
 3. **Debug.** Run `/dev-debug <task ID>`, then return directly to verify.
 4. **Test.** Run `/dev-test`. A passing suite completes the task. If `/dev-test` reports that this project intentionally has no test runner, the Definition of Done in `code-standards.md` is the implementation gate and the task completes once it passes. After either form of passing test gate, if another selected task remains, set Current task to it, Phase to `develop`, and Next action to `/dev-develop <task ID>`, then immediately begin its Develop phase in this same run. Do not report a passing task as a handoff or ask whether to continue. If no selected task remains, advance to Final QA. If the suite exposes a defect, count it against that task's `/dev-debug` route and the run total, record the failing evidence in Attempt history, run `/dev-debug <task ID>`, then verify and test again.
 5. Do not change a task's repair route without new observed evidence from its verifier, test, or audit result. Record that evidence and the new route in Attempt history. At ten failed attempts for one task and route, or thirty repairs across the whole run, set the phase to `blocked`, preserve the decisive evidence, and stop. Do not start another selected task.
@@ -54,12 +54,21 @@ Do not call a task passed from a clean build alone. It passes only after observe
 
 ## Session boundaries
 
-After each completed task, record the next task and exact next action in `loop-state.md`, then execute that action immediately. A fresh session is used only when the user or host explicitly starts one; it resumes from the saved state and continues automatically. Do not claim that a fresh session was created unless the host confirmed it.
+After each completed task, record the next task and exact next action in `loop-state.md`, then execute that action immediately.
+
+**One exception: when the next selected task belongs to a different phase of `build-plan.md`, stop instead, and record `Next action` as `/dev-loop <the remaining selector>`.** Record `/dev-loop`, never `/dev-develop <task>`, because only this skill owns `loop-state.md`: a route naming a subskill cannot advance the state, so whatever ran it would hand back with the file unchanged and the caller would read its own last route as stale.
+
+A phase is where a harness gives the work its own branch and its own pull request, and it is a natural place for a person to look, so a run that crosses one without stopping either lands later phases on the wrong branch or never gets reviewed as a unit. Outside a harness the same stop is a short pause on a boundary somebody chose, and resuming it is one command. A fresh session is used only when the user or host explicitly starts one; it resumes from the saved state and continues automatically. Do not claim that a fresh session was created unless the host confirmed it.
 
 ## Final QA
 
 After every selected task has passed its test gate, set the phase to `audit` and run `/dev-audit` over the selected change range. This ingests an existing matching review or runs one when none exists, so the audit register is current. Read the selected review report and the register before starting QA.
 
+- **No review report:** if `.konteksto/reviews/` holds no report covering the selected range, the audit has not run. Do not read an empty `audit-register.md` as a clean result: both files being empty is one fact stated twice, and it is that nobody has looked. What happens next depends on whether this session may run `/dev-audit` at all:
+  - **It may:** run it, wait for the report it produces, and carry on through this gate.
+  - **It may not, because another window owns that step:** leave the phase at `audit`, write `Next action` as `/dev-audit <selected range>`, and record in Last observed result that no report exists yet and the audit is owed. Then stop. **This is a handoff, not a block.** `blocked` means nobody can proceed without a person, and it stops a harness from dispatching anything at all, so using it here would leave the reviewer waiting for a route the coordinator is forbidden to send.
+
+  **Do not hand back with `Next action` unchanged and nothing recorded.** The phase alone cannot tell audit owed from audit done, and across two windows that becomes a cycle where each side correctly refuses and neither reports it. `Next action` plus Last observed result is what carries the difference.
 - **Degraded review:** if the report does not prove a reviewer model different from the author model, set the phase to `blocked`, preserve that fact and the report path in loop state, and stop. A degraded review may record findings, but its absence of findings cannot clear the selected range. Resume only after `/dev-check review` runs on a contrasting model for the current diff.
 - **Open review finding:** for an open or reopened Blocker or Major in the selected range, follow the exact route only when its Task is a real task ID and the route is `/dev-debug <AUD-ID>` or `/dev-develop <task ID>`. Record the audit ID, route, and evidence in Attempt history. After the corrective work, run verification, tests, and `/dev-audit <linked task>` again before returning to this gate. If its Task is `—`, its route is absent, or its route names an owner outside this loop, set the run to `blocked`, preserve the exact route and ownership gap in loop state, and stop for that owner or a person to resolve it. Do not begin or complete final QA while such a finding remains.
 - **No blocking review finding:** set the phase to `qa` and run `/dev-qa` without an argument.

@@ -28,7 +28,7 @@ These keep the skill from sprawling, which is the failure mode for anything that
 
 | Action | `/dev-sync` | Owner |
 |---|---|---|
-| Stamp a `progress-tracker.md` task `DONE` the repo proves is done | ✅ corrects | `/dev-sync` |
+| Stamp a `progress-tracker.md` subtask `DONE` when the repo proves its goal, then the aggregate task only when every child and the task Goal are proved | ✅ corrects | `/dev-sync` |
 | Update Last completed, Next, and Phase to match the Status column | ✅ corrects | `/dev-sync` |
 | Write or change a Verify Check cell | ❌ leaves alone | `/dev-check verify` |
 | Register a component in `ui-registry.md` that exists in code but is missing | ✅ adds | `/dev-sync` |
@@ -78,7 +78,7 @@ The whole chain, once per project then once per task:
 
 Exactly what the Boundaries table grants, and nothing else.
 
-It is the **sweeper**: the one skill that stamps a task another skill finished but never recorded, and registers a component someone built without registering it. Those gaps accumulate silently, and they are what make a tracker stop being trusted.
+It is the **sweeper**: the one skill that stamps a subtask another skill finished but never recorded, rolls up the aggregate task only when every child is proved, and registers a component someone built without registering it. Those gaps accumulate silently, and they are what make a tracker stop being trusted.
 
 ---
 
@@ -107,21 +107,23 @@ Then filter to what you sync **from**:
 
 Read the tracker, the registry, and `decision-log.md`, plus the parts of the plan you need. Read narrowly. The decision log is where an unratified assumption is recorded, and that is the one thing in it that changes what you may do here.
 
-For each task in `progress-tracker.md` whose Status is neither `DONE` nor `BASELINE`, ask whether the repo **proves** it is done:
+For each aggregate task in `progress-tracker.md` whose Status is neither `DONE` nor `BASELINE`, first compare it with `build-plan.md`. The aggregate row must reproduce the task number, title, and Goal word for word. Every numbered UI and Logic subtask must have its own child row, in plan order, with the goal copied word for word. A missing, extra, combined, reordered, or reworded row is stale planning owned by `/dev-architect`, so report it and do not reconcile that task.
 
-- The files its bullets describe exist and contain what they promised.
+On an exact match, judge **each child subtask whose Status is neither `DONE` nor `BASELINE` independently** before judging the aggregate task. Do not append the same current value again. Ask whether the repo proves the exact child goal is done:
+
+- The files and outcomes its goals describe exist and contain what they promised.
 - For a data task, the migration exists **and** the schema is live, per the rule in `/dev-develop`'s `logical-guide.md` phase 2. Query the real database rather than trusting the migration file.
 - For a UI task, the component exists and is reachable.
 
 **Proof means what is in the repo, not what a commit message claims.** A commit saying "add password reset" is a claim, and the route either exists or it does not.
 
-**Only act on an unambiguous match.** Stamp a task only when the file plainly belongs to it. Where code could belong to either of two tasks, do not pick: record it as ambiguous and move on.
+**Only act on an unambiguous match.** Stamp a child only when the evidence plainly belongs to that subtask. Where code could belong to either of two subtasks, do not pick: record it as ambiguous and move on. Stamp the aggregate only when every child is `DONE` or can be stamped `DONE` in this pass, and the repo also proves the aggregate task Goal.
 
 **Be conservative.** Stamp on clearly present evidence, and when unsure, leave it. A finished task still reading `PENDING` is a small annoyance. An unfinished one stamped `DONE` sends the next session past work that was never done.
 
 **You cannot confirm the Definition of Done, so say so rather than implying you did.** That table in `code-standards.md` is the bar `/dev-develop` clears before stamping, and clearing it means running its commands. You run nothing, for the same reason you write no Evidence row: a check you did not run and an observation you did not make are the two things this skill must never fabricate.
 
-So the stamp you write here is a narrower claim than the one `/dev-develop` writes, and your report says which tasks carry it: the code the task promised is plainly in the repo, and nobody has confirmed it meets the project's bar. Point those at `/dev-develop` to finish the check, alongside `/dev-check verify` for the ones with an empty Verify Check.
+So every stamp you write here is a narrower claim than the one `/dev-develop` writes, and your report says which child and aggregate rows carry it: the code that exact row promised is plainly in the repo, and nobody has confirmed it meets the project's bar. Point those at `/dev-develop` to finish the check, alongside `/dev-check verify` for rows with an empty Verify Check.
 
 **Do not run the commands yourself to close the gap.** Running a build is not reconciliation, it changes the working tree, and it turns a maintenance pass into a build session nobody asked for.
 
@@ -129,11 +131,17 @@ So the stamp you write here is a narrower claim than the one `/dev-develop` writ
 
 ### Step 3: Reconcile
 
-**The tracker.** Stamp `DONE` on every task the evidence proves, in the shape that file's Progress section sets: `DONE, <your exact model identifier>, <YYYY-MM-DD HH:MM from the system clock>`, superseding the old value by striking it through rather than overwriting it. Update Last completed, Next, and Phase to match the Status column, **reading past every `BASELINE` row and past a whole Phase 0 of them**, exactly as `/dev-develop` does when it picks up work. Next names a task somebody is going to build, and a baseline row is never that.
+**The tracker.** Stamp each proved child Status first. Then stamp the aggregate task only when every child is `DONE` and the aggregate Goal is proved. Every stamp uses three rendered lines inside the table cell:
+
+```
+DONE<br><your exact model identifier><br><YYYY-MM-DD HH:MM from the system clock>
+```
+
+Never join stamp fields with commas. The first stamp replaces a bare `PENDING` placeholder directly. When a cell already has a stamp, strike the whole old three line stamp and append the new three line stamp after `<br><br>`. Leave exactly one unstruck current stamp. Update Last completed, Next, and Phase from the aggregate task rows, while naming the first unfinished child in Next. Read past every `BASELINE` row and past a whole Phase 0 of them, exactly as `/dev-develop` does when it picks up work. A baseline row is never next.
 
 **A `BASELINE` row is never promoted**, which is why step 2 leaves it out of the scan rather than finding evidence for it and then declining to act. Those rows say the feature was finished before this workflow arrived. Finding its code proves nothing new, since that is exactly what the row already says, and stamping it `DONE` would claim a build nobody here ran. Leave it, and the row for the task that changes it later is an ordinary row.
 
-**The Verify Check column is read only to you**, exactly as the decision and evidence log is, and for the same reason. That cell says a model ran the app and watched a behavior, and you have run nothing. Stamping it would be fabricating an observation. A task stamped `DONE` here with an empty Verify Check is reported as never verified, and pointed at `/dev-check verify`.
+**Every Verify Check cell is read only to you**, exactly as the decision and evidence log is, and for the same reason. That cell says a model ran the conditions for that task or subtask and watched the behavior, and you have run nothing. Stamping it would be fabricating an observation. Every row stamped `DONE` here with an empty Verify Check is reported as never verified, and pointed at `/dev-check verify`.
 
 **`decision-log.md` is read only to you.** Never append or edit a row. Its Evidence rows claim a specific skill ran a specific thing and saw a result, while its Decision rows record reasoning at a moment. You have neither evidence nor a build decision to add. Read it for rows marked `assumed, not yet ratified`, which are what keep their tasks off `DONE`; its Task column lets you match a row without guessing.
 

@@ -55,6 +55,7 @@ dist/
 build/
 *.tgz
 *.tar.gz
+/skill-bundles/
 
 # Runtime
 .env

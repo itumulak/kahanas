@@ -2,7 +2,7 @@
 name: dev-document
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion
 argument-hint: [pr | changelog | release-note | postmortem]
-description: "Run /dev-document pr, changelog, release-note, or postmortem (or let it ask) to write the human facing prose about a change. Drafts from the real commits, the real diff, and the decision log, then writes it to the right place. Does not write code, tests, or any design document."
+description: "Run /dev-document pr, changelog, release-note, or postmortem (or let it ask) to write the human facing prose about a change. Drafts from the real commits, the real diff, and the decision log, then writes it to the right place. The pr type opens or updates the pull request itself. Does not write code, tests, or any design document."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -21,7 +21,7 @@ Every sentence traces to something that actually happened: a commit, a diff, a l
 
 | Type | Source | Audience | Output |
 |---|---|---|---|
-| `pr` | branch commits and the diff against base | reviewers | a title and body, in chat |
+| `pr` | branch commits and the diff against base | reviewers | an opened or updated pull request |
 | `changelog` | the merged change | developers | an entry appended to `CHANGELOG.md` |
 | `release-note` | a version range | users | `.konteksto/releases/<version>.md` |
 | `postmortem` | an incident, plus any `/dev-debug` record | the team | `.konteksto/postmortems/<date>-<slug>.md` |
@@ -62,7 +62,18 @@ Otherwise infer where it is obvious. On a feature branch ahead of base means `pr
 
 ### Step 2: Gather the real source material
 
-Base branch is `main` if it exists, else `master`.
+Base branch is where this branch was actually cut from, and on a stacked branch that is another feature branch rather than `main`. Find the closest branch whose tip is already an ancestor of this one:
+
+```bash
+cur=$(git rev-parse --abbrev-ref HEAD)
+git for-each-ref --format='%(refname:short)' refs/heads | grep -vx "$cur" | while read b; do
+  git merge-base --is-ancestor "$b" HEAD && echo "$(git rev-list --count "$b"..HEAD) $b"
+done | sort -n | head -1
+```
+
+The count is how far this branch has moved past that one, so the smallest is the nearest parent. **Do not compute a merge base against `main` and look for a branch there**: that finds `main`, which is what a merge base against `main` is, and it silently targets the wrong branch on every stacked pull request. In this project's own repository the naive form picked `main` at 11 commits while the branch was actually stacked on `0.8.0` at 8.
+
+Fall back to `main`, else `master`, when nothing else is an ancestor. A repository with neither, or with a differently named trunk, is one to ask about rather than guess at.
 
 - **pr and changelog**: `git log --oneline <base>..HEAD` and `git diff --name-only <base>...HEAD`.
 - **release-note**: list tags by date. No tags at all means falling back to the full history and saying so.
@@ -100,7 +111,25 @@ Rules that hold for all four:
 
 ### Step 4: Place it
 
-- **pr**: output the title and body in chat. Offer to create or update the pull request, and **wait for a yes**, since that is outward facing and hard to take back.
+- **pr**: create the pull request. Output the title and body first, then open it. **Do not ask for a confirmation.** Asking was the old behavior, and it cost more than it protected: a run that finishes while nobody is at the terminal stops on a question, and the work sits unopened until somebody comes back to say yes to something they already asked for.
+
+  Write the body to a file rather than passing it as an argument, because a body with backticks and newlines does not survive a shell:
+
+  ```bash
+  gh pr create --base <the resolved base branch, which may be another feature branch> --head <current branch> --title "<title>" --body-file <path>
+  ```
+
+  Four cases decide what actually happens:
+
+  - **A harness run has recorded `Push on hand back: off`.** Read `.konteksto/harness.md` when it exists before any push or `gh` command. `off` means the person asked for nothing to leave the machine, and opening a pull request would push the branch to do it. Say that the setting forbids publication, output the title and body, and stop.
+  - **A pull request already exists for this branch.** Update it with `gh pr edit --title --body-file` instead of opening a second. A branch gets one pull request, and a run that reaches its finish twice must not leave two. Check with `gh pr view --json number,state`.
+  - **The branch is not pushed, or is behind its remote.** Push it first with `git push --set-upstream <the remote this branch tracks, or the single configured remote> <current branch>`. Read it with `git remote`; do not assume `origin`, since a project may name its remote anything and pushing to a guess sends work somewhere nobody asked for. A pull request describes commits a reviewer can fetch, and there is nothing to open against a branch nobody else has.
+  - **On the base branch.** There is no pull request to open. Say so and stop: a `pr` on `main` is a request the person did not mean.
+  - **`gh` missing, not authenticated, or no remote.** Fall back to the old behavior. Output the title and body, save the body next to the project so nothing is retyped, and say exactly which of those three it was. Do not install anything and do not add a remote.
+
+  **A closed or merged pull request is not one to reuse.** Open a new one, and say the old number in the report.
+
+  The rule about a secret in the diff still holds and outranks this one. A secret means stop and tell the person, not open a pull request with the credential summarized in it.
 - **changelog**: append to `CHANGELOG.md` under the unreleased heading. **Match the file's existing format**, whatever it is, rather than imposing a different convention on someone's established file. Create it only when there is none.
 - **release-note**: write `.konteksto/releases/<version>.md`.
 - **postmortem**: write `.konteksto/postmortems/<date>-<slug>.md`.

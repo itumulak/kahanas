@@ -26,6 +26,12 @@ This skill owns the Issues table in `.konteksto/audit-register.md`. Create the f
 ## Run the audit
 
 1. Find the newest review report whose scope matches the requested change and whose diff has not changed since the review. If one exists, ingest it. Otherwise run `/dev-check review`, follow its different model requirement, and ingest its dated findings file.
+
+**Producing the missing review is this skill's job, and it is not optional.** `/dev-check review` writes the report and `/dev-audit` ingests it, so when `.konteksto/reviews/` holds nothing for this change there is no ingest to do until this skill runs the review itself. Run it, wait for the file, then read it.
+
+**An empty register with no report is an audit that has not happened, not a clean one.** A register with no rows and a reviews folder with no file say the same thing twice: nobody has looked. Reporting that as no issues found is fabricated evidence, and it is the most dangerous kind, because it arrives at the exact gate that exists to catch what the builder could not see. This project's own harness demo produced precisely that: a reviewer read an empty register, reported no issues found, and the loop treated a review that never ran as a review that found nothing.
+
+If this session genuinely may not run `/dev-check review`, from a tool restriction or a harness rule, then say the review is missing, name what would have to run to produce it, and stop. Stopping is a correct outcome here. Reporting clean is not.
 2. Read the selected review report and the existing audit register, if present. Confirm from the report header that reviewer and author models differ. If it does not prove that, report the review as degraded; do not call an empty report independent or clean.
 3. Add every finding from the report. Include Blockers, Major, Minor, and Nits. Give a new finding the next unused `AUD-<number>` ID. A clean review adds no invented issue.
 4. Deduplicate before adding: match the underlying behavior or root cause, not an exact line number. If it is an existing issue, retain its ID, update Last seen and Sources, and do not create a second row. Mark its Type `regression` when the same resolved root cause has returned.
@@ -33,19 +39,26 @@ This skill owns the Issues table in `.konteksto/audit-register.md`. Create the f
    - a reproducible behavioral defect or regression: `/dev-debug <AUD-ID>`
    - a review finding that needs an implementation change but no diagnosis: `/dev-develop <linked task>`
    - a load bearing document or approved design conflict: route to its documented owner
-6. Never close an issue merely because a later review did not mention it. Set `ready for QA` only when the fresh review covered the original area and the finding is no longer present. Record the current Git revision in Review basis when available, otherwise record the reviewed paths and their content checksums. `/dev-qa` supplies the runtime result and transitions that state to `verified` or `reopened`.
+6. Never close an issue merely because a later review did not mention it. When the fresh review covered the original area and the finding is no longer present, **the type decides which state it moves to**:
+   - a `bug` or a `regression`, which has a case somebody can rerun: `ready for QA`. `/dev-qa` supplies the runtime result and transitions that state to `verified` or `reopened`.
+   - anything else, which has no runtime case: `resolved`, with the review that proved it in Sources. Do not send it to `ready for QA`, because `/dev-qa` cannot accept it and it would sit there forever.
+
+   Record the current Git revision in Review basis when available, otherwise record the reviewed paths and their content checksums.
 
 ## Issue states
 
 Use only these values:
 
 - `open`: newly recorded or still observed.
-- `ready for QA`: a fresh review indicates the fix is present and needs regression proof.
+- `ready for QA`: a fresh review indicates the fix is present, **and the finding has a runtime case somebody can rerun**. Only a `bug` or a `regression` reaches this state.
 - `verified`: a relevant QA run passed after the fix.
+- `resolved`: a fresh review covering the original area shows the fix is present, and there is no runtime case to rerun. This is where a `test`, `style`, `maintainability`, or other static finding ends. It is a terminal state and it claims less than `verified` does: a review looked and the finding is gone, which is all anybody can honestly say about a finding that was never observable at runtime.
 - `reopened`: QA or a later review found the issue again.
 - `wontfix`: a person explicitly accepted the risk. Record the reason and never infer this state.
 
-The register tracks findings, not only runtime bugs. Nits and static concerns stay auditable, but they do not automatically become QA cases.
+The register tracks findings, not only runtime bugs. Nits and static concerns stay auditable, and they never become QA cases.
+
+**`resolved` exists because without it those findings had nowhere to go.** `/dev-qa` rejects anything that is not a `bug` or a `regression`, so a `test` finding parked at `ready for QA` could never reach `verified` and never be closed: the register grew rows nothing was able to finish. This project's own harness demo produced exactly that and stalled a run on it. Sending such a finding to `verified` instead would be worse, because that value claims a QA run that never happened.
 
 ## Report
 

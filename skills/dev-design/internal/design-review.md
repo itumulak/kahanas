@@ -308,7 +308,7 @@ The capture findings are not decoration beside the decision, so the server sorts
 Then, in this order:
 
 1. Write the working copy to `.konteksto/designs/<slug>.html`, **as a temporary file in that folder followed by a rename**, so a reader never sees a half written prototype and a crash leaves either the old file or the new one.
-2. Stamp `APPROVED, <person>, <timestamp>` on every registry row pointing at that file, per the registry's own rules for a shared prototype.
+2. Stamp `APPROVED<br><person><br><timestamp>` on every registry row pointing at that file, per the registry's own rules for a shared prototype. The three fields render on separate lines and never use commas.
 3. Confirm both landed, and report exactly what did if only one did.
 
 **The order matters, and no transaction across the two is needed.** The registry is the authority on whether a design is approved. A file written with no stamp beside it is a file nobody approved, which is a safe and readable state. A stamp with no file behind it is not safe: it claims an approved design that is not there. **Write the file first, always**, and the ordering does the work a rollback would, without a rollback that could itself fail halfway.

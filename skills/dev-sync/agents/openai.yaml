@@ -4,4 +4,4 @@
 interface:
   display_name: "Dev Sync"
   short_description: "Make the documents true again after a change"
-  default_prompt: "Run the dev-sync skill: read its SKILL.md, then reconcile the progress tracker and ui registry against what the repo proves, and flag the design documents the change made stale."
+  default_prompt: "Use $dev-sync to reconcile each task and child subtask in the progress tracker plus the UI registry against what the repository proves, then flag stale design documents."

@@ -7,6 +7,7 @@ How to move a project already using these skills onto a newer version.
 | | Where it lives | On upgrade |
 | --- | --- | --- |
 | The skills | `.claude/skills/dev-*` or `.agents/skills/dev-*` | **delete and reinstall** |
+| OpenCode command wrappers | `.opencode/commands/dev-*.md` | **delete and reinstall with the OpenCode installer** |
 | Your documents | `.konteksto/` | **never delete**, migrate in place |
 
 Nothing in the skills folder is yours, so replacing it wholesale is the clean path. `.konteksto/` is the entire point of the workflow: decisions, notes, and verdicts that no command produces and the repository does not preserve. A fresh `/dev-scope` cannot regenerate any of it.
@@ -25,6 +26,13 @@ Or for the generic folder that Codex and others read:
 ```bash
 rm -rf .agents/skills/dev-*
 npx skills@latest add itumulak/kahanas
+```
+
+For OpenCode, replace both the skills and their slash command wrappers in one pass:
+
+```bash
+rm -rf .agents/skills/dev-* .opencode/commands/dev-*.md
+npx --yes github:itumulak/kahanas -a opencode
 ```
 
 **Delete rather than installing over the top.** A version that removes a file leaves it behind otherwise, and a stale bundled file is worse than a missing one, because the skill that no longer reads it still looks like it might.
@@ -83,12 +91,31 @@ Then do this:
 - Add any section the new templates have that my existing documents lack.
   Where a section needs a real value you cannot derive, leave the placeholder
   and list it for me rather than guessing.
-- Convert progress-tracker.md if its Progress section is still a checkbox
-  list. One table per phase. A ticked task becomes DONE, an unticked one
-  PENDING, every Verify Check cell is an em dash, and Note is an em dash
-  unless the task is genuinely blocked right now. An em dash in every Verify
-  Check is the correct result: nothing was verified under a version that had
-  no such column.
+- Convert every build-plan.md task to the current Goal and subtask goal shape.
+  Use its existing one line outcome as Goal and retain its UI and Logic items
+  as subtask goals. Then cross check the Stack table, System Boundaries, data
+  flow, Invariants, Security model, Value Sourcing table, and operator duties
+  in architecture.md. Add a settled build affecting commitment to each task
+  that establishes or relies on it, using its exact approved name rather than
+  a generic category. This is not a new decision. If the correct task is
+  ambiguous, report the gap instead of choosing one.
+- Convert progress-tracker.md to one aggregate row per build-plan.md task and
+  one child row per numbered UI and Logic subtask. The aggregate row includes
+  the task Goal. Every child row copies its label and goal from build-plan.md
+  word for word and stays in plan order. Preserve each old task row as the
+  aggregate row. If it was DONE, give its children unstamped DONE values. If
+  it was BASELINE, give every child BASELINE with the migration model and
+  minute, since that stamp records this inventory. Otherwise start children
+  at PENDING unless existing records prove a more specific state. Child Verify
+  Check cells start at an em dash. Preserve any old aggregate Verify Check as
+  legacy task level history, but add a line below the table stating it does not
+  imply child verification. Run /dev-check verify to stamp every child after
+  its conditions are actually checked. Never invent a child stamp.
+- Reformat every existing tracker and design registry stamp so the value,
+  author, and timestamp render on separate lines with literal `<br>` tags.
+  Keep the same fields and strike through history. This is formatting only.
+  New stamps never join their fields with commas, and superseded stamps have
+  `<br><br>` between the struck old stamp and the current stamp.
 - If my project has an app/ folder and design-registry.md is new, add a row
   per surface already finished, with its status BASELINE stamped per rule 2
   above, its file left as an em dash, and its Note an em dash. BASELINE says
@@ -130,7 +157,27 @@ about. Do not smooth over a gap. I want the list.
 
 ## What each version needs
 
-Templates live in `skills/dev-architect/templates/`, except `design.md` and `design-registry.md`, which are in `skills/dev-design/templates/`, `project-overview.md` and `glossary.md`, which are in `skills/dev-scope/templates/`, `audit-register.md`, which is in `skills/dev-audit/templates/`, and `loop-state.md`, which is in `skills/dev-loop/templates/`.
+Templates live in `skills/dev-architect/templates/`, except `design.md` and `design-registry.md`, which are in `skills/dev-design/templates/`, `project-overview.md`, `glossary.md`, and `human-decisions.md`, which are in `skills/dev-scope/templates/`, `audit-register.md`, which is in `skills/dev-audit/templates/`, and `loop-state.md`, which is in `skills/dev-loop/templates/`. The `harness.md` template lives in `skills/dev-harness/templates/`, but `/dev-harness config` owns creating it; do not copy it into a project by hand.
+
+### Coming from 0.7.x: the optional harness
+
+Version 0.8.0 adds `/dev-harness`, an opt-in runner that spreads `/dev-loop` across separate [Herdr](https://herdr.dev) panes. Existing projects need no harness document migration. If Herdr is missing, `/dev-harness config` offers its official stable installer and verifies the binary; then launch Herdr, enter the project there, and run `config` again to finish pane setup:
+
+```text
+/dev-harness config
+```
+
+That command creates `.konteksto/harness.md`, records the pane roster and operational choices, and preserves any active `.konteksto/loop-state.md` for a bare `/dev-harness start` to resume. If you do not use the harness, do nothing; Herdr is not required for the rest of Kahanas.
+
+A Claude coordinator may use Claude Remote Control after configuration verifies it; every other coordinator communicates through its pane and cannot reach a person who is away from the session.
+
+Pushing is an explicit configuration choice. With `Push on hand back: off`, the harness keeps commits and branches local and refuses pull request creation. With it on, workers use only the configured remote and working branch, and the coordinator may open or update a pull request at completion. Outside the harness, `/dev-document pr` now opens or updates the pull request directly when a usable remote and authenticated `gh` are available; otherwise it prints the draft and the reason it could not publish it.
+
+`audit-register.md` also accepts `resolved` for a reviewed static finding that has no runtime case for `/dev-qa`. Let `/dev-audit` make that transition from fresh review evidence rather than rewriting existing issue statuses during migration.
+
+### Coming from 0.7.x or earlier
+
+Create `.konteksto/human-decisions.md` from `skills/dev-scope/templates/human-decisions.md`. Leave its Decisions section empty. Do not reconstruct old questions, options, selected answers, or recommendation markers from `project-overview.md`, `architecture.md`, or chat history. Those documents prove only the outcome, not exactly what the person was shown. `/dev-scope`, `/dev-architect`, and `/dev-design` append new human choices from this point forward.
 
 ### Coming from 0.6.x or earlier
 
@@ -240,19 +287,30 @@ npm install --save-dev @playwright/test && npx playwright install chromium
 
 ---
 
-## Converting `progress-tracker.md`
+## Updating `progress-tracker.md`
 
-The Progress section was a checkbox list and is now one table per phase. Copy the shape from `templates/progress-tracker.md`, then per task:
+Every tracker uses one table per phase. Each build plan task becomes an aggregate row, followed immediately by one child row for every numbered UI and Logic subtask. The table columns are `Task or subtask`, optional `Assigned`, `Status`, `Verify Check`, and `Note`. There is no separate Goals column because the goal belongs in the row whose state it defines.
 
-- **Task**, the name from `build-plan.md`, unchanged.
-- **Assigned**, on a team project only. Leave it `unassigned` unless you actually know.
-- **Status**, `DONE` for a ticked task, `PENDING` for an unticked one. **No stamp**, because you do not know which model did it or when.
-- **Verify Check**, `—` on every row. Nothing was verified under the old version, since the column did not exist, and writing `PASSED` would claim somebody watched it work.
-- **Note**, `—` unless the task is genuinely blocked right now.
+For each task:
 
-Then add a line under the table saying these rows predate stamping. Everything from here on gets stamped normally.
+- **Aggregate row**, copy the task number, title, and Goal from `build-plan.md` word for word. Preserve the old task row's Assigned, Status, Verify Check, and Note cells.
+- **Child rows**, copy every numbered UI and Logic label and goal word for word, in plan order. Never combine two bullets in one row or shorten one to a category name.
+- **Assigned**, on a team project only. Preserve the aggregate value. Every child reads `inherits task`.
+- **Child Status**, use unstamped `DONE` when the preserved aggregate Status is `DONE`, since the earlier aggregate claim covered the whole task but did not record child provenance. Use `BASELINE` on every child of a baseline task and stamp the migration model and minute, because that stamp records the inventory rather than the old build. Otherwise use `PENDING` unless an existing record proves a more specific child state. Never invent a child model or time.
+- **Child Verify Check**, use `—`. An old aggregate pass is task level history, not proof that each new child was checked separately. Preserve that aggregate cell, then add a line under the table saying aggregate Verify Check values predate child verification and do not imply child passes. `/dev-check verify` fills the children only after checking every condition and then supersedes the aggregate verdict with the new rollup.
+- **Note**, preserve the aggregate cell. Child Notes start at `—` unless an existing record identifies the exact child that is blocked or failed right now.
 
-**`—` on every Verify Check is the correct outcome, not a gap to fill.** It says truthfully that nobody has checked yet, and `/dev-check verify` fills it in as you go.
+When converting checkboxes, a ticked task becomes an unstamped aggregate `DONE` and gives each child an unstamped `DONE`. An unticked task and its children become `PENDING`. Every Verify Check is `—`. Add a line below the table saying those rows predate stamping.
+
+Reformat existing stamps without changing their value, author, timestamp, or order. Each stamp uses three rendered lines inside one Markdown table cell:
+
+```
+DONE<br>claude-opus-5<br>2026-08-09 14:32
+```
+
+Never join the three fields with commas. Keep strike through around the whole old stamp, and put `<br><br>` between a struck old stamp and its replacement. This is a presentation migration, not a new claim, so it does not violate the rule against stamping old work.
+
+**`—` on every new child Verify Check is the correct outcome, not a gap to fill.** It says truthfully that nobody checked that subtask under the older tracker shape. Run `/dev-check verify` to judge each child surgically and stamp it after the check.
 
 ---
 

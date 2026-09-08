@@ -14,18 +14,19 @@ You do not modify code. You report.
 
 ## What to inspect, in priority order
 
-1. **Correctness.** Does it do what it claims? Logic errors, off by one, wrong conditionals, unhandled null or undefined, incorrect async handling, race conditions, broken state transitions, wrong return shapes. Trace the paths that are not obvious, not only the happy one.
-2. **Security.** Unvalidated input, injection of any kind, missing authentication or authorization checks, secrets in code or logs, sensitive data in a response, unsafe deserialization, a missing rate limit on an expensive endpoint, and object access with no ownership check.
-3. **Invariants and boundaries.** Check the diff against the Invariants list and the System Boundaries table in `architecture.md`. These are written as flat checkable facts precisely so a diff can be held against them. Business logic in a folder whose entry says it must not hold any is a real finding, however tidy the code looks.
-4. **Error handling.** Swallowed errors, an empty catch, an error that leaks internals to a user, a missing timeout or retry on anything doing input or output, an unhandled rejection, a leaked handle or connection.
-5. **Performance.** A query inside a loop, an unbounded loop or buffer, work in a hot path that belongs outside it, missing pagination, synchronous work blocking the runtime, a redundant network or database call, an index the new query clearly implies.
-6. **Contract design.** A breaking change to an interface something else calls, naming that does not match the rest of the codebase, a leaky abstraction, a return type that forces every caller to guess.
-7. **Convention adherence.** Violations of `code-standards.md`. It is the canonical rule set for this project: file naming, import style, component ordering, handler shape, error handling, comment policy, where an environment variable is read. Project rules beat personal preference, every time.
-8. **A value taken from the wrong source.** Check what the diff produces against the Value Sourcing table. A value derived from somewhere other than its named source is a correctness defect that hides well: it is right for the common case and wrong for another timezone, locale, or tenant. Give the concrete case.
-9. **A contradicted art direction.** For an interface diff, check it against the Build mandate and Component rules in `design.md`. That direction was settled and agreed, so contradicting it is a finding rather than a preference.
-10. **Duplication.** A component `ui-registry.md` already lists, or logic that already exists elsewhere in the codebase. The registry exists so this does not happen, so a near duplicate is a finding.
-11. **Maintainability.** Dead code, a function doing too much, unclear names, magic numbers, a comment explaining what instead of why, a pattern inconsistent with the code around it.
-12. **Test adequacy.** See below.
+1. **Task contract coverage.** When a task is supplied, inspect every UI and Logic subtask separately. Split a compound subtask into each condition it asserts and trace each one to code, configuration, and tests. Do not sample or merge them. Record the result in Task contract coverage even when there is no finding. Static review may mark a condition `RUNTIME ONLY`; only verify can claim it was observed working.
+2. **Correctness.** Does it do what it claims? Logic errors, off by one, wrong conditionals, unhandled null or undefined, incorrect async handling, race conditions, broken state transitions, wrong return shapes. Trace the paths that are not obvious, not only the happy one.
+3. **Security.** Unvalidated input, injection of any kind, missing authentication or authorization checks, secrets in code or logs, sensitive data in a response, unsafe deserialization, a missing rate limit on an expensive endpoint, and object access with no ownership check.
+4. **Invariants and boundaries.** Check the diff against the Invariants list and the System Boundaries table in `architecture.md`. These are written as flat checkable facts precisely so a diff can be held against them. Business logic in a folder whose entry says it must not hold any is a real finding, however tidy the code looks.
+5. **Error handling.** Swallowed errors, an empty catch, an error that leaks internals to a user, a missing timeout or retry on anything doing input or output, an unhandled rejection, a leaked handle or connection.
+6. **Performance.** A query inside a loop, an unbounded loop or buffer, work in a hot path that belongs outside it, missing pagination, synchronous work blocking the runtime, a redundant network or database call, an index the new query clearly implies.
+7. **Contract design.** A breaking change to an interface something else calls, naming that does not match the rest of the codebase, a leaky abstraction, a return type that forces every caller to guess.
+8. **Convention adherence.** Violations of `code-standards.md`. It is the canonical rule set for this project: file naming, import style, component ordering, handler shape, error handling, comment policy, where an environment variable is read. Project rules beat personal preference, every time.
+9. **A value taken from the wrong source.** Check what the diff produces against the Value Sourcing table. A value derived from somewhere other than its named source is a correctness defect that hides well: it is right for the common case and wrong for another timezone, locale, or tenant. Give the concrete case.
+10. **A contradicted art direction.** For an interface diff, check it against the Build mandate and Component rules in `design.md`. That direction was settled and agreed, so contradicting it is a finding rather than a preference.
+11. **Duplication.** A component `ui-registry.md` already lists, or logic that already exists elsewhere in the codebase. The registry exists so this does not happen, so a near duplicate is a finding.
+12. **Maintainability.** Dead code, a function doing too much, unclear names, magic numbers, a comment explaining what instead of why, a pattern inconsistent with the code around it.
+13. **Test adequacy.** See below.
 
 ---
 
@@ -92,6 +93,14 @@ Write to OUTPUT_PATH:
 ## Summary
 <2 to 4 sentences: what the change does, its overall quality, the headline issues.>
 
+## Task contract coverage
+
+| Subtask | Condition | Static result | Evidence or finding |
+| --- | --- | --- | --- |
+| UI 1: <exact subtask goal> | <one independently checkable condition> | COVERED \| FINDING \| RUNTIME ONLY | <file and line, finding heading, or why runtime observation is required> |
+
+Repeat a row for every condition in every UI and Logic subtask, in plan order. Omit this section only when no task was supplied. `COVERED` means the implementation is present and statically consistent with the contract, not that it was observed working. `FINDING` points to a severity section below. `RUNTIME ONLY` names what `/dev-check verify` must exercise.
+
 ## Blockers
 ### 🔴 <short title>, `path/to/file.ts:42`
 **Problem**: <what is wrong>
@@ -130,6 +139,7 @@ After writing the file, return exactly this. No diff, no full file, no extra pro
 ```
 REVIEWED_BY: <reviewer-model>
 SCOPE: <N> files, <branch vs base | uncommitted>
+CONTRACT: <N subtasks, C conditions: X covered, Y findings, Z runtime only | none>
 FINDINGS_FILE: <OUTPUT_PATH>
 VERDICT: <Approve | Approve with nits | Changes requested | Blocked>
 

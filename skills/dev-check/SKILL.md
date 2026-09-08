@@ -15,8 +15,8 @@ Write everything this skill produces, files and messages alike, in plain simple 
 
 The gate between a task being built and a task being trusted. It confirms soundness in two different ways, run as two modes. They are separate jobs, and both are usually worth running, verify first.
 
-- **`verify`**, runtime proof. Runs the real app and watches the change behave. Proves the task actually works and matches the flow it was built from. This is what a green type check never tells you, because compiling proves the code is well formed, not that the feature exists.
-- **`review`**, a fresh read of the code. A senior pass over the diff, run on **a different model than wrote the code**, because a model reading its own output shares its own blind spots. Findings come back ranked by severity.
+- **`verify`**, runtime proof. Runs the real app and checks every condition in every plan subtask separately before rolling them into the task verdict. This is what a green type check never tells you, because compiling proves the code is well formed, not that each promised result exists and works.
+- **`review`**, a fresh read of the code. A senior pass over the diff, run on **a different model than wrote the code**, because a model reading its own output shares its own blind spots. It traces every plan subtask to its implementation, without claiming runtime proof, and returns findings ranked by severity.
 
 **Neither mode edits code.** Verify points failures at `/dev-develop`. Review reports findings for someone else to fix. A checker that also fixes stops being a checker.
 
@@ -37,7 +37,7 @@ The whole chain, once per project then once per task:
 
 ## Artifact ownership
 
-**Verify** owns no whole file. Chat output only, plus screenshots and logs in a scratch area, and two narrow writes. It stamps the task's **Verify Check** cell in `progress-tracker.md`, `PASSED` or `FAILED`, and it appends an Evidence row to `decision-log.md` on a pass, which is how a later session tells an exercised task from an assumed one. That one column is all of `progress-tracker.md` it may touch: Status belongs to `/dev-develop`, and assignees to neither of them.
+**Verify** owns no whole file. Chat output only, plus screenshots and logs in a scratch area, and two narrow writes. It stamps **Verify Check** on every resolved subtask row, then the aggregate task row when the whole verdict resolves. It appends an Evidence row to `decision-log.md` on an aggregate pass, which is how a later session tells a fully exercised task from an assumed one. Verify Check is the only column it owns. It may also write the shared Note on a failure, as that file defines. Aggregate and child labels belong to `/dev-architect`, Status to `/dev-develop`, and assignees to neither checker.
 
 **Review** owns `.konteksto/reviews/<date>-<task-slug>.md`, one file per run. Dated records, never edited afterwards. A later run writes a new file.
 
@@ -47,7 +47,7 @@ Neither writes application code, any of the design documents, or a fix of any ki
 
 **Never fix what you find.** Not even an obvious one line fix. Report it and stop. This skill is worth having because it is independent of the thing that built the code, and a checker that reaches for the keyboard throws that away.
 
-**Never mark a task done.** That is `/dev-develop`'s line, and only after this passes.
+**Never change a Status cell or mark build work done.** That is `/dev-develop`'s claim. Verification happens after the build and writes only child and aggregate Verify Check verdicts.
 
 **Never claim a pass you did not observe.** "The code looks correct" is not a pass. A pass means you ran something and watched the result. The evidence gate in `modes/verify.md` makes this literal, and it is the rule that matters most in this whole skill.
 

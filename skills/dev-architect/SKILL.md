@@ -1,7 +1,7 @@
 ---
 name: dev-architect
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion, WebSearch, WebFetch
-description: "Run /dev-architect after /dev-scope to settle how the product gets built. Weighs options and settles the stack layer by layer, writes the local development containers, and on a codebase that already exists settles whether features already built appear in the plan, then audits it for outdated or vulnerable packages and finds the MCP servers and skills that fit. Writes architecture, tooling, code standards, library docs, build plan, progress tracker, and ui registry into .konteksto/. On a project with a frontend, /dev-design designs the surfaces afterwards."
+description: "Run /dev-architect after /dev-scope to settle how the product gets built. Weighs options and settles the stack layer by layer, records the person's choices beside its recommendations, writes the local development containers, and on a codebase that already exists settles whether features already built appear in the plan, then audits it for outdated or vulnerable packages and finds the MCP servers and skills that fit. Writes the architecture and planning documents into .konteksto/. On a project with a frontend, /dev-design designs the surfaces afterwards."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -36,6 +36,8 @@ The whole chain, once per project then once per task:
 
 The documents below, all created and updated by this skill only, filled from the matching template in `templates/`, which lives in this skill's own folder.
 
+**One shared record sits beside them.** `.konteksto/human-decisions.md` is created by `/dev-scope` and appended to by this skill for requirements, data, stack, standards, tooling, risk, and architecture acceptance choices the person makes. Preserve the question, every option, the recommendation marker, and their selected option in the format that file defines. `/dev-design` is its third and final writer.
+
 **No count appears anywhere in these instructions, deliberately.** A number written beside a list that later grows is wrong the first time somebody adds to it, and it had already gone wrong twice here before anybody noticed. The list is the list.
 
 **Stage 1, the foundation.** What the system is made of.
@@ -51,8 +53,8 @@ The documents below, all created and updated by this skill only, filled from the
 
 | Order | Document | Depends on |
 | --- | --- | --- |
-| 5 | `build-plan.md` | Features in Scope, plus the architecture |
-| 6 | `progress-tracker.md` | the exact phases and tasks in `build-plan.md` |
+| 5 | `build-plan.md` | Features in Scope, plus every build affecting commitment in the architecture |
+| 6 | `progress-tracker.md` | the exact phases, tasks, and goals in `build-plan.md` |
 | 7 | `decision-log.md` | nothing, it starts empty |
 | 8 | `ui-registry.md` | the component rules in `code-standards.md` |
 
@@ -71,7 +73,7 @@ Never touch `project-overview.md`. It is `/dev-scope`'s file. If this work prove
 
 **`design.md`, `design-registry.md`, and `.konteksto/designs/` are `/dev-design`'s, and you write none of them.** Not a row, not a status, not a line of a prototype, and not on the first run when none of them exists yet. A design need that turns out to be a technical decision comes back here; the design itself never does.
 
-**Three of these are living files, created here and updated elsewhere.** `progress-tracker.md`, `decision-log.md`, and `ui-registry.md` are written once by this skill, in their starting state, and every update after that belongs to another skill: a task's Status and a new component section to `/dev-develop`, a task's Verify Check to `/dev-check verify`, and Decision or Evidence rows to `/dev-develop`, `/dev-check`, or `/dev-debug`. Do not stamp a task, register a component, or log an event for something that does not exist yet.
+**Three of these are living files, created here and updated elsewhere.** `progress-tracker.md`, `decision-log.md`, and `ui-registry.md` are written once by this skill, in their starting state, and every update after that belongs to another skill: task and subtask Status cells and a new component section to `/dev-develop`, task and subtask Verify Check cells to `/dev-check verify`, and Decision or Evidence rows to `/dev-develop`, `/dev-check`, or `/dev-debug`. Do not stamp a task or subtask, register a component, or log an event for something that does not exist yet.
 
 Read a template from `templates/`, in this skill's folder, and write the filled copy to `.konteksto/<same-file-name>`. Never edit a template in place.
 
@@ -107,12 +109,15 @@ Every user facing choice is an options panel: 2 to 4 concrete options real to th
 
 The full mechanics, including the free text slot, generating options fresh rather than from a canned list, and never bundling a whole decision into one panel, are in `internal/design-conversation.md`.
 
+**Record every answered panel that settles durable project intent.** Immediately after the answer, append one entry to `.konteksto/human-decisions.md` in the format that file defines. Do not reconstruct a batch at the end. Do not record an inference, the recommendation you formed yourself, a permission prompt, or a routine choice about running a tool.
+
 ## Execution
 
 ### Step 1: Pre flight
 
 - **Read `.konteksto/project-overview.md` in full.** If it does not exist, stop and tell the user to run `/dev-scope` first. Everything here depends on it.
 - **Read `.konteksto/glossary.md` in full, and use its words from here on.** Every table, boundary, component, and phase name you write comes out of it, because a schema that renames the product's concepts forces every later reader to translate, and eventually one of them translates wrongly. Where the file is missing on a project that has a `project-overview.md`, say so and write it from the terms already in that file rather than proceeding without one.
+- **Read `.konteksto/human-decisions.md` in full.** It prevents this conversation from asking the person to settle something they already chose, and makes a deliberate override of an earlier recommendation visible before you form a new one. On an upgraded project where the file is missing, read `../dev-scope/templates/human-decisions.md` and create an empty copy before the first panel. Never reconstruct old questions or recommendation markers from the resulting architecture documents.
 - **Read what `/dev-scope` handed you**, if anything: whether a codebase exists, the stack it showed, and any tool or constraint the user named during scoping. Do not survey the same ground again.
 - **Work out whether the code is actually somebody else's.** A manifest and a source tree are not proof of an existing codebase, because `/dev-develop` scaffolds this project itself as the first task in the plan. Code whose stack matches what `.konteksto/architecture.md` already specifies is **our own scaffold**, and it is not brownfield. Only code with no matching documents, or code that diverges from them, is a real existing codebase.
 - **If a real codebase exists and you were not handed a survey**, read it now: the directory tree, every package manifest, the lint and build config, the entry points. The stack that is already there is a decision already made. Record it, do not re litigate it.
@@ -143,7 +148,7 @@ Steps 2 through 6 here are the outline. That file is the protocol.
 | Containers and data lifecycle | step 5 below |
 | Tooling discovery | step 6 below |
 
-Nothing gets written until the completeness gate in that file passes.
+Nothing except a newly answered entry in `human-decisions.md` gets written until the completeness gate in that file passes. Each human answer is appended immediately, because losing the session must not lose which options the person rejected.
 
 #### Settle the stack
 
@@ -309,18 +314,19 @@ Extra rules:
 
 - `build-plan.md` writes the history line step 2a settled, on an existing codebase: either `## Phase 0 — Already built` with one task per existing feature, or no Phase 0 at all, plus the one line under Core Principle that says which it is. `internal/adoption-baseline.md` has the wording. On a fresh project neither applies.
 - `build-plan.md` covers every feature in the Features in Scope list and nothing from the out of scope list. Its Feature Count table must match the number of tasks actually written. Order the phases so each one is visible and testable before the next starts.
-- `progress-tracker.md` mirrors `build-plan.md` exactly, one Progress table per phase and one row per task, same phase and task order. A Phase 0 in the plan gets its Progress table here too, every row reading `BASELINE` with its stamp and an empty Verify Check. **Never `DONE` and never a Verify Check on one of those rows**: nothing was built here and nothing was exercised, and `progress-tracker.md` defines the difference. Every other row reads `PENDING` with no stamp, an empty Verify Check and Note written as `—`, Last completed reads "nothing yet", and Next names the first task not in Phase 0. **Never stamp a `PENDING` row.** A stamp names a model and a minute, and nothing has been built yet. A `BASELINE` row is stamped, and that file's Status section says what its stamp means. Its Worked example section is Reference only: read it for the shape, and delete it from the file you write.
+- Every task in `build-plan.md` has one plain Goal sentence and checkable UI and/or Logic subtask goals. Build a coverage list from the Stack table, System Boundaries, data flow, Invariants, Security model, Value Sourcing table, and operator duties in `architecture.md`. Assign every build affecting commitment to at least one task. **Use its exact approved name in every task that establishes or relies on it.** A generic phrase does not cover a named runtime, service, protocol, boundary, or invariant. This is what keeps a lower reasoning builder from losing an architecture decision between files.
+- `progress-tracker.md` mirrors `build-plan.md` exactly, one Progress table per phase. Every task gets one aggregate row carrying its number, name, and Goal, followed by one child row per UI and Logic subtask goal in plan order. Never summarize or combine them. A Phase 0 in the plan gets its Progress table here too, every aggregate and child row reading `BASELINE` with its three line stamp and an empty Verify Check. **Never `DONE` and never a Verify Check on one of those rows**: nothing was built here and nothing was exercised, and `progress-tracker.md` defines the difference. Every other aggregate and child row reads `PENDING` with no stamp, an empty Verify Check and Note written as `—`, Last completed reads "nothing yet", and Next names the first task and its first child outside Phase 0. **Never stamp a `PENDING` row.** A stamp names a value, model, and minute on separate rendered lines, and nothing has been built yet. A `BASELINE` row is stamped, and that file's Status section says what its stamp means. Its Worked example section is Reference only: read it for the shape, and delete it from the file you write.
 - `decision-log.md` always ships, and always starts with its headings and an empty Entries table. Nothing has been decided or observed during a build that has not started, so a row here would be invented history. Keep the Entries and Who writes what sections exactly as the template has them, and delete the Worked example.
 
 **Team Shape decides the shape of these.** Read that section in `project-overview.md` before writing any of them, and follow it exactly rather than deciding for yourself. `/dev-scope` asked the user, and this is where their answer takes effect.
 
 **Mode is `team`:**
 
-- Every task row in `progress-tracker.md` keeps its Assigned column, and every cell in it reads `unassigned`. Never fill in a name here. Nobody has picked up a task yet, and an assignee you invented would send someone to the wrong person.
+- Every aggregate task row in `progress-tracker.md` keeps its Assigned column and reads `unassigned`. Every child row reads `inherits task`. Never fill in a name here. Nobody has picked up a task yet, and an assignee you invented would send someone to the wrong person.
 - `decision-log.md` keeps its Actor column. Its Author column stays either way, since the model varies between sessions even when the person does not.
 - Say plainly in your handoff that the assignee is a convention rather than a lock, so nobody reads the column as a reservation the system enforces. It does not, and cannot.
 
-**Mode is `personal`:** drop the Assigned column from every Progress table in `progress-tracker.md`, and delete the Actor column from `decision-log.md` along with its description. One person means one repeated value, and a column with one value is noise. **Keep the Author column.** The person is fixed on a personal project and the model is not.
+**Mode is `personal`:** drop the Assigned column from every Progress table in `progress-tracker.md`, including both aggregate and child rows, and delete the Actor column from `decision-log.md` along with its description. One person means one repeated value, and a column with one value is noise. **Keep the Author column.** The person is fixed on a personal project and the model is not.
 
 - `ui-registry.md` is skipped when the project has no component based UI layer, the same condition under which `code-standards.md` has no Component Structure section. Say you skipped it rather than writing an empty file. On a fresh project with a UI layer it starts empty apart from its heading, since no component exists yet.
 
@@ -341,6 +347,7 @@ Say all of this:
 - **The adoption baseline, on an existing codebase**: where the history line landed and what it does not exempt. Say the exemptions out loud, because a user who took the default is usually picturing a wider amnesty than they got. Say too that `/dev-design` will ask a separate question about the surfaces.
 - Every skill installed, by name.
 - Every MCP server the user still needs to connect themselves, with the exact command.
+- Every human decision recorded during this run where the selected option was not the recommended option, by ID and subject.
 - That no application code was written.
 
 Then name the next step: a separate request to build the first task in `build-plan.md`. **Where the plan has a Phase 0 of baseline rows, name the first task after it**, since nothing in Phase 0 is work anybody is going to do.

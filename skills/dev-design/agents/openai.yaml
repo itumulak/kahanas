@@ -4,4 +4,4 @@
 interface:
   display_name: "Dev Design"
   short_description: "Design every surface, and get it approved"
-  default_prompt: "Run the dev-design skill: read its SKILL.md, then map the product flows to the surfaces they require, settle the design system, and build an interactive HTML prototype for every surface in .konteksto/designs/. Then render each one in a real browser at every breakpoint and every declared state and put it in front of a person to approve. Skip entirely on a backend with no app/ folder."
+  default_prompt: "Use $dev-design to design and review every required surface while preserving the person's design choices beside the recommendations in .konteksto/human-decisions.md."

@@ -1,0 +1,6 @@
+# OpenAI Codex adapter. This file supplies the interface metadata Codex shows in
+# its agent picker. The skill's actual instructions live in ../SKILL.md.
+interface:
+  display_name: "Dev Harness"
+  short_description: "Drive the delivery loop across Herdr panes and relay decisions"
+  default_prompt: "Use $dev-harness with start, stop, config, or an instruction. Dispatch only routes the owning skills already recorded, keep the developer and reviewer on different models, and relay every human decision instead of making it."

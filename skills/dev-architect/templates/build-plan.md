@@ -1,6 +1,6 @@
 # Build Plan
 
-*Purpose: the ordered, phased list of build tasks for the whole project, each one visible and testable before the next starts. This file keeps its exact original structure (Core Principle, numbered phases, numbered tasks with UI/Logic bullets, a closing Feature Count table), shown here with one demonstrative phase and one demonstrative task rather than an invented full project history.*
+*Purpose: the ordered, phased list of build tasks for the whole project, each one visible and testable before the next starts. Every task states its goal and its UI and Logic subtask goals, including the architecture commitments it must deliver. Shown here with one demonstrative phase and one demonstrative task rather than an invented full project history.*
 
 ## Core Principle
 
@@ -16,17 +16,21 @@
 
 ### 01 <TASK_NAME>
 
-<TASK_ONE_LINE_DESCRIPTION>
+**Goal:** <TASK_ONE_LINE_GOAL>
 
-**UI:**
+**UI subtask goals:**
 
-- <UI_BUILD_ITEM>
+- <CHECKABLE_UI_OUTCOME>
 
-**Logic:**
+**Logic subtask goals:**
 
-- <LOGIC_BUILD_ITEM>
+- <CHECKABLE_LOGIC_OUTCOME_WITH_RELEVANT_ARCHITECTURE_NAMES>
 
-Repeat one `### NN <TASK_NAME>` subsection per task in the phase, each with a `**UI:**` and/or `**Logic:**` bullet list (only the ones that apply to that task). Repeat one `## Phase N — <PHASE_NAME>` section per phase in the project.
+Repeat one `### NN <TASK_NAME>` subsection per task in the phase. Give every task one `**Goal:**` sentence, then a `**UI subtask goals:**` and/or `**Logic subtask goals:**` bullet list, keeping only the tracks that apply. Repeat one `## Phase N — <PHASE_NAME>` section per phase in the project.
+
+The Goal says the observable outcome of the whole task. Each subtask goal is a checkable result needed to reach it, not a vague activity. Name every relevant stack component, runtime, protocol, boundary, invariant, security rule, and operator obligation from `architecture.md` exactly. Do not replace an approved name with a generic category. If the architecture says `OpenSwoole 26.2`, the task that establishes or uses it says `OpenSwoole 26.2`, not only `realtime service`.
+
+Before the plan is complete, account for every feature in scope and every build affecting commitment in `architecture.md`. Each must appear in at least one task Goal or subtask goal. Put a project wide rule in Core Principle as well, but do not use Core Principle as a substitute for naming it in the tasks that must deliver or preserve it.
 
 ## Feature Count
 

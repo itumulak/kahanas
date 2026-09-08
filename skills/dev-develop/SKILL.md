@@ -1,7 +1,7 @@
 ---
 name: dev-develop
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion
-description: "Run /dev-develop to build the next task from .konteksto/build-plan.md, or a named one. Reads the architecture and code standards, implements UI from the approved design prototype rather than composing one, builds, then stamps the task DONE in the progress tracker. If a load bearing decision is owed and no document records it it stops and routes you to /dev-architect, and if a surface has no approved design it routes you to /dev-design, instead of inventing either."
+description: "Run /dev-develop to build the next task from .konteksto/build-plan.md, or a named one. Reads the architecture and code standards, implements UI from the approved design prototype rather than composing one, builds, then stamps each completed subtask and the aggregate task in the progress tracker. If a load bearing decision is owed and no document records it it stops and routes you to /dev-architect, and if a surface has no approved design it routes you to /dev-design, instead of inventing either."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -14,7 +14,7 @@ Write everything this skill produces, files and messages alike, in plain simple 
 
 The builder. Turns one task from `build-plan.md` into working code that follows `code-standards.md` and fits `architecture.md`.
 
-Builds **one task at a time**, in the order the plan sets, and stamps its Status `DONE` before starting the next. A task with **UI** bullets builds components and pages. A task with **Logic** bullets builds APIs, services, and data layers. A task with both builds both.
+Builds **one task at a time**, in the order the plan sets, and stamps each completed subtask Status before rolling them into the aggregate task row. The aggregate becomes `DONE` before starting the next task. A task with **UI** subtask goals builds components and pages. A task with **Logic** subtask goals builds APIs, services, and data layers. A task with both builds both.
 
 It decides nothing load bearing. That is what the gate in step 1 is for.
 
@@ -39,7 +39,7 @@ The whole chain, once per project then once per task:
 
 - Application code, in the folders `project-overview.md`'s Project Shape section fixed. Server code in `backend/`, client code in `app/`, unless that section records a custom layout, in which case follow the real one.
 - `Dockerfile.dev` per half, when the compose file refers to one that does not exist yet.
-- `.konteksto/progress-tracker.md`, on every task. This is what tells the next session where things stand, so it is updated as part of finishing a task, never batched up for later. You own every column of its Progress tables **except Verify Check**, which is `/dev-check verify`'s and yours to read only. `/dev-sync` may correct your columns afterward from repo evidence, never while you are working.
+- `.konteksto/progress-tracker.md`, on every task. This is what tells the next session what each task and subtask must achieve and where each stands, so it is updated as part of the build, never batched up for later. Aggregate and child labels mirror `build-plan.md` and belong to `/dev-architect`. Every Verify Check belongs to `/dev-check verify`. You own Assigned on aggregate task rows, Status on aggregate and child rows, and blocked Notes. `/dev-sync` may correct your state columns afterward from repo evidence, never while you are working.
 
   **One thing in it a person owns.** A task's assignee may be reassigned by hand. You may claim an unassigned task, but never reassign it.
 - `.konteksto/decision-log.md`, appended Decision rows when the build produced a real decision, a bug with a cause worth knowing, or an assumption you had to state, plus one Evidence row per task for the command that confirmed the build is clean. **Only then** for decisions. Most tasks that go to plan write no Decision row, and a log padded with narration is one `/dev-document` can no longer mine. `/dev-debug` and `/dev-check` append here too, so append your own rows and leave theirs alone.
@@ -110,14 +110,14 @@ Run `git fetch` quietly, pick the base branch (`main` if it exists, else `master
 
 - **Behind by any commits.** Warn that a teammate may have already built this, and recommend pulling first.
 - **Uncommitted changes in the folders this task touches.** Warn that the build will tangle with them. Let the user proceed if they say so.
-- **The task's Status already reads `DONE` in `progress-tracker.md`.** Stop and ask before rebuilding, except when `/dev-check verify` explicitly routed a promised but missing or built but not live surface back here. In that case, repair only the reported implementation gap, then run the normal implementation checks. Do not treat a behavioral bug as permission to rebuild: that belongs to `/dev-debug`.
-- **The task is assigned to someone else.** Only on a team project, meaning the Progress tables in `progress-tracker.md` carry an Assigned column. Read `git config user.name`, and when the assignee is a different name, stop and ask whether to build it anyway.
+- **The aggregate task Status already reads `DONE` in `progress-tracker.md`.** Stop and ask before rebuilding, except when `/dev-check verify` explicitly routed a promised but missing or built but not live subtask back here. In that case, repair only the reported implementation gap, then run the normal implementation checks. Do not treat a behavioral bug as permission to rebuild: that belongs to `/dev-debug`.
+- **The task is assigned to someone else.** Only on a team project, meaning the Progress tables in `progress-tracker.md` carry an Assigned column. Read the aggregate task row, then `git config user.name`. When the assignee is a different name, stop and ask whether to build it anyway. Child rows inherit that one value.
 
 Warnings, not blocks, but say them out loud.
 
 **The assignee check cannot reserve anything, and must not be described as though it can.** Two people on two machines both read the same file, both see `unassigned`, and both proceed. This catches the common case, one person noticing a task already has an owner, and nothing more. If the user needs a real guarantee, say so plainly and point at branch protection or an issue tracker rather than implying this check is one.
 
-**Picking a task up.** When the task's Assigned cell reads `unassigned` and you are going to build it, replace it with `git config user.name` as part of the tracker update in step 3. That is the only assignee change any skill makes. **Never reassign a task away from someone else**, not even when they appear to have stopped: a person decides that, by editing the cell themselves, because the reason a task should move is never in the repository.
+**Picking a task up.** When the aggregate task row's Assigned cell reads `unassigned` and you are going to build it, replace it with `git config user.name` as part of the tracker update in step 3. Child rows remain `inherits task`. That is the only assignee change any skill makes. **Never reassign a task away from someone else**, not even when they appear to have stopped: a person decides that, by editing the cell themselves, because the reason a task should move is never in the repository.
 
 ### Step 1: The decision gate
 
@@ -146,7 +146,7 @@ When unsure, treat it as owed. Building an unnoticed decision is the expensive f
 4. `glossary.md`, for the name of anything this task creates.
 5. `library-docs.md`, only for a library this task uses.
 6. `tooling.md`, the Local Data Lifecycle section, when the task touches the database.
-7. `design-registry.md`, `design.md`, the approved prototype, and `ui-registry.md`, only when the task has UI bullets. Check the registry row first: a surface that is not `APPROVED` is a visual gap, and the gate below handles it. `BASELINE` is the one exception, meaning a surface that shipped before this workflow, and `ui-guide.md` states what it exempts and what ends the exemption.
+7. `design-registry.md`, `design.md`, the approved prototype, and `ui-registry.md`, only when the task has UI subtask goals. Check the registry row first: a surface that is not `APPROVED` is a visual gap, and the gate below handles it. `BASELINE` is the one exception, meaning a surface that shipped before this workflow, and `ui-guide.md` states what it exempts and what ends the exemption.
 8. `decision-log.md`, for anything an earlier task already settled.
 
 **Nothing owed.** Read `flow/build.md` and follow it.
@@ -181,12 +181,14 @@ Only after something is verified working. Two files, both edited surgically. Rea
 
 In `progress-tracker.md`, change only these:
 
-- Set this task's **Status** cell in its phase table to `DONE`, stamped as the table's own rules describe: `DONE, <your exact model identifier>, <YYYY-MM-DD HH:MM from the system clock>`. A cell that already holds a value is **superseded, never overwritten**: strike the old value through with `~~` and append the new one after it, leaving exactly one unstruck value at the end. Read the template's Superseding a value section if you have not.
+- Set each completed child row's **Status** independently. A child is `DONE` only when its exact subtask goal landed and its applicable build checks passed. Use the table's three line stamp: `DONE<br><your exact model identifier><br><YYYY-MM-DD HH:MM from the system clock>`. The first stamp replaces bare `PENDING`; if a stamp already exists, supersede its whole three line value as the tracker defines. Never stamp an untouched or partial child `DONE`.
+- Set the aggregate task **Status** to `DONE` only when every child Status is `DONE` and the whole task clears the Definition of Done. If work stops, keep finished children `DONE`, leave untouched children `PENDING`, stamp the affected child `BLOCKED`, and stamp the aggregate row `BLOCKED`.
 - **Never touch the Verify Check column.** It belongs to `/dev-check verify`, and a build proves nothing about observed behavior.
-- **Note** is for two rows only. Write one line when you leave this task `BLOCKED`, saying what is blocking it, since a `BLOCKED` row without a reason is incomplete. Clear a Note back to `—` when you supersede the `BLOCKED` it explained. Never write one on a `DONE` or `PENDING` row: that column means something is wrong right now, and filling it with remarks destroys the signal.
-- Set **Last completed** to this task, and **Next** to the following one in `build-plan.md`.
+- **Never touch the Task or subtask labels.** They belong to `/dev-architect` and mirror `build-plan.md`. If an aggregate or child row differs from the plan, stop and report the stale documents instead of choosing which wording wins.
+- **Note** is for problem rows only. Write one line on every `BLOCKED` child and on the aggregate `BLOCKED` row. Clear a Note back to `—` when you supersede the state it explained. Never write one on a `DONE` or `PENDING` row: that column means something is wrong right now, and filling it with remarks destroys the signal.
+- Set **Last completed** to the latest completed child while a task remains open, then to the task when every child is done. Set **Next** to the next unfinished child, or the following task and its first child once this task is done.
 - Set **Phase** when this task closed out a phase.
-- **Team projects:** set this task's **Assigned** cell to `git config user.name` if it still reads `unassigned`. Leave every other task's assignee alone.
+- **Team projects:** set the aggregate task row's **Assigned** cell to `git config user.name` if it still reads `unassigned`. Child rows remain `inherits task`. Leave every other task's assignee alone.
 
 In `decision-log.md`, append one Decision row for anything real: a bug found and why it happened, a local choice a later session would otherwise wonder about, or an assumption you built on. **Not a diary of every edit.** Nothing worth recording means no Decision row, which is normal for a task that went to plan.
 
@@ -201,7 +203,7 @@ In `decision-log.md`, append one Evidence row for the command you ran to confirm
 
 Read the log's own section on its columns before your first append, then append and touch nothing else.
 
-Never rewrite either file, never stamp a task you did not build, and never edit a log row you did not write.
+Never rewrite either file, never stamp a task or subtask you did not build, and never edit a log row you did not write.
 
 ### Step 4: Report
 

@@ -17,6 +17,8 @@ The regression gate. It reads `.konteksto/audit-register.md` and reruns the docu
 
 A bare `/dev-qa` checks every bug or regression in state `ready for QA` or `verified`. `/dev-qa AUD-012` checks only that issue. Reject an unknown ID, a non bug or regression issue, or an issue without a reproducible case rather than guessing what to test.
 
+**A rejected issue is not a stuck one, and saying so matters.** A finding with no runtime case belongs in `resolved`, which `/dev-audit` sets and this skill never touches. So when an ID is rejected for its type, say that its state is `/dev-audit`'s to settle and route it there, rather than reporting the run as blocked. A rejection here used to read as a dead end, and a harness demo stalled on exactly that reading.
+
 If the audit register does not exist, report that there are no registered bugs to check. That is a successful no work result, not a reason to block a new project.
 
 ## Ownership
