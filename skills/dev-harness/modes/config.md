@@ -42,6 +42,17 @@ herdr --version
 
 If either check fails, stop and report the installer's output. Say that a new terminal may be required for the install directory to reach `PATH`. Do not claim that Herdr is installed merely because the installer exited without an error.
 
+**Then install the session identity hook for every kind this roster will use:**
+
+```bash
+herdr integration status
+herdr integration install <kind>
+```
+
+Without it Herdr can start an agent and never learn which session id ended up living in that pane. That is exactly the fact a person needs when a pane exits, crashes, or gets closed by accident and they want its own conversation back rather than a fresh one. `status` lists every kind Herdr supports and whether its hook is installed, so read it rather than assuming which kinds have one: the list is longer than the two obvious ones and it grows.
+
+The hook is a script the agent reads on its own next start, so it touches nothing already running. **A role started before this step reports no session id until it is restarted**, which Step 6 does anyway.
+
 Installing the binary does not move the current agent into a Herdr pane, and it does not need to. **`config` is the setup step, so it runs from outside Herdr as well as inside it.** Do not launch an interactive Herdr client inside the agent's shell; drive a named session over the CLI instead, which the next step settles.
 
 Now find out where this mode is running, because it changes how every later Herdr command is addressed and nothing else:
@@ -274,6 +285,14 @@ Anything that is asking the person something, from any prompt framework, means t
 
 Then start the agent in it, with the flags Step 5d settled. **The answer is known before any agent starts, which is the point of asking it there**: an agent already running cannot be given a skip approvals flag without being killed and started again.
 
+**First clear one inherited variable, which silently defeats the step after this one:**
+
+```bash
+herdr pane run <pane id> "unset CLAUDE_CODE_CHILD_SESSION"
+```
+
+A pane whose shell was opened by an existing Claude process, whether this mode's own pane, a `claude attach`, or a nested session, carries `CLAUDE_CODE_CHILD_SESSION` in its environment, and a `claude` agent started under it prints that transcript saving is off and keeps no history at all. It still starts, still reports `idle`, and still returns a session id, so nothing about the start call itself reports the problem, and the id you are about to record leads to a conversation with nothing in it. This project's own demo hit it. Unsetting it costs nothing on a pane that never had it.
+
 Start the agent:
 
 ```bash
@@ -283,13 +302,25 @@ herdr agent start <name> --kind <kind> --pane <pane id> -- \
 
 Native agent arguments go after `--`, and that is where both the base model and the skip approvals flag go. Start each role on its base model, never on its escalation model, and put the flag in the same command rather than adding it later: an agent already running cannot be given one without being killed and started again, which is why Step 5d asks before this step runs.
 
+**Read the session id straight off that same response and record it now**, while it is in front of you. It arrives as `agent.agent_session.value`:
+
+```json
+{"agent":{"agent_session":{"agent":"claude","kind":"id","source":"herdr:claude","value":"<the id>"}, ...}}
+```
+
+Write it into the roster's Session ID column for that role. It is what lets a person run `claude attach <id>` while the agent is still alive in the background, or `claude --resume <id>` once it is gone, and land on the exact conversation that pane was holding.
+
+**The alternative is guessing, and guessing goes wrong.** `claude agents --json` lists every background session on the machine with no reliable link back to a pane, and this project's own run attached one that turned out to belong to unrelated work in the same directory, discovered only by reading that session's own record afterwards.
+
+**When the response carries no `agent_session`, write `no session id, kind not hooked` rather than leaving the cell empty**, so a later reader can tell a kind without the hook from a step somebody skipped. Read the pane once before trusting an id, and expect the ordinary startup banner: the transcript warning above means the id points at a conversation that is saving nothing.
+
 **Start a Claude coordinator with Remote Control on**, so step 7 has the option available without a restart:
 
 ```bash
 herdr agent start coordinator --kind claude --pane <pane id> -- --remote-control coordinator --model <base model>
 ```
 
-It costs nothing if the person then picks a different relay, and it saves killing a freshly started agent to add one flag.
+It costs nothing if the person then picks a different relay, and it saves killing a freshly started agent to add one flag. This call carries its own session id the same way, so record that one and not an id from an earlier attempt this call replaces.
 
 **Expect a trust prompt the first time an agent starts in a directory.** Claude Code and Codex both ask whether the folder can be trusted before they will accept input, and Herdr returns `agent_not_ready` while that dialog is up. The name still resolves for `agent read` and `agent send-keys`, so read the pane, show the person exactly what it asks, and let them answer. **Never answer it yourself**, and never send a blind Enter: the two agents do not agree on which option is highlighted, so the same keystroke trusts one and quits the other. Answering once usually covers every later pane of that same agent in that same directory.
 

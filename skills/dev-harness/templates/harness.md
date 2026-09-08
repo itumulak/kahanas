@@ -23,11 +23,11 @@
 
 ## Roster
 
-| Role | Agent name | Pane | Kind | Base model | Escalation model | Current model | Escalations used | Skills allowed | Prompt file | State |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| coordinator | coordinator | <w1:p1> | <kind> | <exact model identifier> | <exact model identifier, or none> | <what it is running right now> | <count for the current task> | /dev-harness, /dev-document pr | `prompts/coordinator.md` | <live\|missing> |
-| developer | developer | <w1:p2> | <kind> | <exact model identifier> | <exact model identifier, or none> | <what it is running right now> | <count for the current task> | /dev-loop, /dev-develop, /dev-check verify, /dev-debug, /dev-design, /dev-architect, /dev-test | `prompts/developer.md` | <live\|missing> |
-| reviewer | reviewer | <w1:p3> | <kind> | <exact model identifier> | <higher reasoning effort, or none> | <what it is running right now> | <count for the current task> | /dev-check review, /dev-audit, /dev-qa, /dev-sync | `prompts/reviewer.md` | <live\|missing> |
+| Role | Agent name | Pane | Kind | Base model | Escalation model | Current model | Escalations used | Skills allowed | Prompt file | Session ID | State |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| coordinator | coordinator | <w1:p1> | <kind> | <exact model identifier> | <exact model identifier, or none> | <what it is running right now> | <count for the current task> | /dev-harness, /dev-document pr | `prompts/coordinator.md` | <the id from agent_session.value, or "no session id, kind not hooked"> | <live\|missing> |
+| developer | developer | <w1:p2> | <kind> | <exact model identifier> | <exact model identifier, or none> | <what it is running right now> | <count for the current task> | /dev-loop, /dev-develop, /dev-check verify, /dev-debug, /dev-design, /dev-architect, /dev-test | `prompts/developer.md` | <the id from agent_session.value, or "no session id, kind not hooked"> | <live\|missing> |
+| reviewer | reviewer | <w1:p3> | <kind> | <exact model identifier> | <higher reasoning effort, or none> | <what it is running right now> | <count for the current task> | /dev-check review, /dev-audit, /dev-qa, /dev-sync | `prompts/reviewer.md` | <the id from agent_session.value, or "no session id, kind not hooked"> | <live\|missing> |
 
 When Unattended approvals is `on`, every role starts with its own skip approvals flag: `--dangerously-skip-permissions` for `claude`, `--dangerously-bypass-approvals-and-sandbox` for `codex`, `--auto` for `opencode`, and `--approve` for `pi`, which is the closest Pi has rather than the same thing. Each agent then runs whatever command it decides to run, with nothing prompting first.
 
@@ -38,6 +38,8 @@ The developer and the reviewer must differ on both rows. **An escalation model t
 The developer model and the reviewer model must differ. `/dev-check review` is only worth running on a model that did not write the code, and `/dev-loop` blocks its final gate on a review that cannot prove the two differ. Recording both models here is what makes that structural instead of hopeful.
 
 Skills are named differently per agent. Claude Code uses `/dev-audit 01`, Codex uses `$dev-audit 01`. The coordinator translates the recorded route to the receiving agent's prefix at send time. A wrong prefix is rejected by the receiving agent rather than run, and the send still reports success, so the pane is the only place that failure is visible.
+
+**Session ID is what makes a pane's own conversation recoverable, not merely its role.** `config` reads it off `herdr agent start`'s own response, the `agent.agent_session.value` field, present once `herdr integration install <kind>` has run, and writes it here at the moment that role starts. A pane that exits or is closed by accident comes back with `claude attach <id>` while its agent is still alive, or `claude --resume <id>` once it is gone, landing on the exact conversation rather than a guess. Guessing is the alternative and it goes wrong: `claude agents --json` lists every background session on the machine with no link back to a pane, and this project's own run attached one belonging to unrelated work in the same directory. `config` rewrites this cell whenever it starts or restarts a role, since `start` never starts an agent itself and routes a missing role back to `config`. A kind whose response carries no session reads `no session id, kind not hooked` rather than sitting blank, which is what tells a later reader whether recovery is possible before they go looking.
 
 Every window commits what it wrote before it reports back, staging paths by name, and pushes the working branch when Push on hand back is `on`, so a person can pull the run's work at any point. `internal/dispatch.md` holds the rule, including the four things a push may never do. The Working branch above is what makes both safe: it is the only branch a window pushes, and on the base branch a committed change set makes `/dev-check review` find nothing to review.
 

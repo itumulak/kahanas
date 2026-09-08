@@ -54,7 +54,9 @@ Confirm every roster agent is live:
 herdr agent list
 ```
 
-A named agent that is not live is a stopped or replaced pane. Report which role is missing and offer to run `config` for that role alone. Do not start an agent of a different kind in its place.
+A named agent that is not live is a stopped or replaced pane. Report which role is missing, and **read that row's Session ID before offering to run `config` for it alone**. With an id recorded, say that `config` can bring that exact conversation back with `claude attach <id>` or `claude --resume <id>` rather than starting fresh, because a person often wants the history and not just the role. Without one, blank or `no session id, kind not hooked`, say plainly that its history cannot be recovered and `config` will start it clean.
+
+Do not start an agent of a different kind in its place, and **never attach or resume a session yourself**. That is `config`'s call to make with the person, not something to fold into reporting a gap.
 
 Confirm the working branch, because every window commits before it hands back:
 

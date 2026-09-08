@@ -152,6 +152,17 @@ check("config counts existing panes before splitting",
 check("start still requires a live session",
   (await read("modes/start.md")).includes('test "${HERDR_ENV:-}" = 1'));
 
+// A pane's session id is what makes its own conversation recoverable.
+check("config installs the session identity hook", /herdr integration install/.test(config));
+check("config records the session id from the start response", /agent_session\.value|agent_session/.test(config));
+check("config clears CLAUDE_CODE_CHILD_SESSION before starting a claude agent",
+  /unset CLAUDE_CODE_CHILD_SESSION/.test(config));
+check("roster carries a Session ID column", /\| Session ID \|/.test(template));
+check("start reads Session ID before offering to rebuild a role",
+  /read that row's Session ID/.test(await read("modes/start.md")));
+check("start refuses to attach or resume a session itself",
+  /never attach or resume a session yourself/.test(await read("modes/start.md")));
+
 // /dev-architect and /dev-sync are routed, and each carries a condition that is the point of routing it.
 const dispatchTable = dispatch.slice(dispatch.indexOf("| Recorded action |"), dispatch.indexOf("If the recorded action names"));
 check("dispatch routes /dev-architect to the developer", /\| `\/dev-architect`[^|]*\| developer \|/.test(dispatchTable));
