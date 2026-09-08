@@ -120,7 +120,7 @@ If a brief file is missing, stop and say which one. Do not write a replacement f
 
 ## Commit before every hand back
 
-**A window commits what it wrote before it reports, and never pushes.** A hand back is a claim about a state the next window has to read, and an uncommitted working tree is a state nobody can name. Committing turns it into one short identifier that every later file can point at.
+**A window commits what it wrote before it reports; pushing is a separate, gated step.** A hand back is a claim about a state the next window has to read, and an uncommitted working tree is a state nobody can name. Committing turns it into one short identifier that every later file can point at.
 
 **Stage paths by name.** `git add -A` sweeps in whatever another window is part way through writing, and the reviewer and the developer share one working tree. The coordinator is also editing `.konteksto/harness.md` between dispatches, so a blind stage commits the dispatch log mid row.
 
@@ -164,7 +164,7 @@ That second case makes the phases a stack, so the pull request for a phase targe
 
 **Push the branch when you create it**, so the person can see and pull the phase from the moment it starts rather than after the first hand back. This obeys `Push on hand back` like every other push: `off` means the branch stays local, and it uses the roster's `Remote`, never a hardcoded `origin`.
 
-**Record the branch in the roster's Working branch field before dispatching.** Every window commits and pushes to whatever that field says, so a field that lags the phase sends the developer's commits to the previous phase's branch.
+**Record the branch in the roster's Working branch field before dispatching.** Every window commits to that branch and uses it for any configured push, so a field that lags the phase sends the developer's commits to the previous phase's branch.
 
 **Never delete a phase branch, and never merge one.** Both are decisions about what becomes the project's history, and the pull request is where a person makes them.
 

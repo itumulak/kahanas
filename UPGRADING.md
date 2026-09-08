@@ -157,7 +157,23 @@ about. Do not smooth over a gap. I want the list.
 
 ## What each version needs
 
-Templates live in `skills/dev-architect/templates/`, except `design.md` and `design-registry.md`, which are in `skills/dev-design/templates/`, `project-overview.md`, `glossary.md`, and `human-decisions.md`, which are in `skills/dev-scope/templates/`, `audit-register.md`, which is in `skills/dev-audit/templates/`, and `loop-state.md`, which is in `skills/dev-loop/templates/`.
+Templates live in `skills/dev-architect/templates/`, except `design.md` and `design-registry.md`, which are in `skills/dev-design/templates/`, `project-overview.md`, `glossary.md`, and `human-decisions.md`, which are in `skills/dev-scope/templates/`, `audit-register.md`, which is in `skills/dev-audit/templates/`, and `loop-state.md`, which is in `skills/dev-loop/templates/`. The `harness.md` template lives in `skills/dev-harness/templates/`, but `/dev-harness config` owns creating it; do not copy it into a project by hand.
+
+### Coming from 0.7.x: the optional harness
+
+Version 0.8.0 adds `/dev-harness`, an opt-in runner that spreads `/dev-loop` across separate [Herdr](https://herdr.dev) panes. Existing projects need no harness document migration. If Herdr is missing, `/dev-harness config` offers its official stable installer and verifies the binary; then launch Herdr, enter the project there, and run `config` again to finish pane setup:
+
+```text
+/dev-harness config
+```
+
+That command creates `.konteksto/harness.md`, records the pane roster and operational choices, and preserves any active `.konteksto/loop-state.md` for a bare `/dev-harness start` to resume. If you do not use the harness, do nothing; Herdr is not required for the rest of Kahanas.
+
+A Claude coordinator may use Claude Remote Control after configuration verifies it; every other coordinator communicates through its pane and cannot reach a person who is away from the session.
+
+Pushing is an explicit configuration choice. With `Push on hand back: off`, the harness keeps commits and branches local and refuses pull request creation. With it on, workers use only the configured remote and working branch, and the coordinator may open or update a pull request at completion. Outside the harness, `/dev-document pr` now opens or updates the pull request directly when a usable remote and authenticated `gh` are available; otherwise it prints the draft and the reason it could not publish it.
+
+`audit-register.md` also accepts `resolved` for a reviewed static finding that has no runtime case for `/dev-qa`. Let `/dev-audit` make that transition from fresh review evidence rather than rewriting existing issue statuses during migration.
 
 ### Coming from 0.7.x or earlier
 

@@ -42,7 +42,7 @@ Every skill answers to `/dev-scope`, `/dev-architect`, and so on.
 | `/dev-audit` | Turns independent review findings into a durable register with stable IDs, ownership routes, and review evidence. |
 | `/dev-qa` | Reruns documented runtime cases for eligible audit findings and records the observed regression result. |
 | `/dev-loop` | Runs selected tasks through development, verification, testing, audit, and final regression QA, with resumable control state. |
-| `/dev-harness` | Runs that same loop across separate Herdr panes: a coordinator that relays, a developer that builds, and a reviewer on a different model. Every decision a person owns reaches them on their phone over Claude Remote Control, which is why the coordinator is recommended to run Claude. Each window commits and pushes what it wrote, the coordinator branches per phase and opens the pull request, so a run you left alone is one you can pull at any moment. Needs Herdr. |
+| `/dev-harness` | Runs that same loop across separate Herdr panes: a coordinator that relays, a developer that builds, and a reviewer on a different model. Workers commit before handoff; pushing and pull request creation are optional. A Claude coordinator can use Remote Control, while other coordinators communicate through their pane. |
 | `/dev-document` | Writes the prose about a change: a pull request, a changelog, a release note, or a postmortem. |
 | `/dev-sync` | Makes the documents true again after a change, from repo evidence, and flags what needs a person. |
 
@@ -85,6 +85,27 @@ flowchart TD
 ```
 
 `/dev-design` runs again whenever a surface needs a new or revised design. `/dev-loop` records every phase and handoff in `loop-state.md`, and stops at its per task and per run repair caps.
+
+### Run it across Herdr panes
+
+`/dev-harness` is the optional multi-agent runner for this loop. If Herdr is missing, `/dev-harness config` offers its official stable installer and verifies the binary. Pane configuration and harness runs must happen inside [Herdr](https://herdr.dev) (`HERDR_ENV=1`); the rest of Kahanas does not require it.
+
+Configure it once in the project, then start a selected task range or resume the recorded run:
+
+```text
+/dev-harness config
+/dev-harness start <tasks>
+/dev-harness start
+/dev-harness stop
+```
+
+The default roster is a coordinator, a developer, and a reviewer whose model must differ from the developer's. `config` records their agents and models, escalation rules, workspace or session placement, unattended approval setting, optional push remote, relay, watch timeout, and quota-resume behavior in `.konteksto/harness.md`. Do not create that file by hand.
+
+The coordinator only forwards routes already recorded by `loop-state.md` or `audit-register.md`; it does not invent the next development step. `/dev-harness <instruction>` may change how the harness runs, but not product intent owned by the upstream project documents. `stop` ends dispatching without deleting panes, the Herdr session, or work in progress.
+
+Claude Remote Control is the recommended relay when it is available and passes the configuration test. Every other coordinator uses its own pane, so it cannot reach a person who is away from the session.
+
+Pushing is off unless the user enables it during configuration. With pushing off, commits, branches, the dispatch log, and PR work stay local. With pushing on, workers push only the configured working branch to the configured remote; the coordinator creates a branch per build-plan phase and opens or updates its PR when the run completes. The harness never force-pushes, pushes tags, merges, or deletes branches.
 
 ### Run it manually
 
@@ -141,6 +162,8 @@ The project records in `.konteksto/`, plus the design prototypes:
 ├── audit-register.md      review findings and QA history
 │                                    (/dev-audit, /dev-qa update)
 ├── loop-state.md          active delivery loop state    (/dev-loop only)
+├── harness.md             pane roster, settings, and dispatch log
+│                                    (/dev-harness only)
 └── ui-registry.md         reusable components           (/dev-develop updates)
 ```
 
@@ -211,7 +234,7 @@ Several of these were sharpened by reading other people's skill collections, bot
 
 ## Requirements
 
-Docker for the local stack. Git. Node 18 or later for the installer.
+Docker for the local stack. Git. Node 18 or later for the installer. Herdr is required only for `/dev-harness`; its `config` mode can install it when missing.
 
 ## License
 

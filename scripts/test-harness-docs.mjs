@@ -29,11 +29,20 @@ const quota = await read("internal/quota-resume.md");
 const escalation = await read("internal/escalation.md");
 const config = await read("modes/config.md");
 const skill = await read("SKILL.md");
+const documentSkill = await readFile(join(REPO, "skills", "dev-document", "SKILL.md"), "utf8");
 const briefs = Object.fromEntries(
   await Promise.all(
     ["coordinator", "developer", "reviewer"].map(async (r) => [r, await read(`prompts/${r}.md`)]),
   ),
 );
+
+// Config must bootstrap the runtime before it asks that runtime for panes.
+const installCheck = config.indexOf("command -v herdr");
+const sessionCheck = config.indexOf('test "${HERDR_ENV:-}" = 1');
+check("config checks whether Herdr is installed", installCheck >= 0);
+check("config checks installation before the live session", installCheck >= 0 && sessionCheck > installCheck);
+check("config names the official stable installer", config.includes("https://herdr.dev/install.sh"));
+check("config verifies the installed binary", config.includes("herdr --version"));
 
 // Every Session field another file tells the harness to read must exist in the template.
 for (const field of [
@@ -81,6 +90,8 @@ for (const [name, text] of [["dispatch.md", dispatch], ...Object.entries(briefs)
 for (const role of ["developer", "reviewer", "coordinator"]) {
   check(`${role} brief gates pushing on the recorded setting`, briefs[role].includes("Push on hand back"));
 }
+check("dev-document checks a local-only harness before any push instruction",
+  documentSkill.indexOf("Push on hand back: off") < documentSkill.indexOf("git push --set-upstream"));
 
 // The watch timeout default has to agree across the files that state it.
 const templateTimeout = template.match(/- Watch timeout seconds: <(\d+)/);
@@ -110,7 +121,8 @@ for (const role of ["developer", "reviewer"]) {
 // The dispatch log is a Markdown table, so its cells must be constrained.
 check("template constrains dispatch log cells to one line", template.includes("Every cell is one line"));
 
-// Telegram was removed; no file may still describe it.
+// A retired transport must not return to the shipped harness documents.
+const retiredTransport = ["tele", "gram"].join("");
 const allFiles = [];
 for (const dir of ["", "internal", "modes", "prompts", "templates", "agents"]) {
   const entries = await readdir(join(H, dir), { withFileTypes: true });
@@ -118,7 +130,7 @@ for (const dir of ["", "internal", "modes", "prompts", "templates", "agents"]) {
 }
 for (const f of allFiles) {
   const text = await read(f);
-  check(`${f} has no Telegram reference`, !/telegram/i.test(text));
+  check(`${f} has no retired transport reference`, !new RegExp(retiredTransport, "i").test(text));
 }
 
 // Every reference file SKILL.md names must exist.

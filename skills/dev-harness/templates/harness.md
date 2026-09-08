@@ -43,7 +43,7 @@ Every window commits what it wrote before it reports back, staging paths by name
 
 Each window is sent its Prompt file verbatim beneath the recorded action, so the rules a worker follows are identical no matter which model is coordinating that hour. A role this project invented gets its own file at `.konteksto/harness-prompts/<role>.md`, named in its row. `internal/dispatch.md` holds the rule against paraphrasing one.
 
-Working branch is the current phase branch and it changes as phases do. The coordinator creates it, pushes it, and rewrites this field before dispatching that phase's first task, because every window commits and pushes to whatever it says.
+Working branch is the current phase branch and it changes as phases do. The coordinator creates it, pushes it only when Push on hand back is `on`, and rewrites this field before dispatching that phase's first task, because every window commits to this branch and uses it for any configured push.
 
 A roster row is a convention, not a lock. Any person can type into any pane, and a second client can start an agent with the same name in a different session. This is the same honesty as the Assigned column in `progress-tracker.md`: it is an instruction agents follow and a record people can audit, never a guarantee the system keeps.
 
@@ -55,4 +55,4 @@ A roster row is a convention, not a lock. Any person can type into any pane, and
 
 **Every cell is one line, and a literal `|` inside one is written `\|`.** This is a Markdown table, so an unescaped pipe splits a cell and a newline ends the row, and the worker report format is full of pipes by design. Sent records the recorded action alone, never the wrapped prompt: the brief is a file anybody can read, so copying it in adds nothing and breaks the table. Observed result is a one line summary of what came back, not the report verbatim.
 
-`/dev-harness` owns this append only table, and the coordinator commits this file and pushes it once a row has its Observed result. It is the only artifact of a run that nothing else can reconstruct. Every dispatch names the file it read the route from. A row whose Route source is empty is a route the harness invented, which it may never do.
+`/dev-harness` owns this append only table, and the coordinator commits this file once a row has its Observed result, then pushes it only when Push on hand back is `on`. It is the only artifact of a run that nothing else can reconstruct. Every dispatch names the file it read the route from. A row whose Route source is empty is a route the harness invented, which it may never do.

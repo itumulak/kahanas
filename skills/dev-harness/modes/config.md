@@ -10,13 +10,47 @@ Running `config` again reconfigures. Read the existing file first, offer each cu
 
 ## Execution
 
-### Step 1: Confirm the environment
+### Step 1: Install Herdr when it is missing, then confirm the environment
+
+Check for the CLI before checking the session:
+
+```bash
+command -v herdr >/dev/null 2>&1
+```
+
+If it is missing, explain that the harness cannot create or drive its panes without Herdr. Ask whether to install the current stable release with the official installer. Show the exact command before running it. Installing software on the person's machine is a real change, so a no stops configuration and reports the [official install guide](https://herdr.dev/docs/install/) without substituting subagents.
+
+On Linux or macOS, the official command is:
+
+```bash
+curl -fsSL https://herdr.dev/install.sh | sh
+```
+
+On Windows PowerShell, the official command is:
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://herdr.dev/install.ps1 | iex"
+```
+
+After installation, refresh command lookup and verify the binary:
+
+```bash
+hash -r 2>/dev/null || true
+command -v herdr
+herdr --version
+```
+
+If either check fails, stop and report the installer's output. Say that a new terminal may be required for the install directory to reach `PATH`. Do not claim that Herdr is installed merely because the installer exited without an error.
+
+Installing the binary does not move the current agent into a Herdr pane. If the CLI is now available but this is not a Herdr session, tell the person to launch `herdr`, open the project there, and run `/dev-harness config` again. Stop after that handoff. Do not launch an interactive Herdr client inside the agent's shell and pretend configuration can continue in it.
+
+Now confirm the live session:
 
 ```bash
 test "${HERDR_ENV:-}" = 1
 ```
 
-If that fails, say plainly that this skill drives Herdr panes and cannot run outside a Herdr session, and stop. Do not fall back to subagents. A subagent is not a pane, does not survive the session, and cannot be typed into by a person, which is most of what this skill is for.
+If that fails while the CLI is already installed, say plainly that this skill drives Herdr panes and cannot finish configuration outside a Herdr session. Tell the person to launch `herdr`, open the project there, and run `/dev-harness config` again. Do not fall back to subagents. A subagent is not a pane, does not survive the session, and cannot be typed into by a person, which is most of what this skill is for.
 
 Read the current session:
 
@@ -39,7 +73,7 @@ For each role, settle four things:
 
 - **Agent name.** Must match `[a-z][a-z0-9_-]{0,31}` and be unique among live agents. Default to the role name.
 - **Pane.** An existing pane with an agent already in it, or a new split. Reuse what the person already has open before creating anything.
-- **Skills allowed.** The default split is in `templates/harness.md`. The coordinator's row carries `/dev-document pr` beside `/dev-harness`, because it opens the pull request itself when a run completes rather than dispatching that to a window whose own code is in it.
+- **Skills allowed.** The default split is in `templates/harness.md`. The coordinator's row carries `/dev-document pr` beside `/dev-harness`, because it opens the pull request itself when a pushed run completes rather than dispatching that to a window whose own code is in it.
 - **Prompt file.** The brief that window is sent verbatim on every dispatch. The three default roles use the skill's own `prompts/coordinator.md`, `prompts/developer.md`, and `prompts/reviewer.md`. **A role this project invented needs its own**: write it to `.konteksto/harness-prompts/<role>.md`, copying the shape of `prompts/developer.md`, and name it in the row. Ask the person what that role must always do and always refuse, and put only that in the file. A role with no brief cannot be dispatched, because the coordinator would have to write one, and a brief a coordinator writes is different for every coordinator model. An extra window needs its own list, and a skill listed for no window cannot be dispatched at all.
 
 ### Step 3: Ask which AI and which model runs each role

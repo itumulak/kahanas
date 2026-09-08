@@ -2,7 +2,7 @@
 name: dev-harness
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, AskUserQuestion
 argument-hint: [start | stop | config | instruction]
-description: "Run /dev-harness to drive the delivery loop across separate Herdr panes: a coordinator that relays, a developer that builds, and a reviewer on a different model that reads the code it did not write. It dispatches only routes the owning skills already recorded, and relays every decision a person owns to the person, over Claude Remote Control or its own pane. Requires HERDR_ENV=1."
+description: "Run /dev-harness to drive the delivery loop across separate Herdr panes: a coordinator that relays, a developer that builds, and a reviewer on a different model that reads the code it did not write. It dispatches only routes the owning skills already recorded, and relays every decision a person owns to the person, over Claude Remote Control or its own pane. Config can install Herdr when missing. Running the harness requires HERDR_ENV=1."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -27,7 +27,7 @@ coordinator  →  developer  →  coordinator  →  reviewer  →  coordinator  
 
 `config` asks which AI and which model runs each role, and what each moves to when the work turns out to be harder than its base model. Claude and Codex are offered first because Herdr recognizes both and both are known to work here, and any other agent this machine has installed is offered beside them.
 
-**It requires Herdr.** Every command it issues is a Herdr command against a live pane, and outside a Herdr session it stops rather than falling back to something weaker. A subagent is not a pane: it does not survive the session, a person cannot type into it, and it cannot be a second model holding a second window open for an hour.
+**It requires Herdr.** `config` checks for the CLI first and offers the official stable installer when it is missing. Configuration of panes and every other mode require a live Herdr session. Outside one, the skill tells the person to launch Herdr and continue there rather than falling back to something weaker. A subagent is not a pane: it does not survive the session, a person cannot type into it, and it cannot be a second model holding a second window open for an hour.
 
 ## The rule this skill exists to keep
 
@@ -49,9 +49,9 @@ When no route is recorded, the harness asks a person. It does not choose. `inter
 
 **Owns nothing else, and this is most of the skill.** It never writes `loop-state.md`, `progress-tracker.md`, `decision-log.md`, `audit-register.md`, `human-decisions.md`, a review report, a design record, a test, or a line of application code. It never writes a Status, a Verify Check, an Evidence row, or a QA result.
 
-**The coordinator runs `/dev-document pr` when a run completes, and that is running a skill rather than owning its output.** A finished run that is committed and pushed with no pull request is work nobody has been asked to look at, and the person this was built for is not at the terminal to open one. `/dev-document` still owns the title, the body, and what may go in them. The coordinator does not compose a pull request body, summarize the run into one, or add a line to what that skill wrote. It is the same rule as never inventing a route, applied to prose.
+**The coordinator runs `/dev-document pr` when a pushed run completes, and that is running a skill rather than owning its output.** A local-only run stops after reporting completion. `/dev-document` still owns the title, the body, and what may go in them. The coordinator does not compose a pull request body, summarize the run into one, or add a line to what that skill wrote. It is the same rule as never inventing a route, applied to prose.
 
-**It does cause commits and pushes, and that is the one thing it moves outside this machine.** Each window commits what it wrote before it hands back, and pushes the roster's working branch when the roster says to, so a person can pull the run's work at any moment instead of trusting a terminal they cannot see. **The coordinator commits `.konteksto/harness.md` under the same rule**, because the Dispatch log is the only record of what was sent and where each route came from, and nothing else in the project can reconstruct it. The harness never pushes the base branch, never forces, and never reconciles a rejected push. `internal/dispatch.md` holds the whole envelope.
+**It always causes commits; pushing is the one configured action that moves work outside this machine.** Each window commits what it wrote before it hands back, and pushes the roster's working branch only when the roster says to. **The coordinator commits `.konteksto/harness.md` under the same rule**, because the Dispatch log is the only record of what was sent and where each route came from, and nothing else in the project can reconstruct it. The harness never pushes the base branch, never forces, and never reconciles a rejected push. `internal/dispatch.md` holds the whole envelope.
 
 A person's answer relayed from a phone is delivered to the pane that asked, and the skill that asked is the skill that records it. That keeps every answer filed by the owner of the stage it belongs to, which is the whole point of splitting `human-decisions.md` by stage in the first place.
 

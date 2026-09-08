@@ -121,9 +121,9 @@ Rules that hold for all four:
 
   Four cases decide what actually happens:
 
+  - **A harness run has recorded `Push on hand back: off`.** Read `.konteksto/harness.md` when it exists before any push or `gh` command. `off` means the person asked for nothing to leave the machine, and opening a pull request would push the branch to do it. Say that the setting forbids publication, output the title and body, and stop.
   - **A pull request already exists for this branch.** Update it with `gh pr edit --title --body-file` instead of opening a second. A branch gets one pull request, and a run that reaches its finish twice must not leave two. Check with `gh pr view --json number,state`.
   - **The branch is not pushed, or is behind its remote.** Push it first with `git push --set-upstream <the remote this branch tracks, or the single configured remote> <current branch>`. Read it with `git remote`; do not assume `origin`, since a project may name its remote anything and pushing to a guess sends work somewhere nobody asked for. A pull request describes commits a reviewer can fetch, and there is nothing to open against a branch nobody else has.
-  - **A harness run has recorded `Push on hand back: off`.** Read `.konteksto/harness.md` when it exists. `off` means the person asked for nothing to leave the machine, and opening a pull request would push the branch to do it. Say that the setting forbids it, output the title and body, and stop.
   - **On the base branch.** There is no pull request to open. Say so and stop: a `pr` on `main` is a request the person did not mean.
   - **`gh` missing, not authenticated, or no remote.** Fall back to the old behavior. Output the title and body, save the body next to the project so nothing is retyped, and say exactly which of those three it was. Do not install anything and do not add a remote.
 
