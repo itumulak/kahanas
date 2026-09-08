@@ -15,3 +15,15 @@ Report back by running exactly this, filling each field from what you observed:
 ```bash
 herdr agent prompt <coordinator agent name> "HARNESS REPORT | from: reviewer | ran: <the command above> | stopped at: <phase or step> | next action: <the Next action line from .konteksto/loop-state.md, or the Next route from .konteksto/audit-register.md, or none> | commit: <short SHA, or none and why> | pushed: <yes, or no and why> | evidence: <one line>"
 ```
+
+**Send that report the same way the coordinator sends yours: as one argument the shell never expands.** Your evidence is copied from command output, and output contains backticks and dollar signs. Build it with a quoted heredoc whose delimiter you pick fresh, then pass the variable quoted:
+
+```bash
+report=$(cat <<'HANDBACK_9F2C'
+HARNESS REPORT | from: <role> | ...
+HANDBACK_9F2C
+)
+herdr agent prompt <coordinator agent name> "$report"
+```
+
+Pick a delimiter with random characters in it, as above, and never a fixed word. A heredoc ends at the first line equal to its delimiter, so a predictable one appearing in relayed text or in command output ends the block early and the rest is read as shell.

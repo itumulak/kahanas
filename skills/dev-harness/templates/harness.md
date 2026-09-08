@@ -14,7 +14,7 @@
 - Configured: <YYYY-MM-DD HH:MM>
 - Configured by: <model identifier>
 - Relay: <remote control|coordinator pane>
-- Watch timeout seconds: <3600, since neither transport polls>
+- Watch timeout seconds: <300 by default, the longest a person's message may go unread>
 - Unattended approvals: <on|off>
 - Escalate after failed attempts: <2 to 9, or off>
 - Escalations allowed per task: <1 or 2>

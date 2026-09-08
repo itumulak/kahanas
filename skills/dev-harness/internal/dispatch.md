@@ -75,14 +75,16 @@ Never use `--wait` for a build phase. A coordinator blocked inside `agent prompt
 **Pass the prompt as one argument that the shell never expands.** The wrapped prompt carries a brief file verbatim and, for an instruction relayed from a person, their exact words. Both routinely contain backticks, quotes, and dollar signs, and pasting that between double quotes hands it to the shell to interpret: at best the command breaks, at worst `$(...)` inside a message runs. Build it with a quoted heredoc, whose delimiter in single quotes turns off every substitution, then pass the variable quoted:
 
 ```bash
-prompt=$(cat <<'HARNESS_PROMPT'
+prompt=$(cat <<'HARNESS_PROMPT_7B31'
 <recorded action>
 
 <the receiving role's brief file, verbatim>
-HARNESS_PROMPT
+HARNESS_PROMPT_7B31
 )
 herdr agent prompt <agent name> "$prompt"
 ```
+
+**Pick the delimiter fresh each time, with random characters in it.** A heredoc ends at the first line equal to its delimiter, so a fixed word like `HARNESS_PROMPT` can appear in relayed text and close the block early, leaving the rest to be read as shell. That is the same hole the quoting closed, reopened by a predictable marker.
 
 Never assemble it inline as `herdr agent prompt <name> "text with $VARS and `backticks`"`. The quoting looks fine until the first prompt that contains a character somebody did not think about, and the failure lands in the middle of an unattended run.
 
@@ -200,8 +202,10 @@ Stage that path alone. The same fence applies as everywhere else: the phase bran
 So the watch is a blocking wait inside one turn, not a promise to return.
 
 ```bash
-herdr agent wait <agent name> --timeout <milliseconds>
+herdr agent wait <agent name> --timeout <the roster's Watch timeout seconds, times 1000>
 ```
+
+**The roster records seconds and this flag takes milliseconds.** A roster value of 300 is `--timeout 300000`. Passing 300 straight through makes a five minute wait a three tenths of a second one, which turns the watch into a spin.
 
 **Capture the agent's state sequence before you dispatch, and ignore any wait that returns without it advancing.**
 

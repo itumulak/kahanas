@@ -194,21 +194,6 @@ Check the flag against the installed agent with `<kind> --help` before recording
 
 This applies to the coordinator pane only. A worker has no reason to drive Herdr beyond its one hand back call.
 
-Confirm each role really came up before moving on:
-
-```bash
-herdr agent list
-```
-
-Expect the name, the pane, the kind you chose, and a status of `idle`. A role that is not in that list did not start, whatever the pane looks like.
-
-**Expect a trust prompt the first time an agent starts in a directory.** Claude Code and Codex both ask whether the folder can be trusted, and a pane sitting on that question returns `agent_not_ready` even though the agent is running and the name still works for `agent read` and `agent send-keys`.
-
-**Relay it. Never answer it yourself**, and never send a bare Enter to clear it. It is a security question about the person's own machine, and the two agents do not even default to the same answer: Codex preselects yes, Claude Code preselects `No, exit`, so one blind Enter trusts a folder and the other quits the agent. Read the dialog, show it to the person, and send only the choice they make.
-
-Answering it once usually covers the other panes of the same agent kind in the same directory, since the trust decision is stored per directory. Do not assume that; read each pane.
-
-
 ### Step 6: Create what is missing
 
 **Create the panes where Step 5c said, not where this mode happens to be running.** In the current workspace, split from the caller. In a new workspace or a new session, create that first and split from its root pane, whose id the create call returns. Splitting `--current` regardless would put the roster's panes in the space the person asked to keep clear.
@@ -242,10 +227,11 @@ Then start the agent in it, with the flags Step 5d settled. **The answer is know
 Start the agent:
 
 ```bash
-herdr agent start <name> --kind <kind> --pane <pane id> -- <model arguments for the base model>
+herdr agent start <name> --kind <kind> --pane <pane id> -- \
+  <model arguments for the base model> <the skip approvals flag from Step 5d, when unattended is on>
 ```
 
-Native agent arguments go after `--`, and that is where the base model is selected. Start each role on its base model, never on its escalation model.
+Native agent arguments go after `--`, and that is where both the base model and the skip approvals flag go. Start each role on its base model, never on its escalation model, and put the flag in the same command rather than adding it later: an agent already running cannot be given one without being killed and started again, which is why Step 5d asks before this step runs.
 
 **Start a Claude coordinator with Remote Control on**, so step 7 has the option available without a restart:
 
@@ -256,6 +242,20 @@ herdr agent start coordinator --kind claude --pane <pane id> -- --remote-control
 It costs nothing if the person then picks a different relay, and it saves killing a freshly started agent to add one flag.
 
 **Expect a trust prompt the first time an agent starts in a directory.** Claude Code and Codex both ask whether the folder can be trusted before they will accept input, and Herdr returns `agent_not_ready` while that dialog is up. The name still resolves for `agent read` and `agent send-keys`, so read the pane, show the person exactly what it asks, and let them answer. **Never answer it yourself**, and never send a blind Enter: the two agents do not agree on which option is highlighted, so the same keystroke trusts one and quits the other. Answering once usually covers every later pane of that same agent in that same directory.
+
+Confirm each role really came up before moving on:
+
+```bash
+herdr agent list
+```
+
+Expect the name, the pane, the kind you chose, and a status of `idle`. A role that is not in that list did not start, whatever the pane looks like.
+
+**Expect a trust prompt the first time an agent starts in a directory.** Claude Code and Codex both ask whether the folder can be trusted, and a pane sitting on that question returns `agent_not_ready` even though the agent is running and the name still works for `agent read` and `agent send-keys`.
+
+**Relay it. Never answer it yourself**, and never send a bare Enter to clear it. It is a security question about the person's own machine, and the two agents do not even default to the same answer: Codex preselects yes, Claude Code preselects `No, exit`, so one blind Enter trusts a folder and the other quits the agent. Read the dialog, show it to the person, and send only the choice they make.
+
+Answering it once usually covers the other panes of the same agent kind in the same directory, since the trust decision is stored per directory. Do not assume that; read each pane.
 
 ### Step 7: Ask how the harness reaches the person
 
@@ -298,7 +298,9 @@ A not sent result while the person is at the terminal is different, and it is fi
 
 ### Step 8: Ask about the rest
 
-- **Watch timeout seconds.** Not a polling interval. `herdr agent wait` returns the moment a worker settles, so this only bounds how long the coordinator sits when nothing happens at all, and a short value costs turns while buying nothing. Default 3600. Both transports deliver a person's message into the coordinator's own session or pane, so nothing needs polling and there is no reason to expire sooner. `internal/dispatch.md` holds the measurement behind this.
+- **Watch timeout seconds.** Not a polling interval: `herdr agent wait` returns the moment a worker settles, so a worker finishing never has to wait for it. **It is the longest a person's message can go unread**, because a tool call has to return before the agent sees anything new, so a coordinator sitting in a wait cannot read a stop request until that wait ends. Default 300, five minutes. Longer suits a run nobody intends to interrupt, and say so when recording it. Below 60 is waste, since each expiry costs a turn.
+
+  **Record it in seconds and pass it to Herdr in milliseconds.** `herdr agent wait --timeout` takes milliseconds, so 300 in the roster is `--timeout 300000` on the command line. Writing the roster value straight into the flag makes a five minute wait a five second one.
 - **Quota resume.** Default on. Explain it honestly: the harness reads the pane, recognizes that the worker said it is out, and wakes it at the time the worker itself printed. It does not measure token usage, because nothing here can.
 
 ### Step 9: Write the file

@@ -62,13 +62,18 @@ Otherwise infer where it is obvious. On a feature branch ahead of base means `pr
 
 ### Step 2: Gather the real source material
 
-Base branch is where this branch was actually cut from, not always `main`. Resolve it:
+Base branch is where this branch was actually cut from, and on a stacked branch that is another feature branch rather than `main`. Find the closest branch whose tip is already an ancestor of this one:
 
 ```bash
-git merge-base --fork-point main HEAD 2>/dev/null || git merge-base main HEAD
+cur=$(git rev-parse --abbrev-ref HEAD)
+git for-each-ref --format='%(refname:short)' refs/heads | grep -vx "$cur" | while read b; do
+  git merge-base --is-ancestor "$b" HEAD && echo "$(git rev-list --count "$b"..HEAD) $b"
+done | sort -n | head -1
 ```
 
-Then check whether another branch's tip is that merge base. **If one is, that branch is the base**, because this work sits on top of it and a pull request against `main` would show both branches' changes as though this one made them. Stacked branches are the ordinary case where a project builds in phases. Otherwise the base is `main` if it exists, else `master`.
+The count is how far this branch has moved past that one, so the smallest is the nearest parent. **Do not compute a merge base against `main` and look for a branch there**: that finds `main`, which is what a merge base against `main` is, and it silently targets the wrong branch on every stacked pull request. In this project's own repository the naive form picked `main` at 11 commits while the branch was actually stacked on `0.8.0` at 8.
+
+Fall back to `main`, else `master`, when nothing else is an ancestor. A repository with neither, or with a differently named trunk, is one to ask about rather than guess at.
 
 - **pr and changelog**: `git log --oneline <base>..HEAD` and `git diff --name-only <base>...HEAD`.
 - **release-note**: list tags by date. No tags at all means falling back to the full history and saying so.
@@ -117,7 +122,8 @@ Rules that hold for all four:
   Four cases decide what actually happens:
 
   - **A pull request already exists for this branch.** Update it with `gh pr edit --title --body-file` instead of opening a second. A branch gets one pull request, and a run that reaches its finish twice must not leave two. Check with `gh pr view --json number,state`.
-  - **The branch is not pushed, or is behind its remote.** Push it first with `git push --set-upstream origin <current branch>`. A pull request describes commits a reviewer can fetch, and there is nothing to open against a branch nobody else has.
+  - **The branch is not pushed, or is behind its remote.** Push it first with `git push --set-upstream <the remote this branch tracks, or the single configured remote> <current branch>`. Read it with `git remote`; do not assume `origin`, since a project may name its remote anything and pushing to a guess sends work somewhere nobody asked for. A pull request describes commits a reviewer can fetch, and there is nothing to open against a branch nobody else has.
+  - **A harness run has recorded `Push on hand back: off`.** Read `.konteksto/harness.md` when it exists. `off` means the person asked for nothing to leave the machine, and opening a pull request would push the branch to do it. Say that the setting forbids it, output the title and body, and stop.
   - **On the base branch.** There is no pull request to open. Say so and stop: a `pr` on `main` is a request the person did not mean.
   - **`gh` missing, not authenticated, or no remote.** Fall back to the old behavior. Output the title and body, save the body next to the project so nothing is retyped, and say exactly which of those three it was. Do not install anything and do not add a remote.
 

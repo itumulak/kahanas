@@ -34,17 +34,16 @@ A match is a candidate, not a verdict. Read the surrounding lines and confirm th
 1. Take the reset time from the worker's own output. **Never estimate one.** If the output gives no time, notify the person that the worker is out with no stated reset, and stop watching that worker.
 2. Record the worker, the quoted line, and the reset time in the Dispatch log.
 3. Notify the person once, with the reset time.
-4. Wait until that time has passed, and **wait in the ordinary watch loop rather than in one long sleep**. An agent cannot schedule its own wake, so a turn that ends here does not resume, and a single sleep to the reset time is a coordinator that hears nothing for hours. Keep the normal bounded wait and compare the clock on each expiry:
+4. Wait until that time has passed, and **wait the same way you watch: one bounded call, then back to the top of the cycle**. An agent cannot schedule its own wake, so a turn that ends here does not resume. A loop spun inside one shell call is no better: it holds the coordinator for hours with no chance to read the relay, and `herdr agent wait` returns immediately against a worker that is already settled, so a loop around an idle worker is a spin that burns the machine until the reset time.
 
-```bash
-while [ "$(date +%s)" -lt <reset epoch> ]; do
-  herdr agent wait <the other worker> --timeout <the roster's watch timeout>
-done
-```
+   So each cycle does one bounded wait and then returns:
 
-The wait returns early whenever the other worker moves, so the run keeps going while this one is down, and each expiry is also where the relay is checked. If there is no other worker running, the same loop still holds the turn open and stays reachable.
+   - **Another worker is `working`:** `herdr agent wait <that worker> --timeout <the roster's watch timeout, in milliseconds>`. It returns early when that worker moves, so the run keeps going.
+   - **No other worker is running:** `sleep <the roster's watch timeout, in seconds>`. One call, bounded, nothing to spin against.
 
-Then check the pane again before sending anything.
+   Then check the relay, compare the clock, and repeat if the reset time has not arrived. Between iterations is where a person's stop or answer is read, and it is the only place it can be.
+
+   Then check the pane again before sending anything.
 5. Re dispatch the route currently recorded in its file, not the one that was in flight when the quota ran out. The recorded route may have moved while the worker was down.
 
 While one worker waits on quota, the other keeps running if it has a recorded route of its own. A quota block on the developer does not stop a review already dispatched to the reviewer.

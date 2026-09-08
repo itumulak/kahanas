@@ -54,7 +54,11 @@ Do not call a task passed from a clean build alone. It passes only after observe
 
 ## Session boundaries
 
-After each completed task, record the next task and exact next action in `loop-state.md`, then execute that action immediately. A fresh session is used only when the user or host explicitly starts one; it resumes from the saved state and continues automatically. Do not claim that a fresh session was created unless the host confirmed it.
+After each completed task, record the next task and exact next action in `loop-state.md`, then execute that action immediately.
+
+**One exception: when the next selected task belongs to a different phase of `build-plan.md`, stop instead, and record `Next action` as `/dev-loop <the remaining selector>`.** Record `/dev-loop`, never `/dev-develop <task>`, because only this skill owns `loop-state.md`: a route naming a subskill cannot advance the state, so whatever ran it would hand back with the file unchanged and the caller would read its own last route as stale.
+
+A phase is where a harness gives the work its own branch and its own pull request, and it is a natural place for a person to look, so a run that crosses one without stopping either lands later phases on the wrong branch or never gets reviewed as a unit. Outside a harness the same stop is a short pause on a boundary somebody chose, and resuming it is one command. A fresh session is used only when the user or host explicitly starts one; it resumes from the saved state and continues automatically. Do not claim that a fresh session was created unless the host confirmed it.
 
 ## Final QA
 
