@@ -6,6 +6,8 @@ Entries describe the effect on someone running the skills, not the edit that pro
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-09-09
+
 ### Added
 
 - **A project may wire a code graph, and five skills query it instead of reading their way to the code.** A code graph is a parsed index of the codebase: every symbol, the file that holds it, what it imports, and what calls it. On a repository past a few hundred files, finding the code is where most of a session's context goes, and a graph answers that in a command. `/dev-architect` offers one once, at a new step 6b, or before the brownfield audit on an existing codebase, since that audit is the task in the skill a graph helps most. `tooling.md` gains a Code Graph section holding the Status, the tool, and one row per command the later skills call. `/dev-context` orients from it, `/dev-develop` locates the files and the symbols it is about to change, `/dev-debug` gets the call paths into a failure without reading the files on the way there, `/dev-check review` passes the reviewer the reach of the diff, and `/dev-sync` finds the files that prove a subtask goal faster.
