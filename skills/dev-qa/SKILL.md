@@ -34,6 +34,8 @@ This skill appends QA Runs rows in `.konteksto/audit-register.md`. It may update
 5. On FAIL, update the selected issue to `reopened`, report the audit ID, and route to `/dev-debug <AUD-ID>`. Do not fix it here.
 6. On BLOCKED, report the missing prerequisite and leave the issue unchanged for `/dev-audit`; a blocked run is not a pass.
 
+**Under `BRIEF`, a QA Runs row is one sentence and always carries its evidence.** The verdict, the case, and where the proof sits are on the floor brief may never drop, since a run whose evidence nobody can find proves nothing. The Record detail section of `tooling.md` defines what brief drops and the floor it may never drop. Empty, or no section at all, means `BRIEF`.
+
 Nits and purely static review findings are not QA cases. They remain in the audit register for their implementation route.
 
 ## Report

@@ -21,6 +21,8 @@ Use one of two values for **Kind**:
 - **Decision**: a build choice, an assumption, a proven root cause and its fix, or a meaningful departure from the plan. Explain why it was necessary. Mark unratified assumptions `assumed, not yet ratified`.
 - **Evidence**: a command, observed flow, reproduction, or confirming check and its result. State what was run or observed and exactly what it proved. Quote decisive failures when relevant.
 
+**How long an Entry runs, and whether a routine row is written at all, follows the project's record detail.** Under `BRIEF`, which is the default, an Entry is one sentence saying what and why, and a confirmation that went exactly as the standing bar says it should is claimed by the stamp beside it rather than written out here again. A Decision, an assumption, a root cause, a failure, and the location of the evidence behind a pass are written in full under either setting. The Record detail section of `tooling.md` defines what brief drops and the floor it may never drop. Empty, or no section at all, means `BRIEF`.
+
 Do not use this as an edit diary. Task status belongs in `progress-tracker.md`; review findings belong in `.konteksto/reviews/`; test cases belong in test files.
 
 ---
@@ -36,6 +38,8 @@ Do not use this as an edit diary. Task status belongs in `progress-tracker.md`; 
 `/dev-check verify` writes no entry on a fail. The failed verdict belongs in the affected child subtask's Verify Check cell and Note, then in the aggregate task row as the rollup, in `progress-tracker.md`; it is not proof that the task works.
 
 No other skill writes entries. `/dev-sync` reads the log but never reconstructs or edits history.
+
+**`/dev-sync` may move a closed phase's rows out, and that is not writing.** Once a phase is finished, it asks, then moves those rows byte for byte into `.konteksto/logs/decision-log-phase-<NUMBER>.md` and leaves one pointer row behind naming the phase, the row count, the timestamp range, and the file. The archive is this file continued backwards: same columns, same append only rule, same owners, and nothing new is ever written into it. Read one only when you need history that far back, since the point of moving them was to keep this file short.
 
 ---
 

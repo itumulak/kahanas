@@ -39,6 +39,8 @@ Every written value uses the tracker's three line stamp: `PASSED<br><your exact 
 
 **Write two: the Evidence row.** On a PASS, append an Evidence row to `decision-log.md` recording how many subtasks and conditions you exercised, that every one passed, and the decisive evidence locations. That is how a later session tells a fully exercised task from an assumed one.
 
+**Under `BRIEF`, that row is counts plus the decisive locations and nothing else**: how many subtasks and conditions were exercised, that every one passed, and where the evidence sits. Never per condition prose, and never a shorter claim than that, since the counts and the locations are the whole reason a later session can tell an exercised task from an assumed one. The Record detail section of `tooling.md` defines what brief drops and the floor it may never drop. Empty, or no section at all, means `BRIEF`.
+
 Read the log's Who writes what section before the first append. Yours is the row that claims the behavior was observed. Append it at the bottom, and never edit a row `/dev-develop` or `/dev-debug` wrote.
 
 The row carries the Timestamp as `YYYY-MM-DD HH:MM` from the system clock, the Author as your exact model identifier such as `claude-opus-5`, the Skill as `/dev-check`, and on a team project the Actor from `git config user.name`. Write `unknown-model` and say so rather than guessing one. **Author matters most on your rows**, since verify is the mode most often run on a different model than built the code. You write Evidence only, never a Decision.

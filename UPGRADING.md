@@ -159,6 +159,20 @@ about. Do not smooth over a gap. I want the list.
 
 Templates live in `skills/dev-architect/templates/`, except `design.md` and `design-registry.md`, which are in `skills/dev-design/templates/`, `project-overview.md`, `glossary.md`, and `human-decisions.md`, which are in `skills/dev-scope/templates/`, `audit-register.md`, which is in `skills/dev-audit/templates/`, and `loop-state.md`, which is in `skills/dev-loop/templates/`. The `harness.md` template lives in `skills/dev-harness/templates/`, but `/dev-harness config` owns creating it; do not copy it into a project by hand.
 
+### Coming from 0.9.0: shorter records, and archived log rows
+
+Nothing to migrate. An existing `.konteksto/tooling.md` has no Record detail section, and a missing section means `BRIEF`, so your records get shorter the next time a skill appends to one. Nothing already written changes.
+
+Want the long form back? Add the section from `skills/dev-architect/templates/tooling.md` and set it, or run `/dev-architect` and let it ask:
+
+```text
+**Detail:** FULL
+```
+
+**Brief never drops a finding, a failure, a decision, an assumption, a root cause, a stamp, an approval, or the location of the evidence behind a pass.** It drops routine confirmations, narration, and the reasoning behind a decision already recorded. If you find something missing from a record that belongs on that list, that is a defect rather than the setting working, and it is worth reporting.
+
+**An already huge `decision-log.md` shrinks on the next `/dev-sync`**, which offers to move a closed phase's rows into `.konteksto/logs/` and asks before doing it. Say no and it leaves the file alone. Nothing is summarised or deleted either way, and the archive keeps the log's own columns, so an old row reads exactly as it did.
+
 ### Coming from 0.8.1: the optional code graph
 
 Nothing to migrate, and nothing to add by hand. An existing `.konteksto/tooling.md` has no Code Graph section, and a missing section reads as a question nobody has been asked yet, so the next `/dev-architect` run offers one and records whatever you answer.

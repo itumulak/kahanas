@@ -6,6 +6,20 @@ Entries describe the effect on someone running the skills, not the edit that pro
 
 ## [Unreleased]
 
+### Added
+
+- **A project picks how much its records say, and an unasked project gets the short form.** A log that nobody prunes becomes a file nobody opens, and this workflow appends to one on every task. `tooling.md` gains a Record detail section holding `BRIEF` or `FULL`, `/dev-architect` asks once and records the panel in `human-decisions.md`, and six skills read it: the decision log, `/dev-develop`, `/dev-check verify`, `/dev-check review`, `/dev-debug`, `/dev-audit`, and `/dev-qa`. An empty setting, or no section at all, means `BRIEF`, so an existing project gets shorter records the next time a skill appends to one, with no migration.
+
+  **Brief drops narration and never a fact somebody has to act on.** Out go the routine confirmations that proved nothing surprising, the restatement of what another document already holds, the reasoning behind a decision already recorded, and per item prose where a count says the same thing, with entries capped at one sentence per cell. The floor is identical in both modes and it outranks brevity where the two pull against each other: a finding, a failure, a blocker, a decision, an assumption, a root cause, any stamp or verdict, an approval, everything in `human-decisions.md`, and the location of the evidence behind a pass. A history missing the thing you needed is not shorter, it is useless, so a review keeps every finding at full length and loses only its framing, and the audit register keeps every issue including the nits.
+
+  **Two things the setting deliberately leaves alone.** Everything `/dev-document` writes, since a changelog or a postmortem is prose for people outside the project rather than a record a later session mines. And the documents that state intent rather than record what happened, meaning `project-overview.md`, `architecture.md`, `build-plan.md`, `code-standards.md`, `glossary.md`, and `design.md`, because a short specification is not a concise one, it is an incomplete one.
+
+- **A closed phase's log rows move out of the file you open.** Brevity slows a log's growth and nothing stops it, so `/dev-sync` now offers to archive the rows of a phase whose every task is `DONE` with a `PASSED` verify. It asks first with the row count in front of you, then moves them byte for byte into `.konteksto/logs/decision-log-phase-<NUMBER>.md` and leaves one pointer row behind naming the phase, the count, the timestamp range, and the file. Nothing is summarised, rewritten, or dropped, and no row of an open task moves, including a `DONE` task whose verify is empty or `FAILED`. The archive is `decision-log.md` continued backwards rather than a new record: same columns, same append only rule, same owners, and a later session reads one only when it needs history that far back.
+
+  **This is the one thing `/dev-sync` does that asks.** Every other edit it makes is a correction the repo proves, and moving somebody's history is not one of those.
+
+  **Fifty eight assertions added to `npm test`** covering the setting and the archive: that the floor names every protected thing and says it outranks brevity, that each of the seven consumers states its own consequence and points at the definition rather than restating it, that a review and an audit register say in their own words that they keep every finding and every issue, that the reviewer's own prompt carries the same rule since it is the one writing the file, and that the boundary table grants the move while still forbidding the rewrite.
+
 ## [0.9.0] — 2026-09-09
 
 ### Added

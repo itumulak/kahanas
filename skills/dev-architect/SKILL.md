@@ -320,6 +320,8 @@ This exists so a later run, here or in `/dev-sync`, can tell what a tool wrote f
 
 **The stamp records provenance, not permission.** It never licenses overwriting a line someone edited. A stamped file still gets the same care as an unstamped one.
 
+**Ask once how much detail the records carry, then write it into `tooling.md`'s Record detail section.** Two options, `BRIEF` recommended, and say what each costs: brief keeps every finding, failure, decision, and stamp while dropping routine confirmations and narration, and full restores the framing prose for a project whose history somebody outside the team has to reconstruct. Append the panel to `human-decisions.md` like any other choice. **Never ask a second time**, on this run or a later one, because that section is what answers it, and an empty section means brief.
+
 **Write the round cap into `tooling.md`'s Doubt pass rounds section**, using the answer step 6a got, or `3` where no doubt pass ran and nothing was asked. That section is what stops a later run asking the same question again.
 
 **Write step 3's answer into the Remote access row of the Visual verification section**, on a project with an `app/`: `NONE` where a person opens the review page on this machine, and the forwarding command where they do not. That row is the other question a later run must not ask twice, and `/dev-design` reads it before it hands a review page to anybody.

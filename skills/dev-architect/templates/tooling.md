@@ -216,6 +216,54 @@ Record that as the Install command where it applies, and prove it with the Check
 
 ---
 
+## Record detail
+
+*Purpose: how much a skill writes into a record it appends to, so a project's history stays something a person opens rather than a file that has become too long to read. Recorded here for the same reason as the round cap below: it is a fact about how the agent works on this project rather than about the product, and a preference asked once should not be asked again every session. This is the canonical definition, and every skill that appends to a record carries only its own consequence and a pointer here.*
+
+**Detail:** <BRIEF | FULL>
+
+**An empty value, or no section at all, means `BRIEF`.** A project that has never been asked gets the shorter record, which is the safe default in the only way that matters: nothing is lost that the floor below protects, and a person who wants the long form changes one word by hand.
+
+### The floor, and it is identical in both modes
+
+**`BRIEF` is never allowed to cost information a later session acts on.** These are written in full whatever this setting says:
+
+- A finding, a failure, a blocker, and the reason behind each.
+- A decision, an assumption, and a proven root cause with its fix.
+- Any stamp, status, or verdict, with the model and minute it carries.
+- An approval, and every entry in `human-decisions.md`.
+- The location of the evidence behind a pass, meaning the screenshot, the file, or the command somebody could rerun.
+- Anything a person said, in their words.
+
+**A record that drops one of those is not brief, it is wrong.** The whole point of this setting is that a shorter history is easier to act on, and a history missing the thing you needed is not shorter, it is useless. Where the two pull against each other, the floor wins and the record is as long as it has to be.
+
+### What BRIEF drops
+
+- **A routine confirmation that proved nothing surprising.** A check that passed exactly as the standing bar says it should is already claimed by the stamp beside it, and writing it out again is the same fact in two places.
+- **Narration of work that another document already holds.** The plan says what the task was, the tracker says where it stands, and repeating either into a log entry adds length and no knowledge.
+- **The reasoning that led to a decision already recorded.** Keep what was decided and why in one sentence. The deliberation behind it was worth having and is not worth storing.
+- **Per item prose where a count says the same thing.** Twelve conditions exercised and all twelve met is one sentence, not twelve.
+
+**One sentence per cell in a table record.** Say what happened and why, and stop. A cell that genuinely needs two sentences may have two; a cell that wants a paragraph is describing something that belongs in its own document.
+
+**In a prose record, the findings keep their full length and the framing goes.** A review under `BRIEF` loses its preamble, its restatement of the change, and its closing summary. It loses no finding, and it shortens no finding, because a finding somebody has to act on is exactly the thing the floor protects.
+
+### What FULL changes
+
+`FULL` restores the routine confirmations and the framing prose, and lifts the one sentence rule. It changes nothing about the floor, which was never a length rule in the first place.
+
+**Pick `FULL` on a project where the history is the deliverable**, for example a regulated build, an audited system, or a piece of work whose reasoning somebody outside the team has to reconstruct later. Everywhere else the shorter record is the one people actually read.
+
+### What this setting does not govern
+
+**Documents written for people outside this project.** Everything `/dev-document` produces, meaning changelogs, release notes, pull request descriptions, and postmortems, is prose somebody asked for and will read once. Length there is an editorial judgment about the reader, not a storage cost, so this setting leaves it alone.
+
+**Documents that state intent rather than record what happened.** `project-overview.md`, `architecture.md`, `build-plan.md`, `code-standards.md`, `glossary.md`, and `design.md` say what the product is and how it gets built. A short specification is not a concise one, it is an incomplete one, and every skill downstream builds from what these say.
+
+**`human-decisions.md`, which preserves a question somebody was actually asked.** Its format keeps every option and the recommendation marker as presented, and that is provenance rather than narration.
+
+---
+
 ## Doubt pass rounds
 
 *Purpose: how many adversarial review rounds `/dev-architect` may run on one load bearing decision before it stops and brings the question to a person. Recorded here because it is a fact about how the agent works on this project, not about the product, and because a preference asked once should not be asked again every session.*

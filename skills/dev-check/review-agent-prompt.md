@@ -55,6 +55,12 @@ INVARIANTS_AND_BOUNDARIES
 - **Art direction**: DESIGN (the Build mandate and Component rules from `design.md`, for a diff touching the interface, or "none")
 - **Test signal**: TEST_SIGNAL (`configured` means weigh missing coverage as a finding · `none-by-design` means the project gates on the type checker plus `/dev-check verify`, so raise no missing test findings at all · `none-yet` means note the gap once)
 
+## How much to write
+
+RECORD_DETAIL (`BRIEF` means this project keeps its records short, `FULL` means the long form is wanted)
+
+**Under `BRIEF`, cut the framing and never a finding.** No preamble, no restatement of what the change does, no closing summary. Every finding keeps its file, its line, what is wrong, and what to do about it, at whatever length that takes. **A finding you shortened into ambiguity, or dropped to save room, is the one failure this mode must not produce**, since the whole reason somebody reads this file is to act on what is in it.
+
 ## Where to write findings
 
 OUTPUT_PATH (for example `.konteksto/reviews/2026-07-30-01-user-login.md`. Create the `.konteksto/reviews/` directory if it is missing.)

@@ -109,6 +109,7 @@ Then collect the values the prompt template needs:
 | `DESIGN` | the Build mandate and Component rules from `design.md`, for a diff touching the interface, or `none` |
 | `BLAST_RADIUS` | the reach of the change resolved above, as symbol and file names, or `none` |
 | `TEST_SIGNAL` | resolved above |
+| `RECORD_DETAIL` | `BRIEF` or `FULL`, from the Record detail section of `tooling.md`, defaulting to `BRIEF` when it is empty or absent |
 | `OUTPUT_PATH` | `.konteksto/reviews/<date>-<task-slug>.md` |
 
 ### Step 4: Spawn the reviewer
@@ -123,6 +124,8 @@ Resolve this skill's folder to an absolute path and pass the absolute paths of t
 Fallback: if subagents in this client cannot read files, read both bundled files and inline their contents into the filled prompt instead.
 
 ### Step 5: Relay the result
+
+**`RECORD_DETAIL` shortens the framing and never a finding.** Under `BRIEF` the report loses its preamble, its restatement of the change, and its closing summary, and keeps every finding at full length with its file, its line, and what to do about it. A review that dropped or trimmed a finding to save space has failed at the one job it has, so the reviewer's prompt says this in its own words too. The Record detail section of `tooling.md` defines what brief drops and the floor it may never drop. Empty, or no section at all, means `BRIEF`.
 
 The subagent errored, or wrote no findings file? Report the failure and offer to run it again. **Never relay an empty or invented review.**
 

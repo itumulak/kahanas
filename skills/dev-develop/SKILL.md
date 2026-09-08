@@ -192,7 +192,7 @@ In `progress-tracker.md`, change only these:
 
 In `decision-log.md`, append one Decision row for anything real: a bug found and why it happened, a local choice a later session would otherwise wonder about, or an assumption you built on. **Not a diary of every edit.** Nothing worth recording means no Decision row, which is normal for a task that went to plan.
 
-In `decision-log.md`, append one Evidence row for the command you ran to confirm the build is clean, with its result.
+In `decision-log.md`, append one Evidence row for the command you ran to confirm the build is clean, with its result. **Under `BRIEF`, skip that row when the check went exactly as the Definition of Done says it should**, since the `DONE` stamp you just wrote already claims a clean build and `code-standards.md` already names the command. Write it when the check produced something a later session needs: a warning you tolerated, a step you skipped and why, or a workaround the next person will meet. The Record detail section of `tooling.md` defines what brief drops and the floor it may never drop. Empty, or no section at all, means `BRIEF`.
 
 **Every log row carries the same four stamp fields**, filled the same way:
 
