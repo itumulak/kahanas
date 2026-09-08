@@ -26,8 +26,8 @@
 | Role | Agent name | Pane | Kind | Base model | Escalation model | Current model | Escalations used | Skills allowed | Prompt file | State |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | coordinator | coordinator | <w1:p1> | <kind> | <exact model identifier> | <exact model identifier, or none> | <what it is running right now> | <count for the current task> | /dev-harness, /dev-document pr | `prompts/coordinator.md` | <live\|missing> |
-| developer | developer | <w1:p2> | <kind> | <exact model identifier> | <exact model identifier, or none> | <what it is running right now> | <count for the current task> | /dev-loop, /dev-develop, /dev-check verify, /dev-debug, /dev-design, /dev-test | `prompts/developer.md` | <live\|missing> |
-| reviewer | reviewer | <w1:p3> | <kind> | <exact model identifier> | <higher reasoning effort, or none> | <what it is running right now> | <count for the current task> | /dev-check review, /dev-audit, /dev-qa | `prompts/reviewer.md` | <live\|missing> |
+| developer | developer | <w1:p2> | <kind> | <exact model identifier> | <exact model identifier, or none> | <what it is running right now> | <count for the current task> | /dev-loop, /dev-develop, /dev-check verify, /dev-debug, /dev-design, /dev-architect, /dev-test | `prompts/developer.md` | <live\|missing> |
+| reviewer | reviewer | <w1:p3> | <kind> | <exact model identifier> | <higher reasoning effort, or none> | <what it is running right now> | <count for the current task> | /dev-check review, /dev-audit, /dev-qa, /dev-sync | `prompts/reviewer.md` | <live\|missing> |
 
 When Unattended approvals is `on`, every role starts with its own skip approvals flag: `--dangerously-skip-permissions` for `claude`, `--dangerously-bypass-approvals-and-sandbox` for `codex`, `--auto` for `opencode`, and `--approve` for `pi`, which is the closest Pi has rather than the same thing. Each agent then runs whatever command it decides to run, with nothing prompting first.
 
@@ -44,6 +44,8 @@ Every window commits what it wrote before it reports back, staging paths by name
 Each window is sent its Prompt file verbatim beneath the recorded action, so the rules a worker follows are identical no matter which model is coordinating that hour. A role this project invented gets its own file at `.konteksto/harness-prompts/<role>.md`, named in its row. `internal/dispatch.md` holds the rule against paraphrasing one.
 
 Working branch is the current phase branch and it changes as phases do. The coordinator creates it, pushes it only when Push on hand back is `on`, and rewrites this field before dispatching that phase's first task, because every window commits to this branch and uses it for any configured push.
+
+`/dev-architect` sits on the developer's row so a run does not stop dead at every unmade technical decision. It carries one condition that is not optional: **the developer relays every options panel to the person and never answers one itself**, because `/dev-architect` writes those answers into `human-decisions.md`, which records what a person chose. `/dev-sync` sits on the reviewer's row because it creates no intent at all, and it is never dispatched while any worker is `working`. `internal/dispatch.md` holds both.
 
 A roster row is a convention, not a lock. Any person can type into any pane, and a second client can start an agent with the same name in a different session. This is the same honesty as the Assigned column in `progress-tracker.md`: it is an instruction agents follow and a record people can audit, never a guarantee the system keeps.
 

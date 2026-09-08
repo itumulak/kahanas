@@ -152,6 +152,26 @@ check("config counts existing panes before splitting",
 check("start still requires a live session",
   (await read("modes/start.md")).includes('test "${HERDR_ENV:-}" = 1'));
 
+// /dev-architect and /dev-sync are routed, and each carries a condition that is the point of routing it.
+const dispatchTable = dispatch.slice(dispatch.indexOf("| Recorded action |"), dispatch.indexOf("If the recorded action names"));
+check("dispatch routes /dev-architect to the developer", /\| `\/dev-architect`[^|]*\| developer \|/.test(dispatchTable));
+check("dispatch routes /dev-sync to the reviewer", /\| `\/dev-sync`[^|]*\| reviewer \|/.test(dispatchTable));
+check("roster gives the developer /dev-architect", /\/dev-architect/.test(template));
+check("roster gives the reviewer /dev-sync", /\/dev-check review[^|]*\/dev-sync/.test(template));
+check("dispatch forbids a worker answering its own architect panel",
+  /never answer its own panel|may never answer its own panel/.test(dispatch));
+check("developer brief relays architect panels", /never answer an options panel yourself/.test(briefs.developer));
+check("dispatch guards /dev-sync against a running build",
+  /Never dispatch it while any worker is `working`/.test(dispatch));
+check("reviewer brief reports what /dev-sync escalates", /escalates and never arbitrates/.test(briefs.reviewer));
+check("/dev-scope is still an ownership gap", /`\/dev-scope` is the usual case/.test(dispatch));
+
+// A rule stated twice in one brief is an edit that landed twice.
+for (const [role, text] of Object.entries(briefs)) {
+  check(`${role} brief states the /dev-harness refusal once`,
+    (text.match(/Never run `\/dev-harness` in any mode/g) || []).length <= 1);
+}
+
 // start and stop belong to the coordinator, and must say so from both ends.
 const start = await read("modes/start.md");
 const stop = await read("modes/stop.md");

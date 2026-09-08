@@ -29,13 +29,29 @@ Match the recorded action to the role whose Skills allowed column in `.konteksto
 | `/dev-check verify <task>` | developer |
 | `/dev-debug <task or AUD-ID>` | developer |
 | `/dev-design <surface>` | developer |
+| `/dev-architect` | developer |
+| `/dev-sync` | reviewer |
 | `/dev-test` | developer |
 | `/dev-check review` | reviewer |
 | `/dev-audit <task>` | reviewer |
 | `/dev-qa` or `/dev-qa <AUD-ID>` | reviewer |
 | `/dev-document pr` | coordinator, run in place and never dispatched |
 
-If the recorded action names a skill that no roster row allows, the harness does not run it anywhere. Report the action and the ownership gap to the person and stop. `/dev-scope` and `/dev-architect` are the usual cases: they settle product and technical intent, and no window in this roster may hold that.
+If the recorded action names a skill that no roster row allows, the harness does not run it anywhere. Report the action and the ownership gap to the person and stop. `/dev-scope` is the usual case: it settles product intent, and no window in this roster may hold that.
+
+## Two skills carry a condition, not just a window
+
+**`/dev-architect` goes to the developer, and every options panel it raises goes to the person.** A run that hits an unmade technical decision would otherwise stop dead, and stopping every time is what made this route worth having. It is not free, though, and the cost is worth naming so nobody removes the guard as ceremony:
+
+- The window that settles the plan is then the window that builds to it. Nothing in the ownership rules forbids that, since `/dev-develop` may not create design or product intent and technical intent is `/dev-architect`'s own, but it is the same model doing both, and it is the model with a reason to decide whatever unblocks it fastest.
+- **`/dev-architect` is an interview.** Every user facing choice is an options panel, and it appends the person's answer to `.konteksto/human-decisions.md` immediately. That file exists to record what a person actually chose, so an entry a worker invented is indistinguishable from a real one forever after.
+
+**So the developer may never answer its own panel.** Relay every panel to the person exactly as `/dev-architect` composed it, with all its options and its recommendation marker intact, wait for the answer, and deliver that answer to the pane that asked. `internal/relay.md` holds the transport. A worker that answers itself here is fabricating provenance, which is the one failure this workflow treats as worse than stopping.
+
+**`/dev-sync` goes to the reviewer, and never while a build is running.** It belongs on that row because it may create no intent at all, which is the whole of what the reviewer's skills have in common, and because the pre merge chain ends with it. Two conditions hold:
+
+- **Never dispatch it while any worker is `working`.** `/dev-sync` corrects build state from repo evidence after the fact, never during a build, and this harness does run two workers at once when one is waiting on quota. Check every worker's state before sending it, not just the reviewer's.
+- **Its escalations reach the person.** `/dev-sync` escalates and never arbitrates: one task with rows from two actors is reported with every actor and branch named, and there it stops. Relay that rather than leaving it in a pane.
 
 If `Phase` is `blocked`, do not dispatch. Escalate the preserved evidence to the person and stop.
 

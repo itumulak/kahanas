@@ -22,8 +22,8 @@ coordinator  →  developer  →  coordinator  →  reviewer  →  coordinator  
 ```
 
 - **coordinator** relays. It reads the route, sends it to the right pane, watches, and reaches the person when a decision is theirs.
-- **developer** builds: `/dev-loop`, `/dev-develop`, `/dev-check verify`, `/dev-debug`, `/dev-design`, `/dev-test`.
-- **reviewer** reads code it did not write: `/dev-check review`, `/dev-audit`, `/dev-qa`. On a different model from the developer, which `config` enforces.
+- **developer** builds: `/dev-loop`, `/dev-develop`, `/dev-check verify`, `/dev-debug`, `/dev-design`, `/dev-architect`, `/dev-test`. It runs `/dev-architect` so a run does not stop at every unmade decision, and it relays every options panel rather than answering one.
+- **reviewer** reads code it did not write: `/dev-check review`, `/dev-audit`, `/dev-qa`, `/dev-sync`. On a different model from the developer, which `config` enforces.
 
 `config` asks which AI and which model runs each role, and what each moves to when the work turns out to be harder than its base model. Claude and Codex are offered first because Herdr recognizes both and both are known to work here, and any other agent this machine has installed is offered beside them.
 
