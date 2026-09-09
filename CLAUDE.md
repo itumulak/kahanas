@@ -16,7 +16,7 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | `/dev-qa` | QA Runs in `audit-register.md` | Checks resolved bugs for regression |
 | `/dev-loop` | `loop-state.md` | Orchestrates the delivery and regression loop |
 | `/dev-harness` | `harness.md` | Runs that loop across separate Herdr panes, and relays what a person must decide |
-| `/dev-context` | nothing, read only | Establishes context for a fresh session or handoff |
+| `/dev-context` | nothing, read only | Establishes context for a fresh session or handoff, and tells a named role what it may do |
 | `/dev-test` | the test files, and `test-preferences.json` | Stops it breaking again |
 | `/dev-document` | `CHANGELOG.md`, `.konteksto/releases/`, `.konteksto/postmortems/` | Explains it to people |
 | `/dev-sync` | corrections to `progress-tracker.md` and `ui-registry.md` from repo evidence, and the archived log rows in `.konteksto/logs/` | Makes the documents true again |
@@ -168,6 +168,18 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 The stamp records provenance, not permission. It never licenses overwriting something someone edited.
 
 **A gap and a contradiction are different problems.** A gap is a fact missing that the repo can prove, and it gets filled. A contradiction is a document disagreeing with the code, and it never gets resolved automatically, because from the outside you cannot tell whether the code drifted or the document was deliberate and the code broke it.
+
+## Roles
+
+**A role context tells a fresh agent what it is for, before it touches anything.** `/dev-context <role>` reads one, and the shipped roles are planner, developer, designer, coordinator, and reviewer, listed with the skills each runs in `dev-context/SKILL.md`. The problem it solves is real and was hit repeatedly: a session started on a different model or a different tool picks up half finished work and follows its own habits rather than this project's rules, so a builder designs, a reviewer fixes, and a coordinator invents a route.
+
+**A role is the skill in your hand, not the window you are sitting in.** A harness dispatches `/dev-architect` and `/dev-design` to whichever window has a terminal, so a worker handed one reads that role's file and follows it while the command runs. Without that, the role files and the dispatch table contradict each other on the one case that matters.
+
+**A role file carries the trigger, the action, and a pointer, and never a definition.** It is the same rule every non owner follows, and it matters more here, because a role file is read by the session least able to notice it has gone stale.
+
+**A project may add a role, and only a person may.** `.konteksto/roles/<name>.md` wins over the shipped file of the same name, so a project can sharpen one without editing an installed skill. `/dev-context` writes none of them: it is read only, and a role a model invents each session is not a role.
+
+**A role context and a harness brief are different things.** The role context is the protocol a role follows anywhere, including in a plain terminal with no harness running. The harness brief is the mechanics of one run, and its first rule is to go and read the role context.
 
 ## Team shape
 

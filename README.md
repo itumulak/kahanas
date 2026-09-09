@@ -32,7 +32,7 @@ Every skill answers to `/dev-scope`, `/dev-architect`, and so on.
 | Skill | What it does |
 |---|---|
 | `/dev-scope` | Turns an idea into what the product is: pages, flows, and what is deliberately out of scope. Stays tool agnostic. |
-| `/dev-context` | Reads the project records in order for a fresh session or handoff, then reports the active task, constraints, and next valid workflow step. |
+| `/dev-context` | Reads the project records in order for a fresh session or handoff, then reports the active task, constraints, and next valid workflow step. Takes an optional role, `planner`, `developer`, `designer`, `coordinator`, or `reviewer`, and briefs the session as that role. |
 | `/dev-architect` | Settles the stack, the local containers, and the build plan. Makes every tool call there is. |
 | `/dev-design` | Designs every surface the flows require, renders each one in a real browser, and gets a person to approve it. Frontend only. |
 | `/dev-develop` | Builds one task from the plan, then stops. Refuses to invent a decision the documents do not record. |
@@ -109,7 +109,7 @@ Pushing is off unless the user enables it during configuration. With pushing off
 
 ### Run it manually
 
-Use `/dev-context` at the start of a fresh session or handoff. Once per project, run `/dev-scope`, `/dev-architect`, and `/dev-design` for frontend work. `/dev-loop <tasks>` is the automated alternative to the task sequence below, so do not run it alongside the manual steps.
+Use `/dev-context` at the start of a fresh session or handoff, and `/dev-context <role>` when that session is picking up somebody else's unfinished work. Once per project, run `/dev-scope`, `/dev-architect`, and `/dev-design` for frontend work. `/dev-loop <tasks>` is the automated alternative to the task sequence below, so do not run it alongside the manual steps.
 
 For each task, run:
 
@@ -171,7 +171,7 @@ Two of them describe the same task from complementary angles. The tracker says *
 
 `human-decisions.md` answers a different question: **what did the person choose from what they were shown?** Each entry keeps the question, every option, the original recommended marker, and the checked answer together. That makes a deliberate override visible without asking a later session to infer it from the finished documents. `/dev-scope` creates it, while `/dev-architect` and `/dev-design` append only the choices from their own conversations.
 
-Start a fresh agent or handoff with `/dev-context`. Use `/dev-loop` when a sequence of build plan tasks should run through implementation, verification, tests, audit, and regression QA.
+Start a fresh agent or handoff with `/dev-context`, naming the role when the agent is one of several working the same project. Use `/dev-loop` when a sequence of build plan tasks should run through implementation, verification, tests, audit, and regression QA.
 
 `design-registry.md` splits between a skill and a person: `/dev-design` writes every status except `APPROVED`, which only a person decides. A skill may record an approval somebody actually gave, on strict conditions, and may never originate one. It still marks an approved design `CHANGE REQUIRED` when something invalidates it, because noticing a thing has gone stale is an observation and deciding it is fixed is not.
 

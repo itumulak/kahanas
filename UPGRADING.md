@@ -159,7 +159,13 @@ about. Do not smooth over a gap. I want the list.
 
 Templates live in `skills/dev-architect/templates/`, except `design.md` and `design-registry.md`, which are in `skills/dev-design/templates/`, `project-overview.md`, `glossary.md`, and `human-decisions.md`, which are in `skills/dev-scope/templates/`, `audit-register.md`, which is in `skills/dev-audit/templates/`, and `loop-state.md`, which is in `skills/dev-loop/templates/`. The `harness.md` template lives in `skills/dev-harness/templates/`, but `/dev-harness config` owns creating it; do not copy it into a project by hand.
 
-### Coming from 0.9.0: shorter records, and archived log rows
+### Coming from 0.9.0: role contexts, shorter records, and archived log rows
+
+**Role contexts need nothing added to your project.** `/dev-context planner`, `developer`, `designer`, `coordinator`, or `reviewer` reads a file the skill ships and briefs the session as that role. The plain `/dev-context` behaves exactly as before. Use the role form when a session is picking up somebody else's unfinished work, or when it is running on a model or a tool that has never seen this project.
+
+Want a role of your own, or a sharper version of a shipped one? Write `.konteksto/roles/<name>.md` and commit it. A project file of the same name wins over the shipped one, so reinstalling the skills never loses it. `skills/dev-context/roles/writing-a-role.md` holds the shape, and `/dev-context` never writes one for you: it is read only, and a role a model invents each session is not a role.
+
+**If you run the harness**, its three briefs now open by sending the worker to `/dev-context <role>`, and the rules that were never about the harness moved into the role file. Nothing in `.konteksto/harness.md` changes. A role your project invented needs `.konteksto/roles/<name>.md` as well as its `.konteksto/harness-prompts/<name>.md`, because the brief now sends it somewhere to read.
 
 Nothing to migrate. An existing `.konteksto/tooling.md` has no Record detail section, and a missing section means `BRIEF`, so your records get shorter the next time a skill appends to one. Nothing already written changes.
 

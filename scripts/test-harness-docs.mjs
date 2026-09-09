@@ -245,8 +245,22 @@ check("the loop resumes an owner handoff with a bare loop, never a subskill",
 
 check("the developer brief tells a cold model what to do with a design stop",
   /A design is never yours to invent or to approve/.test(briefs.developer) &&
-  /`READY FOR REVIEW`/.test(briefs.developer) &&
-  /never write `APPROVED`/.test(briefs.developer));
+  /`READY FOR REVIEW`/.test(briefs.developer));
+
+// The rules that are not about this harness now live in the role context, and each
+// brief has to send the worker there. A brief that carries its own copy is the
+// duplicate definition this split exists to remove.
+const roleOf = { coordinator: "coordinator", developer: "developer", reviewer: "reviewer" };
+for (const [role, context] of Object.entries(roleOf)) {
+  check(`${role} brief sends the worker to its role context first`,
+    new RegExp(`Run \`/dev-context ${context}\` before anything else`).test(briefs[role]));
+  check(`${role} brief states the role context rule as its first rule`,
+    briefs[role].indexOf("/dev-context") < briefs[role].indexOf("2. "));
+}
+const developerRole = await readFile(
+  join(REPO, "skills", "dev-context", "roles", "developer.md"), "utf8");
+check("the developer role context holds the approval rule the brief no longer copies",
+  /never write `APPROVED`/i.test(developerRole) && !/never write `APPROVED`/.test(briefs.developer));
 check("the developer brief's rule count matches its rules",
   (() => {
     const words = { Six: 6, Seven: 7, Eight: 8, Nine: 9, Ten: 10 };
