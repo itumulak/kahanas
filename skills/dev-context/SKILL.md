@@ -1,8 +1,8 @@
 ---
 name: dev-context
 allowed-tools: Bash, Read, Grep, Glob
-argument-hint: [task]
-description: "Run /dev-context to establish project context before development, verification, or a handoff. Reads the project records in their required order, including the person's recorded choices and recommendation overrides, identifies the active task and governing decisions, then follows their ownership and workflow rules."
+argument-hint: [role] [task]
+description: "Run /dev-context to establish project context before development, verification, or a handoff. Reads the project records in their required order, including the person's recorded choices and recommendation overrides, identifies the active task and governing decisions, then follows their ownership and workflow rules. Takes an optional role, one of planner, developer, designer, coordinator, or reviewer, and folds that role's protocol into the brief so a fresh agent on any model knows what it owns and what it may never do."
 ---
 
 ## Output style (plain words, no dashes, no hyphens)
@@ -16,6 +16,42 @@ Write everything this skill produces, files and messages alike, in plain simple 
 The context entry point for a fresh agent or a task that needs a complete project view. It reads the project records in a fixed order, so the plan, current state, and documented decisions are interpreted against the architecture and standards that govern them. It prepares a session; it does not replace the narrower records each delivery skill must read for its own work.
 
 This skill is read only. It does not repair stale documents or change code. Report contradictions with the document and owner that must resolve them.
+
+## The files this skill ships
+
+- `roles/planner.md`, `roles/developer.md`, `roles/designer.md`, `roles/coordinator.md`, `roles/reviewer.md`: the protocol for each default role. Read the one the argument named, and never the others.
+- `roles/writing-a-role.md`: the shape a project's own role file needs, and where it goes. Read it only when a named role has no file, or when somebody asks how to add one.
+
+## The argument
+
+`/dev-context [role] [task]`. Both parts are optional.
+
+If the first word matches a role, it is the role and the rest is the task. Otherwise the whole argument is the task and no role applies.
+
+| Role | Runs | Also accepted |
+| --- | --- | --- |
+| `planner` | `/dev-scope`, `/dev-architect` | `architect`, `scope` |
+| `developer` | `/dev-develop`, `/dev-check verify`, `/dev-test`, `/dev-debug`, `/dev-loop` | `dev`, `builder`, `engineer` |
+| `designer` | `/dev-design` | `design` |
+| `coordinator` | `/dev-harness`, `/dev-document pr` | `manager`, `lead` |
+| `reviewer` | `/dev-check review`, `/dev-audit`, `/dev-qa`, `/dev-sync` | `qa`, `auditor` |
+
+## Read the role context
+
+**Trigger:** the argument named a role.
+
+**Action:** resolve it in this order and stop at the first file that exists.
+
+1. `.konteksto/roles/<role>.md`, this project's own file
+2. `roles/<role>.md`, the default this skill ships
+
+Read that file completely, before the records, and apply it for the rest of the session. It says what the role runs, what it writes, and what it may never do. It is the answer to a fresh agent arriving on a different model or a different tool and building on habit rather than on this project's rules.
+
+**No file for that role?** Say so in one line, name `roles/writing-a-role.md` as the shape it needs and `.konteksto/roles/<role>.md` as where it goes, and brief without one. This skill is read only, so it never writes that file. A person does, and commits it, because a role a model invents each session is not a role.
+
+**No role in the argument?** Brief without one. Then, in one line, name the roles in the table above and say the argument exists, because the session that most needs a role context is the one that did not know to ask for it.
+
+**A role is the skill in your hand, not the window you are sitting in.** A session dispatched a command that belongs to another role reads that role's file and follows it while the command runs. Each file says so at the point it matters.
 
 ## Read in this order
 
@@ -51,6 +87,18 @@ After reading, identify:
 
 Read `.konteksto/loop-state.md` after the required records when it exists. It is supplemental execution state, not a replacement for the progress tracker. When it describes an active run, its Next action is the current workflow instruction; report it verbatim rather than deriving a competing next step.
 
+## Orient from the code graph, when the project has one
+
+**Trigger:** the Code Graph section of `tooling.md`, read at step 5 above, has Status `WIRED`.
+
+**Action:** run its Repo orientation command, and its Locate command against the active task's Goal. Fold what comes back into the brief as pointers: the files that task most likely touches, and the areas they sit in. Run nothing else, and never the build or enrichment commands, which cost time or money and belong to `/dev-architect`.
+
+**Pointer:** that section defines what a graph answer is worth. The short of it is that a pointer is a lead and never evidence, so the brief presents these as places to look and never as facts about the project.
+
+Any other Status, no graph tool on the machine, or a command that fails: say so in one line and brief from the documents alone, which is the whole job anyway.
+
+**No Code Graph section at all?** Nobody has been asked yet. Say so once, name `/dev-architect`, and carry on. Do not query a graph no document records: the section holds the commands, so querying without it is guessing at them. This is the same shape as any other missing record: report it with the owner, and change nothing.
+
 ## Apply the protocols
 
 Follow the ownership, approval, and routing rules recorded in the documents. In particular:
@@ -62,3 +110,5 @@ Follow the ownership, approval, and routing rules recorded in the documents. In 
 - Preserve the approved design boundary for UI work.
 
 Finish with a concise context brief: active aggregate task, first unfinished subtask, all task and subtask goals, current phase, governing constraints, applicable design, blockers, and next valid skill. Do not claim verification or approval that the records do not support.
+
+When a role context was read, open the brief with that role's name and the file it came from, and close it with the next valid step **for that role**, which is not always the project's next step. A reviewer's next step on a task that needs building is to say so and stop, not to build it.

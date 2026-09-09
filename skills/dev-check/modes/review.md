@@ -87,6 +87,14 @@ Read `test-preferences.json` at the project root, which `/dev-test` owns and mai
 
 Getting this wrong wastes the whole review on coverage nagging, so settle it before spawning.
 
+Resolve the **reach of the change**, when the Code Graph section of `tooling.md` has Status `WIRED`. Run its Reach of a diff command over the change set. What comes back is the symbols outside the diff that reference something inside it, which is the set a reviewer would otherwise have to guess at, and it is the difference between reviewing a change and reviewing what the change breaks.
+
+Pass it on as names only, and **let the reviewer read the files itself**, which is the same rule the rest of this step follows. A graph answer is a pointer and never a finding: the Code Graph section defines that, and the reviewer's own prompt repeats the consequence, since it is the one reading the result.
+
+Any other Status, or a failing command, and `BLAST_RADIUS` is `none`. The review is unchanged, which is how it ran before there was a graph.
+
+**No Code Graph section at all?** Nobody has been asked yet. Say so once, name `/dev-architect`, and carry on. Do not query a graph no document records: the section holds the commands, so querying without it is guessing at them. Put that line in the relay at step 5, never in the findings file, which is the reviewer's.
+
 Then collect the values the prompt template needs:
 
 | Placeholder | What to put in it |
@@ -99,7 +107,9 @@ Then collect the values the prompt template needs:
 | `USER_FLOWS` | the Core User Flow steps for any page the change touches, or `none` |
 | `UI_REGISTRY_SUMMARY` | component names and paths from `ui-registry.md`, or `none` |
 | `DESIGN` | the Build mandate and Component rules from `design.md`, for a diff touching the interface, or `none` |
+| `BLAST_RADIUS` | the reach of the change resolved above, as symbol and file names, or `none` |
 | `TEST_SIGNAL` | resolved above |
+| `RECORD_DETAIL` | `BRIEF` or `FULL`, from the Record detail section of `tooling.md`, defaulting to `BRIEF` when it is empty or absent |
 | `OUTPUT_PATH` | `.konteksto/reviews/<date>-<task-slug>.md` |
 
 ### Step 4: Spawn the reviewer
@@ -114,6 +124,8 @@ Resolve this skill's folder to an absolute path and pass the absolute paths of t
 Fallback: if subagents in this client cannot read files, read both bundled files and inline their contents into the filled prompt instead.
 
 ### Step 5: Relay the result
+
+**`RECORD_DETAIL` shortens the framing and never a finding.** Under `BRIEF` the report loses its preamble, its restatement of the change, and its closing summary, and keeps every finding at full length with its file, its line, and what to do about it. A review that dropped or trimmed a finding to save space has failed at the one job it has, so the reviewer's prompt says this in its own words too. The Record detail section of `tooling.md` defines what brief drops and the floor it may never drop. Empty, or no section at all, means `BRIEF`.
 
 The subagent errored, or wrote no findings file? Report the failure and offer to run it again. **Never relay an empty or invented review.**
 

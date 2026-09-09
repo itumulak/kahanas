@@ -45,6 +45,8 @@ If this session genuinely may not run `/dev-check review`, from a tool restricti
 
    Record the current Git revision in Review basis when available, otherwise record the reviewed paths and their content checksums.
 
+**Under `BRIEF`, an issue row is one sentence and no issue is ever left out.** Every Blocker, Major, Minor, and Nit from the report gets its row, with the file and line the reviewer named, because a register exists to be worked through and a finding nobody wrote down is a finding nobody fixes. What shortens is the description, not the count. The Record detail section of `tooling.md` defines what brief drops and the floor it may never drop. Empty, or no section at all, means `BRIEF`.
+
 ## Issue states
 
 Use only these values:

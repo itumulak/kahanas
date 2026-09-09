@@ -2,5 +2,5 @@
 # its agent picker. The skill's actual instructions live in ../SKILL.md.
 interface:
   display_name: "Dev Context"
-  short_description: "Read the project records before starting work"
-  default_prompt: "Use $dev-context to read the project records in the required order, call out human choices that overrode a recommendation, identify the active task and constraints, and report the next valid workflow step."
+  short_description: "Read the project records, and your role, before starting work"
+  default_prompt: "Use $dev-context to read the project records in the required order, call out human choices that overrode a recommendation, identify the active task and constraints, and report the next valid workflow step. Pass a role first, one of planner, developer, designer, coordinator, or reviewer, to have it read that role's protocol and brief you as that role."

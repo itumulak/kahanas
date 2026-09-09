@@ -71,3 +71,16 @@ temp/
 # This repository is the source of the skills rather than a project using them,
 # so anything generated here by running them on itself stays local.
 .konteksto/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+
+# graft's agent wiring, for the same reason as .konteksto/ above: this repository
+# is the source of the skills rather than a project running them, so the tooling
+# it uses on itself stays local. Committing these would hand every contributor an
+# MCP server they have not installed and a second set of root instructions beside
+# CLAUDE.md. Anchored to the root so a real AGENTS.md elsewhere still tracks.
+/.mcp.json
+/opencode.json
+/AGENTS.md
+/.claude/

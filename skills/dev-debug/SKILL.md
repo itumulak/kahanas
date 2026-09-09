@@ -43,6 +43,8 @@ The whole chain, once per project then once per task:
 
 **Writes** the minimal code fix for the proven root cause and appended Decision and Evidence rows in `decision-log.md`. The Decision explains the cause and fix. The Evidence records the reproduction and confirmation. Read the log's Who writes what section, append at the bottom, and never edit a row another skill wrote.
 
+**Under `BRIEF`, both rows are one sentence each and both are still written.** A proven root cause, its fix, the reproduction, and the confirming check are on the floor that brief may never drop, which is the whole reason this skill's rows survive a setting that removes a routine build confirmation. What goes is the trail: the hypotheses you tested and discarded belong in the report, not in a record somebody reads a year from now. The Record detail section of `tooling.md` defines what brief drops and the floor it may never drop. Empty, or no section at all, means `BRIEF`.
+
 **Both rows carry the same stamp fields**: the Timestamp as `YYYY-MM-DD HH:MM` from the system clock, the Author as your exact model identifier such as `claude-opus-5`, the Skill as `/dev-debug`, and on a team project the Actor from `git config user.name`. Write `unknown-model` and say so rather than guessing an identifier. Author stays on a personal project even though Actor goes, since the model changes between sessions and the person does not.
 
 **`progress-tracker.md` is not yours at all.** Leave the Status column to `/dev-develop` and the Verify Check column and its Note to `/dev-check verify`. A `FAILED` verify stays `FAILED` until `/dev-check verify` runs again and supersedes it, which is the point: you fixed the cause, and somebody still has to watch the behavior work.
@@ -82,6 +84,7 @@ Narrow the failure to the smallest surface that still fails, before theorizing a
 - **Bisect the code path.** Binary search for where good input becomes bad output, using logging at midpoints or by removing pieces.
 - **Bisect the history.** For a regression, `git bisect`, or read the history of the suspect files, to find the change that introduced it.
 - **Read the actual values.** Instrument the inputs and outputs at the boundary. Do not assume what they contain, because the assumption is usually where the bug is hiding.
+- **Ask the code graph who touches the suspect symbol**, when the Code Graph section of `tooling.md` has Status `WIRED`. Its References to a symbol command, with the depth flag, gives the call paths into the failure without reading the files on the way there, which narrows a bisect faster than instrumenting does. Then read those files: a graph answer is a pointer and never the finding, which that section defines. Any other Status, or a failing command, and you bisect as above. **No Code Graph section at all?** Nobody has been asked yet. Say so once, name `/dev-architect`, and carry on. Do not query a graph no document records: the section holds the commands, so querying without it is guessing at them.
 
 ### Step 3: Hypothesize, one at a time
 

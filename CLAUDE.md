@@ -16,10 +16,10 @@ A skill set that carries a project from an idea to shipped code, keeping the rea
 | `/dev-qa` | QA Runs in `audit-register.md` | Checks resolved bugs for regression |
 | `/dev-loop` | `loop-state.md` | Orchestrates the delivery and regression loop |
 | `/dev-harness` | `harness.md` | Runs that loop across separate Herdr panes, and relays what a person must decide |
-| `/dev-context` | nothing, read only | Establishes context for a fresh session or handoff |
+| `/dev-context` | nothing, read only | Establishes context for a fresh session or handoff, and tells a named role what it may do |
 | `/dev-test` | the test files, and `test-preferences.json` | Stops it breaking again |
 | `/dev-document` | `CHANGELOG.md`, `.konteksto/releases/`, `.konteksto/postmortems/` | Explains it to people |
-| `/dev-sync` | corrections to `progress-tracker.md` and `ui-registry.md` from repo evidence | Makes the documents true again |
+| `/dev-sync` | corrections to `progress-tracker.md` and `ui-registry.md` from repo evidence, and the archived log rows in `.konteksto/logs/` | Makes the documents true again |
 
 `design.md` and `design-registry.md` are the optional ones, skipped together with `.konteksto/designs/` for a backend with no `app/`, which is the same condition under which `/dev-design` does not run at all.
 
@@ -88,6 +88,8 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 | How a review session is stopped, and why never by signalling it | `dev-design/internal/design-review.md` |
 | How a prototype state is reached from outside | `dev-design/internal/design-direction.md` |
 | The human question and answer format, and who appends to it | `human-decisions.md` |
+| What a code graph answer is worth | `tooling.md` |
+| How much a record says, and the floor it may never drop | `tooling.md` |
 
 **This overview and `README.md` are the exception, and they still may not carry specifics.** Their job is orientation for somebody maintaining the skills, so they say what a rule is for and why it exists. They do not restate its exact conditions, values, or counts, because a summary that carries operational detail is just another copy waiting to go stale.
 
@@ -141,6 +143,12 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 
 **Append only, and never across writers.** A row is a claim about a moment that has already passed. A skill appends its own row and edits nobody's, and `/dev-sync` writes none at all, because it has run nothing and a fabricated observation reads exactly like a real one.
 
+**A record is written to be acted on later, which sets both its floor and its ceiling.** A project picks how much its records say, `/dev-architect` asks once and writes the answer into `tooling.md`, and every skill that appends to one reads it. Brief drops routine confirmations, narration, and the reasoning behind a decision already recorded. It may never drop a finding, a failure, a decision, an assumption, a root cause, a stamp, an approval, or the location of the evidence behind a pass, because a history missing the thing somebody needed is not shorter, it is useless. The setting leaves intent documents alone, since a short specification is an incomplete one rather than a concise one, and it leaves `/dev-document` alone, since that prose is written for people outside the project.
+
+**Brevity slows a log's growth and never stops it, so a closed phase's rows move out.** `/dev-sync` asks, then moves them byte for byte into `.konteksto/logs/`, leaving a pointer row behind. Nothing is summarised, rewritten, or dropped, which is what keeps append only true: the archive is `decision-log.md` continued backwards, not a new record, and it earns no place on the new artifact test because it has the same owner, lifecycle, and truth source as the file it came out of.
+
+**A code graph is a shortcut to evidence and never evidence itself.** A project may wire a parsed index of its own code, which `/dev-architect` offers once and records in `tooling.md`, and five skills query to find code instead of reading their way to it. What comes back is a pointer: the file gets opened and the lines get read before any skill writes a claim, a finding, or a stamp. The reason is that these tools also generate prose summaries, and a model's paraphrase of code reads exactly like an observation while being nothing of the kind, which is the fabricated evidence problem wearing a different hat. `tooling.md` holds the rule, and each consumer carries only its own trigger and action.
+
 `progress-tracker.md` splits differently, **by column rather than by row.** Every task has one aggregate row with its Goal and one child row per UI and Logic subtask. `/dev-architect` owns those labels and goals, copied word for word from `build-plan.md`. `/dev-develop` owns Assigned on aggregate rows and Status on every row, plus a blocked Note. `/dev-check verify` owns Verify Check on every row, plus a failed Note. `/dev-sync` may still correct build state from repo evidence after the fact, never during a build, and it writes no Verify Check cell or Evidence row: it has run nothing.
 
 **A `DONE` Status and a `PASSED` Verify Check are two different claims, so they are two columns.** `DONE` says the code was built and the build is clean. `PASSED` says a model ran the thing and watched it work. A task holding `DONE` with a `FAILED` verify is a real and useful state, and one column could not express it.
@@ -160,6 +168,18 @@ It does not carry the definition, the boundary cases, or the reasoning. **Those 
 The stamp records provenance, not permission. It never licenses overwriting something someone edited.
 
 **A gap and a contradiction are different problems.** A gap is a fact missing that the repo can prove, and it gets filled. A contradiction is a document disagreeing with the code, and it never gets resolved automatically, because from the outside you cannot tell whether the code drifted or the document was deliberate and the code broke it.
+
+## Roles
+
+**A role context tells a fresh agent what it is for, before it touches anything.** `/dev-context <role>` reads one, and the shipped roles are planner, developer, designer, coordinator, and reviewer, listed with the skills each runs in `dev-context/SKILL.md`. The problem it solves is real and was hit repeatedly: a session started on a different model or a different tool picks up half finished work and follows its own habits rather than this project's rules, so a builder designs, a reviewer fixes, and a coordinator invents a route.
+
+**A role is the skill in your hand, not the window you are sitting in.** A harness dispatches `/dev-architect` and `/dev-design` to whichever window has a terminal, so a worker handed one reads that role's file and follows it while the command runs. Without that, the role files and the dispatch table contradict each other on the one case that matters.
+
+**A role file carries the trigger, the action, and a pointer, and never a definition.** It is the same rule every non owner follows, and it matters more here, because a role file is read by the session least able to notice it has gone stale.
+
+**A project may add a role, and only a person may.** `.konteksto/roles/<name>.md` wins over the shipped file of the same name, so a project can sharpen one without editing an installed skill. `/dev-context` writes none of them: it is read only, and a role a model invents each session is not a role.
+
+**A role context and a harness brief are different things.** The role context is the protocol a role follows anywhere, including in a plain terminal with no harness running. The harness brief is the mechanics of one run, and its first rule is to go and read the role context.
 
 ## Team shape
 

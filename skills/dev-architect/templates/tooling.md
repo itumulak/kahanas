@@ -1,6 +1,6 @@
 # Tooling
 
-*Purpose: the agent tooling this project runs with, meaning MCP servers and skills, plus where each came from and why it was chosen. Kept separate from `library-docs.md` because these are tools the agent uses while working, not packages the product ships. Optional sections stay only when the project actually uses that kind of tool.*
+*Purpose: the agent tooling this project runs with, meaning MCP servers, skills, and the code graph, plus where each came from and why it was chosen. Kept separate from `library-docs.md` because these are tools the agent uses while working, not packages the product ships. Optional sections stay only when the project actually uses that kind of tool.*
 
 Every entry here was found during discovery, checked against the stack in `architecture.md`, and approved by a human before install. Anything found and rejected is recorded at the bottom, so a later session does not re propose it.
 
@@ -50,6 +50,75 @@ Secrets stay in environment variables and are listed in `code-standards.md` unde
 ```bash
 npx skills add <OWNER_REPO>
 ```
+
+---
+
+## Code Graph
+
+*Purpose: the code graph this project queries to find code, if it has one, plus the one rule every skill applies to what it gets back. Written by `/dev-architect` and read by `/dev-context`, `/dev-develop`, `/dev-debug`, `/dev-check review`, and `/dev-sync`. This is the canonical definition of what a graph answer is worth, and every one of those skills carries only its own trigger, its own action, and a pointer here. Optional: on a project with no graph, keep the heading and write the decline line, so a later session does not offer it again.*
+
+**Status:** <WIRED | DECLINED | DEFERRED>
+
+| What | Value |
+| --- | --- |
+| Tool | <TOOL_NAME_AND_VERSION, FOR_EXAMPLE_GRAFT> |
+| Source | <OFFICIAL_DOCS_OR_REPO_URL> |
+| Install | `<EXACT_COMMAND_THE_PERSON_RAN>` |
+| Wiring | `<EXACT_COMMAND_THAT_WIRED_IT_INTO_THE_AGENT, OR: none>` |
+| Cache | <WHERE_THE_GRAPH_LIVES_AND_WHETHER_IT_IS_IGNORED_BY_GIT> |
+| Enrichment | <STRUCTURAL_ONLY | SUMMARIES_TOO, AND_WHICH_PROVIDER_KEY_PAID_FOR_THEM> |
+| Build | `<COMMAND_THAT_BUILDS_OR_REBUILDS_THE_GRAPH>` |
+| Freshness check | `<COMMAND_THAT_REPORTS_DRIFT_FROM_THE_WORKING_TREE>` |
+| Locate | `<COMMAND_THAT_RANKS_CODE_FOR_A_TASK_DESCRIPTION>` |
+| Surface of a file | `<COMMAND_THAT_PRINTS_SIGNATURES_WITHOUT_BODIES>` |
+| References to a symbol | `<COMMAND_THAT_LISTS_CALLERS_AND_ITS_DEPTH_FLAG>` |
+| Reach of a diff | `<COMMAND_THAT_REPORTS_WHAT_A_CHANGE_TOUCHES>` |
+| Repo orientation | `<COMMAND_THAT_PRINTS_HUBS_AND_CLUSTERS>` |
+
+### The graph locates code and never decides anything
+
+**A graph answer is a pointer, and the file it points at is the evidence.** Open the file and read the lines before writing a single claim anywhere. This is the whole rule, and every consequence below follows from it.
+
+**The reason is that a graph node carries prose a model wrote about code.** A summary is a paraphrase, produced at some earlier moment, by some model nobody recorded, against bytes that may since have changed. It reads exactly like an observation and it is not one, which is the same failure as fabricated evidence: the next session cannot tell them apart. So it is a lead worth following and never a line worth quoting.
+
+Four consequences, one per skill that reads this:
+
+- **No document cell is filled from the graph.** Not a Status, not a Verify Check, not an Evidence row, not a component in `ui-registry.md`, not a term in `glossary.md`. Those are claims about something somebody ran or somebody chose, and a graph has run nothing and chosen nothing.
+- **No finding cites a node.** A review finding names a file and a line the reviewer read. A node identifier in a finding is a finding nobody can check.
+- **No decision comes out of it.** A graph showing one pattern used everywhere is not a decision that the pattern is right. Load bearing choices stay with `/dev-architect` and the person.
+- **Absence is normal and never a blocker.** A project with no graph, a stale graph, or a language the tool parses poorly falls back to search and read, which is what every skill did before. A skill that cannot query the graph says so in one line and carries on.
+
+### No section at all is a fourth state, and it means nobody has been asked
+
+`WIRED`, `DECLINED`, and `DEFERRED` are answers. **A `tooling.md` with no Code Graph section in it is a project that predates the question**, and that is a different thing from a project that said no.
+
+**A skill that reaches this state says so once and names `/dev-architect`, then carries on as it always did.** One line in its report, not a panel and not a repeated warning. The person may well have the tool installed already and be wondering why nothing is using it, and that line is the whole answer.
+
+**It routes rather than querying, and the reason is this section.** The rows above are what hold the commands, so a skill querying a graph with no section to read is guessing at the commands, and two skills guessing differently on the same repository is a worse outcome than neither of them using it. Recording the answer is one `/dev-architect` run, and after it the question is settled either way.
+
+**Where the graph tool's own commands or tools are already available to the session**, say that in the same line. The answer is then plainly yes, and the person only needs it written down.
+
+### What the structural pass proves, and what the summaries do not
+
+**Two layers, two different degrees of trust, and they are easy to confuse because one command prints both.**
+
+The structural layer is a parse: symbols, imports, and call edges, derived from the bytes on disk with no model involved. It is as right as the parser is, it costs nothing, and a query refreshes it against the working tree, so uncommitted edits are visible. Treat it as a reliable index that still gets confirmed in the file, for the ordinary reason an index can be wrong about the thing you actually asked.
+
+The summary layer is generated prose. It was written once, by a model, and nothing rebuilds it when the code moves under it. **Never quote it, never paste it into a document, and never treat a summary that disagrees with the code as anything other than the summary being stale.**
+
+**Run the freshness check before trusting anything the graph said about an area under active work**, and where it reports drift, say so and read the files instead.
+
+### Who installs it, and who pays for it
+
+**A person installs it and a person wires it.** A global package install and a wiring command that writes agent configuration, hooks, a statusline, or an MCP registration all change the person's own setup rather than this project's, which is the same line already drawn for an MCP server. `/dev-architect` gives the exact commands and the person runs them.
+
+**Building the graph is repo local, so `/dev-architect` may run it once consent is given.** The structural build needs no key and costs nothing. **The enrichment pass spends the person's own provider credit**, so it is a separate yes with the cost named, and it is never run to refresh a graph nobody asked to enrich.
+
+**Nothing else may install, wire, build, or enrich it.** A second skill reaching for the graph tool would be a second answer to what this project is built with, which is the same rule that keeps every other tool call in `/dev-architect`.
+
+**The cache is regenerable and stays out of version control.** It is the tool's own working directory and not a project record, so it belongs in `.gitignore` beside `node_modules`. Nothing in `.konteksto/` is ever derived from it.
+
+**Where the project already has a knowledge graph tool of its own**, record that here as the tool, along with which of the rows above it can answer. The rule set does not care which tool it is, only that a graph answer is a pointer.
 
 ---
 
@@ -147,6 +216,54 @@ Record that as the Install command where it applies, and prove it with the Check
 
 ---
 
+## Record detail
+
+*Purpose: how much a skill writes into a record it appends to, so a project's history stays something a person opens rather than a file that has become too long to read. Recorded here for the same reason as the round cap below: it is a fact about how the agent works on this project rather than about the product, and a preference asked once should not be asked again every session. This is the canonical definition, and every skill that appends to a record carries only its own consequence and a pointer here.*
+
+**Detail:** <BRIEF | FULL>
+
+**An empty value, or no section at all, means `BRIEF`.** A project that has never been asked gets the shorter record, which is the safe default in the only way that matters: nothing is lost that the floor below protects, and a person who wants the long form changes one word by hand.
+
+### The floor, and it is identical in both modes
+
+**`BRIEF` is never allowed to cost information a later session acts on.** These are written in full whatever this setting says:
+
+- A finding, a failure, a blocker, and the reason behind each.
+- A decision, an assumption, and a proven root cause with its fix.
+- Any stamp, status, or verdict, with the model and minute it carries.
+- An approval, and every entry in `human-decisions.md`.
+- The location of the evidence behind a pass, meaning the screenshot, the file, or the command somebody could rerun.
+- Anything a person said, in their words.
+
+**A record that drops one of those is not brief, it is wrong.** The whole point of this setting is that a shorter history is easier to act on, and a history missing the thing you needed is not shorter, it is useless. Where the two pull against each other, the floor wins and the record is as long as it has to be.
+
+### What BRIEF drops
+
+- **A routine confirmation that proved nothing surprising.** A check that passed exactly as the standing bar says it should is already claimed by the stamp beside it, and writing it out again is the same fact in two places.
+- **Narration of work that another document already holds.** The plan says what the task was, the tracker says where it stands, and repeating either into a log entry adds length and no knowledge.
+- **The reasoning that led to a decision already recorded.** Keep what was decided and why in one sentence. The deliberation behind it was worth having and is not worth storing.
+- **Per item prose where a count says the same thing.** Twelve conditions exercised and all twelve met is one sentence, not twelve.
+
+**One sentence per cell in a table record.** Say what happened and why, and stop. A cell that genuinely needs two sentences may have two; a cell that wants a paragraph is describing something that belongs in its own document.
+
+**In a prose record, the findings keep their full length and the framing goes.** A review under `BRIEF` loses its preamble, its restatement of the change, and its closing summary. It loses no finding, and it shortens no finding, because a finding somebody has to act on is exactly the thing the floor protects.
+
+### What FULL changes
+
+`FULL` restores the routine confirmations and the framing prose, and lifts the one sentence rule. It changes nothing about the floor, which was never a length rule in the first place.
+
+**Pick `FULL` on a project where the history is the deliverable**, for example a regulated build, an audited system, or a piece of work whose reasoning somebody outside the team has to reconstruct later. Everywhere else the shorter record is the one people actually read.
+
+### What this setting does not govern
+
+**Documents written for people outside this project.** Everything `/dev-document` produces, meaning changelogs, release notes, pull request descriptions, and postmortems, is prose somebody asked for and will read once. Length there is an editorial judgment about the reader, not a storage cost, so this setting leaves it alone.
+
+**Documents that state intent rather than record what happened.** `project-overview.md`, `architecture.md`, `build-plan.md`, `code-standards.md`, `glossary.md`, and `design.md` say what the product is and how it gets built. A short specification is not a concise one, it is an incomplete one, and every skill downstream builds from what these say.
+
+**`human-decisions.md`, which preserves a question somebody was actually asked.** Its format keeps every option and the recommendation marker as presented, and that is provenance rather than narration.
+
+---
+
 ## Doubt pass rounds
 
 *Purpose: how many adversarial review rounds `/dev-architect` may run on one load bearing decision before it stops and brings the question to a person. Recorded here because it is a fact about how the agent works on this project, not about the product, and because a preference asked once should not be asked again every session.*
@@ -167,7 +284,7 @@ Each round spawns a read only subagent on a different model, so this is the main
 
 | Tool | Kind | Source | Why rejected |
 | --- | --- | --- | --- |
-| <TOOL_NAME> | MCP server / skill | <SOURCE> | <REASON> |
+| <TOOL_NAME> | MCP server / skill / code graph | <SOURCE> | <REASON> |
 
 ---
 

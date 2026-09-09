@@ -207,6 +207,69 @@ check("config asks about unattended before it starts agents",
 check("config confirms roles are live after creating them",
   launch < config.indexOf("Confirm each role really came up"));
 
+
+// A design handoff leaves the harness entirely: the review is a browser session a
+// person drives, often in a fresh terminal that knows nothing about the run. Four
+// files have to agree on that, and the surface name is the one payload that makes
+// the cold session actionable.
+const relay = await read("internal/relay.md");
+const loop = await readFile(join(REPO, "skills", "dev-loop", "SKILL.md"), "utf8");
+
+check("relay reaches the person when a design is waiting",
+  /A design is waiting on a person/.test(relay));
+check("relay names the surface as the payload that makes it actionable",
+  /cannot be acted on/.test(relay) && /`\/dev-design <surface>`/.test(relay));
+check("relay says the approval happens in a session, not over the wire",
+  /Design approval never happens over a relay/.test(relay) &&
+  /fresh session in another terminal/.test(relay));
+check("relay trusts the registry row over the person's word",
+  /the row is what decides/i.test(relay));
+
+check("dispatch counts the conditional skills it actually carries",
+  /## Three skills carry a condition/.test(dispatch) &&
+  ["`/dev-architect` goes to the developer", "`/dev-design` goes to the developer", "`/dev-sync` goes to the reviewer"]
+    .every((s) => dispatch.includes(s)));
+check("dispatch still routes a design to the developer window",
+  /\| `\/dev-design <surface>` \| developer \|/.test(dispatch));
+check("dispatch refuses to resume before the row reads APPROVED",
+  /Dispatch nothing to the developer until the row reads `APPROVED`/.test(dispatch));
+check("dispatch resumes a design handoff with a bare loop",
+  /Resume with a bare `\/dev-loop` to the developer once the row reads `APPROVED`/.test(dispatch));
+check("dispatch warns that the design session shares the working tree",
+  /share one working tree/.test(dispatch));
+
+check("the loop records a design stop instead of leaving it unwritten",
+  /`\/dev-design <surface>`/.test(loop) && /This is a handoff, not a block/.test(loop));
+check("the loop resumes an owner handoff with a bare loop, never a subskill",
+  /Resume with a bare `\/dev-loop`, never with `\/dev-develop <task>`/.test(loop));
+
+check("the developer brief tells a cold model what to do with a design stop",
+  /A design is never yours to invent or to approve/.test(briefs.developer) &&
+  /`READY FOR REVIEW`/.test(briefs.developer));
+
+// The rules that are not about this harness now live in the role context, and each
+// brief has to send the worker there. A brief that carries its own copy is the
+// duplicate definition this split exists to remove.
+const roleOf = { coordinator: "coordinator", developer: "developer", reviewer: "reviewer" };
+for (const [role, context] of Object.entries(roleOf)) {
+  check(`${role} brief sends the worker to its role context first`,
+    new RegExp(`Run \`/dev-context ${context}\` before anything else`).test(briefs[role]));
+  check(`${role} brief states the role context rule as its first rule`,
+    briefs[role].indexOf("/dev-context") < briefs[role].indexOf("2. "));
+}
+const developerRole = await readFile(
+  join(REPO, "skills", "dev-context", "roles", "developer.md"), "utf8");
+check("the developer role context holds the approval rule the brief no longer copies",
+  /never write `APPROVED`/i.test(developerRole) && !/never write `APPROVED`/.test(briefs.developer));
+check("the developer brief's rule count matches its rules",
+  (() => {
+    const words = { Six: 6, Seven: 7, Eight: 8, Nine: 9, Ten: 10 };
+    const claimed = briefs.developer.match(/([A-Z][a-z]+) rules for this run/);
+    const actual = (briefs.developer.match(/^\d+\. /gm) || []).length;
+    return claimed && words[claimed[1]] === actual;
+  })(),
+  "the brief says one number of rules and carries another");
+
 for (const line of ok) process.stdout.write(`  ok   ${line}\n`);
 for (const line of failures) process.stdout.write(`  FAIL ${line}\n`);
 process.stdout.write(`\nharness docs: ${ok.length} passed, ${failures.length} failed\n`);

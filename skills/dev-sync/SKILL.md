@@ -42,6 +42,7 @@ These keep the skill from sprawling, which is the failure mode for anything that
 | Edit `project-overview.md` | ❌ flags as stale | `/dev-scope` |
 | Clear a task built on an unratified assumption | ❌ flags as decision debt | `/dev-architect` |
 | Add or rewrite any row in `decision-log.md` | ❌ leaves alone | `/dev-develop`, `/dev-check`, `/dev-debug` |
+| Move a closed phase's `decision-log.md` rows into `.konteksto/logs/`, verbatim and after asking | ✅ moves, and rewrites none | `/dev-sync` |
 | Reassign a task, or change an assignee | ❌ flags for escalation | a person |
 | A Checkpoints section in an existing tracker | ❌ leaves alone, retired | nobody |
 | Rewrite a line a person wrote by hand | ❌ flags the conflict | the person |
@@ -58,7 +59,7 @@ The stamp records provenance, not permission. It never licenses overwriting a li
 
 ## Asks vs acts
 
-**Acts.** Pauses only when there is nothing to sync. Every edit is listed in the report so it can be reviewed or reverted.
+**Acts.** Pauses only when there is nothing to sync, and for one thing: archiving a closed phase's log rows, which asks first because moving somebody's history is not a correction the repo proves. Every edit is listed in the report so it can be reviewed or reverted.
 
 ## Where this sits
 
@@ -116,6 +117,10 @@ On an exact match, judge **each child subtask whose Status is neither `DONE` nor
 - For a UI task, the component exists and is reachable.
 
 **Proof means what is in the repo, not what a commit message claims.** A commit saying "add password reset" is a claim, and the route either exists or it does not.
+
+**Use the code graph to find the files faster, and never to decide anything.** The Code Graph section of `tooling.md` has Status `WIRED`? Its Locate command against a subtask goal, and its References to a symbol command on a component you are checking is still reachable, both cut the search. **Then open the file and read it, and stamp only on what you read there.** That section defines why: a node carries prose a model wrote, and a stamp written from a paraphrase is exactly the fabricated observation this skill must never produce. The graph is not proof, it is a shortcut to the proof. Any other Status, or a failing command, and you search and read as this step always has.
+
+**No Code Graph section at all?** Nobody has been asked yet. Say so once, name `/dev-architect`, and carry on. Do not query a graph no document records: the section holds the commands, so querying without it is guessing at them. Report it and never write it: `tooling.md` is `/dev-architect`'s file, and an unasked question is not a gap the repo can prove an answer to.
 
 **Only act on an unambiguous match.** Stamp a child only when the evidence plainly belongs to that subtask. Where code could belong to either of two subtasks, do not pick: record it as ambiguous and move on. Stamp the aggregate only when every child is `DONE` or can be stamped `DONE` in this pass, and the repo also proves the aggregate task Goal.
 
@@ -195,6 +200,26 @@ These are different problems and they get handled differently. Conflating them i
 - **A contradiction** is a document saying one thing while the code shows another. **Never resolve one yourself.** Say what the document claims, what the repo actually shows, and let the user decide which is wrong. Either the code drifted, or the document was deliberate and the code broke it, and **you cannot tell which from the outside**.
 
 Report a contradiction in that shape: this file says X, the code shows Y.
+
+### Step 4a: Archive a closed phase's log rows
+
+**Trigger:** `decision-log.md` carries rows for a phase that is finished, meaning every task in it reads `DONE` with a `PASSED` Verify Check, and it is not the phase the tracker names as current.
+
+Brevity slows a log's growth and nothing stops it, so this is the step that keeps the file somebody opens short. **It moves rows and never edits one.**
+
+**Ask first, with the number in front of them.** Say how many rows, which phase, and where they would go. A person who wants the whole history in one file says no, and that answer holds for this run only.
+
+On a yes:
+
+1. Move every row for that phase, **byte for byte**, into `.konteksto/logs/decision-log-phase-<NUMBER>.md`, in the same order, under the same column header the log uses.
+2. Append one pointer row to `decision-log.md` in place of them: the phase, the number of rows, the first and last timestamp, and the file they are now in. Stamp it like any row you write, with `/dev-sync` as the Skill.
+3. Leave everything else alone.
+
+**Never summarise a row, never drop one, and never move a row belonging to an open task**, including a `DONE` task whose Verify Check is empty or `FAILED`. A task nobody has watched work is still live history.
+
+**The archive is `decision-log.md` continued backwards, not a new record.** Same columns, same append only rule, same owners. It is a second file only because one file grew past reading, which is why it is named after the log rather than after itself, and why nothing new may ever be written into it.
+
+**A later session reads an archive only when it needs history that far back.** The pointer row is what tells it the file exists. Reading every archive on every run would undo the whole point of moving them.
 
 ### Step 5: Flag what you must not touch
 

@@ -159,6 +159,36 @@ about. Do not smooth over a gap. I want the list.
 
 Templates live in `skills/dev-architect/templates/`, except `design.md` and `design-registry.md`, which are in `skills/dev-design/templates/`, `project-overview.md`, `glossary.md`, and `human-decisions.md`, which are in `skills/dev-scope/templates/`, `audit-register.md`, which is in `skills/dev-audit/templates/`, and `loop-state.md`, which is in `skills/dev-loop/templates/`. The `harness.md` template lives in `skills/dev-harness/templates/`, but `/dev-harness config` owns creating it; do not copy it into a project by hand.
 
+### Coming from 0.9.0: role contexts, shorter records, and archived log rows
+
+**Role contexts need nothing added to your project.** `/dev-context planner`, `developer`, `designer`, `coordinator`, or `reviewer` reads a file the skill ships and briefs the session as that role. The plain `/dev-context` behaves exactly as before. Use the role form when a session is picking up somebody else's unfinished work, or when it is running on a model or a tool that has never seen this project.
+
+Want a role of your own, or a sharper version of a shipped one? Write `.konteksto/roles/<name>.md` and commit it. A project file of the same name wins over the shipped one, so reinstalling the skills never loses it. `skills/dev-context/roles/writing-a-role.md` holds the shape, and `/dev-context` never writes one for you: it is read only, and a role a model invents each session is not a role.
+
+**If you run the harness**, its three briefs now open by sending the worker to `/dev-context <role>`, and the rules that were never about the harness moved into the role file. Nothing in `.konteksto/harness.md` changes. A role your project invented needs `.konteksto/roles/<name>.md` as well as its `.konteksto/harness-prompts/<name>.md`, because the brief now sends it somewhere to read.
+
+Nothing to migrate. An existing `.konteksto/tooling.md` has no Record detail section, and a missing section means `BRIEF`, so your records get shorter the next time a skill appends to one. Nothing already written changes.
+
+Want the long form back? Add the section from `skills/dev-architect/templates/tooling.md` and set it, or run `/dev-architect` and let it ask:
+
+```text
+**Detail:** FULL
+```
+
+**Brief never drops a finding, a failure, a decision, an assumption, a root cause, a stamp, an approval, or the location of the evidence behind a pass.** It drops routine confirmations, narration, and the reasoning behind a decision already recorded. If you find something missing from a record that belongs on that list, that is a defect rather than the setting working, and it is worth reporting.
+
+**An already huge `decision-log.md` shrinks on the next `/dev-sync`**, which offers to move a closed phase's rows into `.konteksto/logs/` and asks before doing it. Say no and it leaves the file alone. Nothing is summarised or deleted either way, and the archive keeps the log's own columns, so an old row reads exactly as it did.
+
+### Coming from 0.8.1: the optional code graph
+
+Nothing to migrate, and nothing to add by hand. An existing `.konteksto/tooling.md` has no Code Graph section, and a missing section reads as a question nobody has been asked yet, so the next `/dev-architect` run offers one and records whatever you answer.
+
+Say no and it writes `Status: DECLINED` with your reason, which stops it being raised again. Every skill that can use a graph checks that Status first and falls back to searching and reading, which is what all of them did before, so a project that never wires one behaves exactly as it does today.
+
+To turn it on without running the whole skill, run `/dev-architect` and let it reach step 6b. It picks a tool, checks it against the languages in your Stack table, hands you the install and wiring commands to run yourself, then builds the graph and proves it answers before recording it.
+
+**Already installed one yourself?** The skills still will not use it until that section exists, because the section is what holds the commands they call. Until then each one says so once and points at `/dev-architect`, rather than going quiet on you. That run confirms what is already installed instead of setting it up again, so the whole migration is the record.
+
 ### Coming from 0.8.0: reviewing a design from another machine
 
 Nothing to migrate. An existing `.konteksto/tooling.md` has no Remote access row, and a missing row reads as though the person approving is at the machine running the review, which is the ordinary case.
