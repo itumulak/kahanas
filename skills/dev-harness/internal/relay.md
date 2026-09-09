@@ -12,12 +12,29 @@ This matters because of the one invariant the whole workflow rests on: no downst
 
 **Design approval never happens over a relay.** Approving a design means a person saw the prototype rendered at every breakpoint and state it claims. `/dev-design` runs that session, and a yes to a line of text is not the same act. A relay may say a design is ready to review. It may not collect the approval. If an answer tries to approve a design, reply that the approval belongs in the `/dev-design` review session and record it nowhere.
 
+**So say where the approval does happen, and name the surface.** Refusing to carry the approval is only half the job, and on its own it leaves a person told that something is blocked with no way to unblock it. The review is a browser session somebody drives, usually a fresh session in another terminal rather than a pane, and that session starts cold: it knows nothing about this run, and `/dev-design` routes on the surface's row in `design-registry.md`. **A message that does not name the surface cannot be acted on**, whatever else it says.
+
+Carry all five, every time:
+
+| What | From |
+| --- | --- |
+| The surface, spelled exactly as `design-registry.md` spells it | the worker's report, or the tracker Note on the `BLOCKED` task |
+| The task it is blocking, and its phase | `.konteksto/loop-state.md` |
+| What is missing or wrong | the tracker Note, which the visual gap rule requires |
+| The command to run, `/dev-design <surface>` | this table, verbatim |
+| That it runs in a fresh session, and that the run stays stopped until the row reads `APPROVED` | this row |
+
+**Then say the run is waiting, and on what.** A person who does not know the harness is stopped will not think to come back, and the pane sits idle while they assume it is working.
+
+**When they say it is done, the row is what decides.** Read the surface's row in `design-registry.md` before resuming anything. A person saying they approved it and a row that still reads `READY FOR REVIEW` means the approval was not recorded, and resuming on the word rather than the record sends the developer back into the same gap. `internal/dispatch.md` holds the resume route.
+
 ## When to reach out
 
 Reach the person on exactly these:
 
 - A worker stopped on a decision a person owns.
 - A worker is blocked on an approval dialog.
+- **A design is waiting on a person**, meaning a surface reached `READY FOR REVIEW` or a worker stopped on a visual gap.
 - A phase is done.
 - The run is blocked, including a route no roster window may run.
 - A worker is out of quota, with the resume time it reported.

@@ -39,7 +39,7 @@ Match the recorded action to the role whose Skills allowed column in `.konteksto
 
 If the recorded action names a skill that no roster row allows, the harness does not run it anywhere. Report the action and the ownership gap to the person and stop. `/dev-scope` is the usual case: it settles product intent, and no window in this roster may hold that.
 
-## Two skills carry a condition, not just a window
+## Three skills carry a condition, not just a window
 
 **`/dev-architect` goes to the developer, and every options panel it raises goes to the person.** A run that hits an unmade technical decision would otherwise stop dead, and stopping every time is what made this route worth having. It is not free, though, and the cost is worth naming so nobody removes the guard as ceremony:
 
@@ -47,6 +47,16 @@ If the recorded action names a skill that no roster row allows, the harness does
 - **`/dev-architect` is an interview.** Every user facing choice is an options panel, and it appends the person's answer to `.konteksto/human-decisions.md` immediately. That file exists to record what a person actually chose, so an entry a worker invented is indistinguishable from a real one forever after.
 
 **So the developer may never answer its own panel.** Relay every panel to the person exactly as `/dev-architect` composed it, with all its options and its recommendation marker intact, wait for the answer, and deliver that answer to the pane that asked. `internal/relay.md` holds the transport. A worker that answers itself here is fabricating provenance, which is the one failure this workflow treats as worse than stopping.
+
+**`/dev-design` goes to the developer, and it is the one route no window can finish.** Every other route ends when a worker reports. This one ends when a person has looked at a rendered prototype at every breakpoint and state it claims, and that person is not in a pane. Three consequences, and the run stalls silently without all three:
+
+- **The window builds the prototype and stops at the review.** It may write the design files and move the row to `READY FOR REVIEW`. It may never write `APPROVED`, and it may never answer its own review. `internal/relay.md` says why a relay cannot carry that approval either.
+- **Relay the handoff to the person, and make it something they can act on somewhere else.** The review is a browser session a person drives, so it usually happens in a fresh session in another terminal rather than in a pane. The message carries the surface name exactly as `design-registry.md` spells it, the task it is blocking, what is missing, and the one command to run: `/dev-design <surface>`. **A relay that says a design is needed without naming the surface is the whole failure**, because `/dev-design` routes on the surface's row and a session that was handed no name has nothing to route on.
+- **Dispatch nothing to the developer until the row reads `APPROVED`.** It is stopped and it reported, so there is no next route for it, and a bare `/dev-loop` sent early lands on the same visual gap and hands back the same stop. **Check the row itself before resuming**, the same guard as checking the reviewer produced a review report, and for the same reason: a gate that is still waiting looks exactly like a gate that has been cleared.
+
+**Resume with a bare `/dev-loop` to the developer once the row reads `APPROVED`.** `/dev-loop` owns its own state and recomputes the phase from the registry and the tracker, so it picks the task back up at the surface and skips what was already built.
+
+**The design session and the panes share one working tree.** A person running `/dev-design` in another terminal is writing into the same checkout the developer commits from. Nothing here may commit or push while that handoff is open: the design files belong to that session, and staging paths by name is what keeps a hand back from sweeping up half of somebody else's prototype.
 
 **`/dev-sync` goes to the reviewer, and never while a build is running.** It belongs on that row because it may create no intent at all, which is the whole of what the reviewer's skills have in common, and because the pre merge chain ends with it. Two conditions hold:
 

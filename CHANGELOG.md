@@ -20,6 +20,20 @@ Entries describe the effect on someone running the skills, not the edit that pro
 
   **Fifty eight assertions added to `npm test`** covering the setting and the archive: that the floor names every protected thing and says it outranks brevity, that each of the seven consumers states its own consequence and points at the definition rather than restating it, that a review and an audit register say in their own words that they keep every finding and every issue, that the reviewer's own prompt carries the same rule since it is the one writing the file, and that the boundary table grants the move while still forbidding the rewrite.
 
+### Fixed
+
+- **A design handoff left the harness with nothing anybody could act on.** When a worker hit a surface with no approved prototype, four files each did half the job and none of them named the surface. `/dev-loop` said to stop when `/dev-develop` routes to an owner and never said what to record, so `Next action` was whatever the model chose. The dispatch table sent `/dev-design <surface>` to the developer with no condition attached, while `/dev-architect` and `/dev-sync` both carried one. The relay's own list of reasons to reach a person had no entry for a design, so a coordinator following it had no reason to send anything. And the developer brief, which is the text a worker on any model actually receives, said nothing about designs at all. The run stalled, and a worker that was not Claude had to be argued into the flow by hand.
+
+  **The fix is that the handoff now carries the surface, because that is the one thing the next session needs.** The review is a browser session a person drives, usually a fresh session in another terminal that knows nothing about the run, and `/dev-design` routes by finding the surface's row in `design-registry.md`. So a message saying a design is needed without saying which one cannot be acted on, whatever else it says. The relay now carries the surface spelled as the registry spells it, the task it blocks, what is missing, the exact command to run, and the fact that the run is stopped until the row reads `APPROVED`.
+
+  **`/dev-loop` records an owner stop the way it already records the audit handoff**: the phase stays at `develop`, `Next action` names the owner invocation, and Last observed result says which task is blocked and on what. It is a handoff rather than a block, since `blocked` stops a harness dispatching anything at all and a design that is owed is work somebody can go and do. **`/dev-design` joins `/dev-architect` and `/dev-sync` as a route that carries a condition**, and it is the only one no window can finish: the worker builds the prototype, moves the row to `READY FOR REVIEW`, and stops, and the coordinator dispatches nothing to the developer until the row actually reads `APPROVED`, then resumes with a bare `/dev-loop`. Checking the row rather than taking somebody's word for it is the same guard as checking the reviewer produced a review report, and it exists for the same reason: a gate still waiting looks exactly like a gate that has been cleared.
+
+  **The developer brief now carries the rule, which is the half that reaches a foreign model.** It is sent verbatim on every dispatch, so a worker on Codex or OpenCode is told in its own prompt that it may never invent or approve a design, that the surface name goes in its report, and that it waits rather than retrying.
+
+- **The design session and the panes share one working tree**, which nothing said. A person running `/dev-design` in another terminal writes into the same checkout the developer commits from, so the dispatch rules now say not to commit or push over an open design handoff.
+
+- **Thirteen assertions added to `npm test`**, including one that compares the number of rules the developer brief claims to have against the number it actually carries. That file is sent verbatim to every worker, and a rule appended without updating the count is the exact drift these harness assertions exist to catch.
+
 ## [0.9.0] — 2026-09-09
 
 ### Added
