@@ -71,3 +71,6 @@ temp/
 # This repository is the source of the skills rather than a project using them,
 # so anything generated here by running them on itself stays local.
 .konteksto/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
