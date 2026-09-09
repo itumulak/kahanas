@@ -6,6 +6,8 @@ Entries describe the effect on someone running the skills, not the edit that pro
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-09-09
+
 ### Added
 
 - **`/dev-context` now takes a role, so a fresh agent knows what it is for before it touches anything.** `/dev-context planner`, `developer`, `designer`, `coordinator`, or `reviewer` reads that role's protocol and briefs the session as that role, and the plain `/dev-context` is unchanged. The problem it fixes is a session started on a different model or a different tool, picking up half finished work and following its own habits rather than this project's rules: a builder that designs the screen it is missing, a reviewer that fixes the bug it found, a coordinator that invents the obvious next route. Each role file says what that role runs, what it writes and where, what it may never do, and the conditions that end its turn, with the file that defines each rule named beside it rather than copied into it.
