@@ -6,6 +6,10 @@ Entries describe the effect on someone running the skills, not the edit that pro
 
 ## [Unreleased]
 
+### Fixed
+
+- **A fresh install of 0.10.0 shipped every skill except `/dev-context`.** Its `argument-hint` read `[role] [task]`, which is two YAML flow sequences on one line rather than one value, so the frontmatter did not parse and `npx skills add` skipped the file with a warning and carried on. Thirteen skills installed, the fourteenth was missing, and the role feature the release is built around was the part that went absent. Quoting the hint fixes it. Every other skill's hint is a single bracketed value and was never affected.
+
 ## [0.10.0] — 2026-09-09
 
 ### Added

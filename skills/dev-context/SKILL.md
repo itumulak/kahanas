@@ -1,7 +1,7 @@
 ---
 name: dev-context
 allowed-tools: Bash, Read, Grep, Glob
-argument-hint: [role] [task]
+argument-hint: "[role] [task]"
 description: "Run /dev-context to establish project context before development, verification, or a handoff. Reads the project records in their required order, including the person's recorded choices and recommendation overrides, identifies the active task and governing decisions, then follows their ownership and workflow rules. Takes an optional role, one of planner, developer, designer, coordinator, or reviewer, and folds that role's protocol into the brief so a fresh agent on any model knows what it owns and what it may never do."
 ---
 
